@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>meg.voteapp.eu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<style>
+/* Layout: phone-first personal day app. A sky band on top, a wrapping tab row, then one view at a time as a column of cards. */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e8efee; --ink:#14232b; --muted:#56666d; --line:#d3dedd;
+  --accent:#1f8a6d; --accent-ink:#ffffff; --sun:#d98a1c; --soft-accent:#d8efe7; --soft-sun:#f7e8cf;
+  --fact:#1f6f9e; --fact-bg:#dcebf5; --hyp:#8a6a12; --hyp-bg:#f4ecd2; --meta:#7a4a9c; --meta-bg:#ece2f4;
+  --warn-bg:#fdf1e4; --warn-ink:#7a4a10;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Nunito Sans", "Segoe UI", system-ui, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+.demo{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);color:var(--warn-ink);border-radius:var(--r);padding:10px 14px;font-size:14px}
+.demo b{white-space:nowrap}
+/* sky */
+.sky{position:relative;border-radius:20px;overflow:hidden;min-height:210px;background:#0b1d2b;color:#f2f7f6}
+.sky canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sky-inner{position:relative;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding:22px}
+.sky .who{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sky .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.sky .msg{font-size:17px;max-width:42ch;opacity:.95}
+.sky .facts{display:grid;grid-template-columns:repeat(2,minmax(0,auto));gap:6px 18px;align-content:start;font-size:14px;background:rgba(5,15,22,.45);border-radius:12px;padding:12px 14px}
+.sky .facts span{opacity:.8}
+.sky .facts b{font-variant-numeric:tabular-nums}
+/* tabs */
+nav.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+nav.tabs a{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:9px 14px;border-radius:999px;font-weight:700;font-size:15px}
+nav.tabs a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--sun);outline-offset:2px}
+/* grid of cards */
+.view{display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.wide{grid-column:1/-1}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tag{font-size:12px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.tag.fact{background:var(--fact-bg);color:var(--fact)}
+.tag.hyp{background:var(--hyp-bg);color:var(--hyp)}
+.tag.meta{background:var(--meta-bg);color:var(--meta)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:14px}
+.big{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);padding:8px 14px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:hover{filter:brightness(1.05)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px;cursor:pointer;user-select:none}
+.chip input{accent-color:var(--accent);margin:0}
+.chip:has(input:checked){background:var(--soft-accent);border-color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.mood{display:flex;gap:8px;flex-wrap:wrap}
+.mood button[aria-pressed="true"]{background:var(--soft-sun);border-color:var(--sun)}
+.smile{background:var(--soft-sun);border-color:transparent}
+.smile .q{font-family:var(--display);font-size:20px;font-weight:700}
+ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+.todo li label{display:flex;gap:10px;align-items:center;flex:1;min-width:0;cursor:pointer}
+.todo li .time{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:46px}
+.todo input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+.todo li.done span.t{text-decoration:line-through;color:var(--muted)}
+form.add{display:flex;gap:8px;flex-wrap:wrap}
+form.add input[type=text],form.add input[type=time],select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0}
+form.add input[type=text]{flex:1 1 180px}
+.dish{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;border:1px solid var(--line)}
+.dish:has(input:checked){border-color:var(--accent);background:var(--soft-accent)}
+.dish input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}
+.shop li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.shop li:last-child{border-bottom:0}
+.note{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.case{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;background:var(--surface-2)}
+.case .meta-row{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tablebox{overflow-x:auto}
+.confirm{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--sun);background:var(--soft-sun)}
+footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
+/* v0.2 visuals */
+.sky{min-height:300px}
+.sky-inner{padding-bottom:64px}
+.sky .phase{position:absolute;left:22px;bottom:14px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+.art{display:flex;gap:16px;align-items:center}
+.art > :last-child{min-width:0}
+.medal{flex:0 0 auto;width:104px;height:104px}
+.medal text{font-family:var(--display);font-weight:800}
+.glyph{flex:0 0 auto;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:var(--meta-bg);color:var(--meta);font-size:54px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif}
+.moonsvg{flex:0 0 auto;width:96px;height:96px}
+.arcbox{width:100%;overflow:hidden}
+.arcbox svg{display:block;width:100%;height:auto}
+.arc-label{font-size:11px;fill:var(--muted);font-family:var(--body)}
+.orb-wrap{display:grid;place-items:center;height:132px}
+.orb{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--soft-accent),var(--accent));box-shadow:0 0 0 10px var(--soft-accent);transform:scale(1);transition-property:transform;transition-timing-function:ease-in-out}
+.sunny{position:relative;overflow:hidden}
+.sunny::after{content:"";position:absolute;right:-36px;top:-36px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--sun) 0 34%,transparent 35%),repeating-conic-gradient(var(--sun) 0 6deg,transparent 6deg 24deg);opacity:.35;pointer-events:none}
+.sunny > *{position:relative;z-index:1}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+@keyframes rise{from{transform:translateY(10px);opacity:.6}to{transform:none;opacity:1}}
+.view:not([hidden]) .card{animation:rise .55s ease both;animation-delay:calc(var(--i,0) * 55ms)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}.view .card{animation:none!important}}
+.langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
+.langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+  <div class="langbar"><label for="lang-select"><span aria-hidden="true">&#127760;</span> Idioma</label><select id="lang-select"><option value="nb">Norsk</option><option value="en">English</option><option value="pt" selected>Português</option><option value="es">Español</option><option value="zh">中文</option><option value="se">Davvisámegiella (utkast)</option><option value="fkv">Kväänin kieli (utkast)</option></select></div>
+  <div class="demo" role="note"><b>Protótipo</b><span>Tudo aqui são dados de exemplo da pessoa de teste “Kari”. Nenhum dado pessoal real é guardado ou enviado. Feito para testar as ideias do meg.voteapp.eu antes de qualquer desenvolvimento.</span></div>
+
+  <header class="sky" id="sky">
+    <canvas id="skycanvas" aria-hidden="true"></canvas>
+    <div class="sky-inner">
+      <div class="who">
+        <span class="eyebrow" id="today-label">Hoje</span>
+        <h1 id="greeting">Bom dia, Kari</h1>
+        <p class="msg" id="day-msg">O número de hoje é um convite para começar algo novo. Dê o primeiro pequeno passo antes do almoço.</p>
+      </div>
+      <div class="facts" aria-label="Dados de Storslett hoje">
+        <span>Local</span><b>Storslett, Nordreisa</b>
+        <span>Nascer do sol</span><b id="sunrise">–</b>
+        <span>Pôr do sol</span><b id="sunset">–</b>
+        <span>Luz do dia</span><b id="daylen">–</b>
+        <span>Lua</span><b id="moon">–</b>
+      </div>
+    </div>
+    <span class="phase" id="sky-phase" aria-live="polite"></span>
+  </header>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <nav class="tabs" aria-label="Seções do meg.voteapp.eu">
+    <a href="#dag">Meu dia</a>
+    <a href="#plan">O que vou fazer hoje?</a>
+    <a href="#mat">Jantar e lista de compras</a>
+    <a href="#helse">Corpo e equilíbrio</a>
+    <a href="#interesser">Interesses e comunidade</a>
+    <a href="#personvern">Meus dados</a>
+  </nav>
+
+  <!-- MIN DAG -->
+  <section class="view" id="view-dag" aria-labelledby="h-dag">
+    <h2 id="h-dag" class="sr">Meu dia</h2>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h3>Número do dia</h3><span class="tag meta">Metafísica</span></div>
+        <div class="art"><svg class="medal" id="medal" viewBox="0 0 120 120" role="img" aria-label="Número do dia"></svg><div><p class="sr" id="pday">–</p><p id="pday-text">–</p></div></div>
+        <p class="muted" id="pday-calc">–</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Horóscopo: Peixes</h3><span class="tag meta">Metafísica</span></div>
+        <div class="art"><div class="glyph" aria-hidden="true">&#9811;&#65038;</div><p>Vênus sorri para você hoje. Diga sim a uma conversa que você vem adiando e repare em quem lhe dá energia.</p></div>
+        <p class="muted">Texto de exemplo. A interpretação é tradição e inspiração, e não dá conselhos sobre saúde, voto ou dinheiro.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Fase da lua</h3><span class="tag fact">Fato</span></div>
+        <div class="art"><svg class="moonsvg" id="moonsvg" viewBox="0 0 100 100" role="img" aria-label="A lua hoje"></svg><p id="moon-long">–</p></div>
+        <p class="muted" id="moon-tradition">–</p>
+      </article>
+      <article class="card smile sunny">
+        <div class="card-head"><h3>Sorriso do dia</h3><span class="tag hyp">Diversão</span></div>
+        <p class="q" id="smile-text">–</p>
+        <div class="row"><button type="button" id="smile-next">Me dê um novo sorriso</button></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Como você está?</h3><span class="tag fact">Só para você</span></div>
+        <div class="mood" role="group" aria-label="Humor do dia">
+          <button type="button" aria-pressed="false" data-mood="Tung dag">Dia pesado</button>
+          <button type="button" aria-pressed="false" data-mood="Helt ok">Tudo bem</button>
+          <button type="button" aria-pressed="false" data-mood="God">Bem</button>
+          <button type="button" aria-pressed="false" data-mood="Strålende">Radiante</button>
+        </div>
+        <label class="muted" for="grateful">Três coisas pelas quais você é grato</label>
+        <input id="grateful" type="text" placeholder="Café na varanda, um vizinho gentil, um dia de sol" style="font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+        <p class="muted" id="mood-reply">Escolha um humor e receba uma palavrinha para o caminho.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Luz e ritmo no norte</h3><span class="tag fact">Fato</span></div>
+        <div class="arcbox" id="sunarc" role="img" aria-label="Altura do sol acima do horizonte ao longo do dia em Storslett"></div>
+        <p id="light-tip">–</p>
+        <p class="muted">O percurso e os horários do sol são calculados para Storslett (69,8° N). As montanhas ao redor podem esconder o sol, então você pode vê-lo por menos tempo do que os números mostram.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Calma e respiração</h3><span class="tag meta">Vivência</span></div>
+        <p>Inspire contando quatro, segure quatro, expire contando seis. Três rodadas dão uma pequena pausa num dia corrido.</p>
+        <div class="orb-wrap" aria-hidden="true"><div class="orb" id="orb"></div></div>
+        <div class="row"><button type="button" class="primary" id="breath-btn">Começar três rodadas</button><span class="muted" id="breath-state" aria-live="polite"></span></div>
+        <p class="muted">Música de frequências do Ny Verden poderá ser adicionada aqui mais tarde. Ela será identificada como vivência pessoal, não como tratamento.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Nova pauta no VoteApp</h3><span class="tag fact">Seus interesses</span></div>
+        <p><b>Skal det bygges flere turstier langs Reisaelva?</b></p>
+        <p class="muted">Pauta de exemplo. Você a recebe porque segue “Natureza e vida ao ar livre”.</p>
+        <div class="row"><a class="btn" href="#interesser">Ver pautas para mim</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section class="view" id="view-plan" aria-labelledby="h-plan" hidden>
+    <div class="grid">
+      <article class="card wide">
+        <div class="card-head"><h2 id="h-plan">O que vou fazer hoje?</h2><span class="tag fact">Seu plano</span></div>
+        <ul class="plain todo" id="todo"></ul>
+        <form class="add" id="todo-form">
+          <label class="sr" for="todo-time">Hora</label>
+          <input type="time" id="todo-time" value="16:00">
+          <label class="sr" for="todo-text">Nova tarefa</label>
+          <input type="text" id="todo-text" placeholder="Adicione algo que você quer fazer hoje" required>
+          <button class="primary" type="submit">Adicionar</button>
+        </form>
+        <p class="muted" id="todo-count">–</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Datas especiais</h3><span class="tag fact">Calendário</span></div>
+        <ul class="plain">
+          <li><b>Sexta-feira:</b> Aniversário do Ola (exemplo)</li>
+          <li><b>Sábado:</b> Feira de Natal em Storslett (exemplo)</li>
+        </ul>
+        <p class="muted">Mais tarde, um calendário poderá ser conectado apenas para leitura. O app nunca altera seu calendário sozinho.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Movimento hoje</h3><span class="tag fact">Sugestão</span></div>
+        <p>Uma caminhada tranquila de 20 minutos à luz do dia, de preferência perto do almoço, quando o sol está mais alto.</p>
+        <p class="muted">Mais tarde, a sugestão poderá ser adaptada ao clima onde você está.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- MAT -->
+  <section class="view" id="view-mat" aria-labelledby="h-mat" hidden>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-mat">Escolha os jantares</h2><span class="tag fact">Sua semana</span></div>
+        <div id="dishes" class="view" style="gap:8px"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>O que você tem em casa</h3><span class="tag fact">Geladeira e armários</span></div>
+        <p class="muted">Marque o que você tem. A lista de compras é atualizada na hora.</p>
+        <div class="chips" id="pantry"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Lista de compras</h3><span class="tag fact">Faltando</span></div>
+        <ul class="plain shop" id="shop"></ul>
+        <div class="row"><button type="button" id="copy-shop">Copiar a lista</button><span class="muted" id="copy-state" aria-live="polite"></span></div>
+        <p class="muted">Nada é encomendado automaticamente. A lista é sua e você pode alterá-la à vontade.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- HELSE -->
+  <section class="view" id="view-helse" aria-labelledby="h-helse" hidden>
+    <div class="note"><b>Importante:</b> O meg.voteapp.eu não faz diagnóstico. Aqui você vê alimentos naturalmente ricos naquilo que você mesmo escolheu acompanhar. Fale com um médico ou outro profissional de saúde se suspeitar de alguma carência.</div>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-helse">Minhas medições</h2><span class="tag fact">Inseridas por você</span></div>
+        <div class="tablebox"><table>
+          <thead><tr><th>Data</th><th>Fonte</th><th>Nota</th></tr></thead>
+          <tbody>
+            <tr><td>01.11</td><td>Exame de sangue com o médico (exemplo)</td><td>O médico pediu que eu acompanhasse a vitamina D</td></tr>
+            <tr><td>05.11</td><td>Escaneamento, ferramenta de bem-estar (exemplo)</td><td>O relatório menciona magnésio</td></tr>
+          </tbody>
+        </table></div>
+        <p class="muted">As palavras do relatório aparecem como sendo do relatório, não como avaliação do app.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>O que eu acompanho</h3><span class="tag fact">Sua escolha</span></div>
+        <div class="chips" id="nutrients"></div>
+      </article>
+      <article class="card wide">
+        <div class="card-head"><h3>Alimentos ricos no que você escolheu</h3><span class="tag fact">Informação alimentar</span></div>
+        <div id="foods" class="grid" style="gap:12px"></div>
+        <div class="row"><button type="button" id="add-foods" class="primary">Adicionar as sugestões ao plano de jantares</button><span class="muted" id="foods-state" aria-live="polite"></span></div>
+        <p class="muted">Na versão real, os teores vêm da tabela norueguesa de composição de alimentos (Matvaretabellen), com fonte e data em cada número.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- INTERESSER -->
+  <section class="view" id="view-interesser" aria-labelledby="h-int" hidden>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-int">Meus interesses</h2><span class="tag fact">Avisos</span></div>
+        <p class="muted">Você recebe uma mensagem quando o VoteApp tiver uma pergunta sobre o que você escolheu.</p>
+        <div class="chips" id="interests"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Pautas para mim</h3><span class="tag fact">VoteApp</span></div>
+        <div id="cases" class="view" style="gap:8px"></div>
+      </article>
+      <article class="card wide">
+        <div class="card-head"><h3>Comunidade com os mesmos interesses</h3><span class="tag hyp">Em teste</span></div>
+        <div class="grid" id="groups" style="gap:12px"></div>
+        <p class="muted">Você escolhe se quer ficar visível em um grupo. O que você faz aqui nunca é ligado à forma como você vota.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- PERSONVERN -->
+  <section class="view" id="view-personvern" aria-labelledby="h-pv" hidden>
+    <div class="grid">
+      <article class="card wide">
+        <div class="card-head"><h2 id="h-pv">Meus dados</h2><span class="tag fact">Você decide</span></div>
+        <div class="tablebox"><table>
+          <thead><tr><th>O quê</th><th>Por quê</th><th>Quem vê</th><th>Ligado</th></tr></thead>
+          <tbody>
+            <tr><td>Data de nascimento e nome</td><td>Número do dia e horóscopo</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
+            <tr><td>Humor e gratidão</td><td>Seu próprio diário</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
+            <tr><td>Medições e notas de saúde</td><td>Sugestões de alimentos</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
+            <tr><td>Despensa e jantares</td><td>Lista de compras</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
+            <tr><td>Interesses</td><td>Avisos sobre pautas</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
+            <tr><td>Visibilidade em grupos</td><td>Comunidade</td><td>Os grupos que você escolher</td><td><label class="chip"><input type="checkbox"> Desligado</label></td></tr>
+          </tbody>
+        </table></div>
+        <ul class="plain">
+          <li><b>Seus votos ficam totalmente separados.</b> Nada do meg.voteapp.eu é usado para perfil político, anúncios ou ponderação de votos.</li>
+          <li><b>Armazenado na UE</b>, criptografado. Informações de saúde exigem o seu próprio consentimento.</li>
+          <li><b>Somente adultos</b> (18 anos ou mais) na primeira versão.</li>
+        </ul>
+        <div class="row">
+          <button type="button" id="export-btn">Baixar meus dados</button>
+          <button type="button" id="delete-btn">Apagar tudo no meg.voteapp.eu</button>
+        </div>
+        <div id="pv-msg" aria-live="polite"></div>
+      </article>
+    </div>
+  </section>
+
+  <footer>meg.voteapp.eu · protótipo v0.3 · 13 de novembro de 2026 · dados de exemplo, nenhum dado pessoal real</footer>
+</div>
+
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+<script>
+(function(){
+  "use strict";
+  var now = new Date();
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function store(k, v){ try{ if(v===undefined){ var s=localStorage.getItem("meg-pt-"+k); return s?JSON.parse(s):null; } localStorage.setItem("meg-pt-"+k, JSON.stringify(v)); }catch(e){ return null; } }
+  function $(id){ return document.getElementById(id); }
+  function el(tag, attrs, text){ var e=document.createElement(tag); if(attrs){ for(var a in attrs){ e.setAttribute(a, attrs[a]); } } if(text!=null){ e.textContent=text; } return e; }
+
+  /* ---- date and greeting ---- */
+  var oslo = { timeZone:"Europe/Oslo" };
+  $("today-label").textContent = now.toLocaleDateString("pt-BR", Object.assign({weekday:"long", day:"numeric", month:"long", year:"numeric"}, oslo));
+  var hour = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo)));
+  $("greeting").textContent = (hour < 10 ? "Bom dia" : hour < 17 ? "Boa tarde" : "Boa noite") + ", Kari";
+
+  /* ---- numerology: example birth date 14.03.1968 ---- */
+  function reduceNum(n){ while(n > 9 && n !== 11 && n !== 22 && n !== 33){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
+  var bDay = 14, bMonth = 3;
+  var y = Number(now.toLocaleString("en-GB", Object.assign({year:"numeric"}, oslo)));
+  var m = Number(now.toLocaleString("en-GB", Object.assign({month:"numeric"}, oslo)));
+  var d = Number(now.toLocaleString("en-GB", Object.assign({day:"numeric"}, oslo)));
+  var pYear = reduceNum(reduceNum(bDay) + reduceNum(bMonth) + reduceNum(y));
+  var pDay = reduceNum(pYear + reduceNum(m) + reduceNum(d));
+  var meanings = {1:"Comece algo novo. O dia gosta de primeiros passos corajosos.",2:"Cooperação e escuta. Divida a tarefa com alguém.",3:"Expresse-se. Escreva, cante ou conte uma história.",4:"Construa a base. Organize, planeje e conclua.",5:"Mudança e aventura. Experimente um caminho novo para casa.",6:"Cuidado. Ligue para alguém que você ama.",7:"Calma e percepção. Tire um momento de silêncio sozinho.",8:"Determinação. Encare o que traz resultados.",9:"Conclusão e generosidade. Passe algo adiante.",11:"Número mestre: intuição. Ouça sua intuição.",22:"Número mestre: o construtor. Grandes planos podem ganhar pernas.",33:"Número mestre: cuidado em grande escala."};
+  $("pday").textContent = pDay;
+  $("pday-text").textContent = meanings[pDay] || "";
+  $("pday-calc").textContent = "Dia pessoal calculado a partir da data de nascimento 14.03 (exemplo): ano pessoal " + pYear + " + mês " + m + " + dia " + d + " = " + pDay + ". Método pitagórico.";
+  $("day-msg").textContent = "O número de hoje é " + pDay + ". " + (meanings[pDay] || "");
+
+  /* ---- moon phase (synodic month from a known new moon 6 Jan 2000 18:14 UTC) ---- */
+  var syn = 29.530588853;
+  var age = ((now.getTime() - Date.UTC(2000,0,6,18,14)) / 86400000) % syn; if(age < 0){ age += syn; }
+  var illum = Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100);
+  var phase = age < 1.85 ? "Lua nova" : age < 5.54 ? "Lua crescente côncava" : age < 9.23 ? "Quarto crescente" : age < 12.92 ? "Lua crescente gibosa" : age < 16.61 ? "Lua cheia" : age < 20.30 ? "Lua minguante gibosa" : age < 23.99 ? "Quarto minguante" : age < 27.68 ? "Lua minguante côncava" : "Lua nova";
+  var waxing = age < syn / 2;
+  $("moon").textContent = phase + ", " + illum + " %";
+  $("moon-long").textContent = phase + ". Cerca de " + illum + "% da lua está iluminada, e ela tem " + Math.round(age) + " dias neste ciclo.";
+  $("moon-tradition").textContent = "Tradição (metafísica): " + (waxing ? "a lua crescente é vista como um bom momento para começar e construir." : "a lua minguante é vista como um bom momento para arrumar e encerrar.");
+
+  /* ---- sun for Storslett (69.77 N, 21.03 E): standard declination, equation of time and hour angle ---- */
+  var SUN = (function(){
+    var lat = 69.77 * Math.PI / 180, lon = 21.03;
+    var start = Date.UTC(now.getUTCFullYear(), 0, 0);
+    var doy = Math.floor((Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - start) / 86400000);
+    var g = 2 * Math.PI / 365 * (doy - 1);
+    var decl = 0.006918 - 0.399912*Math.cos(g) + 0.070257*Math.sin(g) - 0.006758*Math.cos(2*g) + 0.000907*Math.sin(2*g) - 0.002697*Math.cos(3*g) + 0.00148*Math.sin(3*g);
+    var eqt = 229.18 * (0.000075 + 0.001868*Math.cos(g) - 0.032077*Math.sin(g) - 0.014615*Math.cos(2*g) - 0.040849*Math.sin(2*g));
+    var noon = 720 - 4*lon - eqt; /* solar noon, minutes after 00:00 UTC */
+    var cosH = (Math.sin(-0.833*Math.PI/180) - Math.sin(lat)*Math.sin(decl)) / (Math.cos(lat)*Math.cos(decl));
+    function alt(minUtc){ var ha = (minUtc - noon) / 4 * Math.PI / 180; return Math.asin(Math.sin(lat)*Math.sin(decl) + Math.cos(lat)*Math.cos(decl)*Math.cos(ha)) * 180 / Math.PI; }
+    var utcMid = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    function fmt(minUtc){ return new Date(utcMid + minUtc*60000).toLocaleTimeString("pt-BR", Object.assign({hour:"2-digit", minute:"2-digit"}, oslo)); }
+    var nowUtc = now.getUTCHours()*60 + now.getUTCMinutes();
+    var osloH = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo))) % 24;
+    var osloM = Number(now.toLocaleString("en-GB", Object.assign({minute:"2-digit"}, oslo)));
+    var offset = ((osloH*60 + osloM) - nowUtc + 1440) % 1440; /* Oslo minus UTC, in minutes */
+    var s = {alt:alt, fmt:fmt, noon:noon, nowUtc:nowUtc, offset:offset, state:"normal", H:0};
+    if(cosH > 1){ s.state = "polar"; } else if(cosH < -1){ s.state = "midnight"; } else { s.H = Math.acos(cosH) * 180 / Math.PI * 4; }
+    return s;
+  })();
+  (function(){
+    var tip;
+    if(SUN.state === "polar"){ $("sunrise").textContent = "Noite polar"; $("sunset").textContent = "Noite polar"; $("daylen").textContent = "Sem sol"; tip = "É noite polar. Saia na hora azul no meio do dia e use uma boa lâmpada de luz do dia pela manhã para manter o ritmo."; }
+    else if(SUN.state === "midnight"){ $("sunrise").textContent = "Sol da meia-noite"; $("sunset").textContent = "Sol da meia-noite"; $("daylen").textContent = "24 h"; tip = "Sol da meia-noite. Escureça o quarto e mantenha horários fixos para dormir, assim você dorme melhor."; }
+    else {
+      $("sunrise").textContent = SUN.fmt(SUN.noon - SUN.H); $("sunset").textContent = SUN.fmt(SUN.noon + SUN.H);
+      var len = Math.round(2*SUN.H); $("daylen").textContent = Math.floor(len/60) + " h " + (len%60) + " min";
+      tip = len < 360 ? "A luz do dia está curta agora. Saia por volta das " + SUN.fmt(SUN.noon) + ", quando o sol está mais alto. Luz cedo no dia ajuda o sono à noite." : "Aproveite a luz do dia logo cedo. Isso ajuda o corpo a encontrar o ritmo e facilita dormir à noite.";
+    }
+    $("light-tip").textContent = tip;
+  })();
+
+  /* ---- shared moon path: lit part of a disk for today's phase ---- */
+  function moonPath(cx, cy, r){
+    var k = Math.cos(2*Math.PI*age/syn), rx = Math.abs(k)*r, top = cx + "," + (cy - r), bot = cx + "," + (cy + r);
+    if(waxing){ return "M" + top + " A" + r + "," + r + " 0 0 1 " + bot + " A" + rx + "," + r + " 0 0 " + (k > 0 ? 0 : 1) + " " + top + " Z"; }
+    return "M" + top + " A" + r + "," + r + " 0 0 0 " + bot + " A" + rx + "," + r + " 0 0 " + (k > 0 ? 1 : 0) + " " + top + " Z";
+  }
+
+  /* ---- sky: real sun height picks the light; mountains, stars, aurora, moon ---- */
+  (function(){
+    var altNow = SUN.alt(SUN.nowUtc);
+    var mode = altNow > 0 ? "day" : altNow > -6 ? "twilight" : altNow > -12 ? "blue" : "night";
+    var names = {day:"O sol está no céu de Storslett agora", twilight:"Crepúsculo sobre Storslett", blue:"A hora azul sobre Storslett", night:"Noite sobre Storslett"};
+    $("sky-phase").textContent = names[mode] + " · o sol está a " + Math.abs(altNow).toFixed(1).replace(".", ",") + "° " + (altNow >= 0 ? "acima" : "abaixo") + " do horizonte";
+    var skies = {
+      day:      [["#4f86c2",0],["#9cc0e0",0.55],["#f4cfa0",1]],
+      twilight: [["#1b335a",0],["#6c5a8f",0.55],["#e79a78",1]],
+      blue:     [["#0b2140",0],["#24456e",0.6],["#4b6f96",1]],
+      night:    [["#050f18",0],["#0b2233",0.6],["#123245",1]]
+    };
+    var hills = {
+      day:      ["#7d98ab","#5a7689","#3b5668"],
+      twilight: ["#4a4a6e","#353a59","#222b45"],
+      blue:     ["#24405e","#1a3350","#11253b"],
+      night:    ["#0f2230","#0b1a26","#07131c"]
+    };
+    var showStars = mode === "night" || mode === "blue";
+    var showAurora = mode === "night" || mode === "blue";
+    var c = $("skycanvas"), ctx = c.getContext("2d"), stars = [], t0 = performance.now(), ridges = [], shoot = null, nextShoot = 3;
+    for(var i=0;i<110;i++){ stars.push([Math.random(), Math.random()*0.62, Math.random()*1.2+0.3, Math.random()*6.28]); }
+    /* three mountain ridges, seeded so they stay the same between frames */
+    function ridge(seed, base, amp, peaks){
+      var pts = [], n = 64;
+      for(var j=0;j<=n;j++){
+        var x = j/n, yv = 0;
+        yv += Math.sin(x*Math.PI*peaks + seed)*0.5 + Math.sin(x*Math.PI*peaks*2.3 + seed*1.7)*0.25 + Math.sin(x*Math.PI*peaks*5.1 + seed*0.6)*0.12;
+        yv = Math.max(yv, -0.4);
+        pts.push([x, base - yv*amp]);
+      }
+      return pts;
+    }
+    ridges = [ridge(1.3, 0.70, 0.16, 2.2), ridge(4.1, 0.80, 0.11, 3.1), ridge(2.2, 0.90, 0.07, 4.3)];
+    function size(){ var r = c.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio||1, 2); c.width = Math.max(1, r.width*dpr); c.height = Math.max(1, r.height*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); }
+    function draw(ts){
+      var w = c.clientWidth, h = c.clientHeight, t = (ts - t0) / 1000;
+      var bg = ctx.createLinearGradient(0,0,0,h*0.85); skies[mode].forEach(function(s){ bg.addColorStop(s[1], s[0]); }); ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      if(showStars){
+        stars.forEach(function(s){ ctx.globalAlpha = (mode === "blue" ? 0.35 : 0.55) + 0.45*Math.sin(t*1.3 + s[3]); ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(s[0]*w, s[1]*h, s[2], 0, 6.28); ctx.fill(); });
+        ctx.globalAlpha = 1;
+      }
+      if(showAurora){
+        [["rgba(67,195,155,0.34)",0.30],["rgba(120,220,180,0.22)",0.42],["rgba(150,120,230,0.18)",0.52]].forEach(function(cl, k){
+          ctx.beginPath(); ctx.moveTo(0, h);
+          for(var x=0; x<=w; x+=8){ var yy = h*cl[1] + Math.sin(x/w*5 + t*0.35 + k*1.7)*h*0.08 + Math.sin(x/w*11 + t*0.2 + k)*h*0.03; ctx.lineTo(x, yy); }
+          ctx.lineTo(w, h); ctx.closePath();
+          var gr = ctx.createLinearGradient(0, h*0.15, 0, h*0.8); gr.addColorStop(0, cl[0]); gr.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = gr; ctx.fill();
+        });
+      }
+      if(mode === "day" || mode === "twilight"){
+        /* the low northern sun, placed by hour angle along the southern horizon */
+        var frac = SUN.H ? Math.min(1, Math.max(0, (SUN.nowUtc - (SUN.noon - SUN.H)) / (2*SUN.H))) : 0.5;
+        var sx = w*(0.15 + 0.7*frac), sy = h*0.62 - Math.max(0, SUN.alt(SUN.nowUtc))*h*0.03;
+        var glow = ctx.createRadialGradient(sx, sy, 2, sx, sy, h*0.45); glow.addColorStop(0, "rgba(255,214,150,0.85)"); glow.addColorStop(0.2, "rgba(255,190,120,0.35)"); glow.addColorStop(1, "rgba(255,190,120,0)");
+        ctx.fillStyle = glow; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = "#fff1d6"; ctx.beginPath(); ctx.arc(sx, sy, 13, 0, 6.28); ctx.fill();
+      }
+      if(!reduce && mode === "night"){
+        if(!shoot && t > nextShoot){ shoot = {x: w*(0.2+Math.random()*0.6), y: h*(0.05+Math.random()*0.25), t: t}; }
+        if(shoot){
+          var p = (t - shoot.t) / 0.9;
+          if(p >= 1){ shoot = null; nextShoot = t + 5 + Math.random()*6; }
+          else { var len = 90, dx = shoot.x + p*160, dy = shoot.y + p*60; var sg = ctx.createLinearGradient(dx, dy, dx - len, dy - len*0.38); sg.addColorStop(0, "rgba(255,255,255," + (1-p) + ")"); sg.addColorStop(1, "rgba(255,255,255,0)"); ctx.strokeStyle = sg; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx - len, dy - len*0.38); ctx.stroke(); }
+        }
+      }
+      /* moon with today's phase */
+      if(mode !== "day"){
+        var mx = w - 52, my = 44, mr = 17;
+        var mg = ctx.createRadialGradient(mx, my, mr*0.5, mx, my, mr*3); mg.addColorStop(0, "rgba(244,240,220,0.25)"); mg.addColorStop(1, "rgba(244,240,220,0)"); ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(mx, my, mr*3, 0, 6.28); ctx.fill();
+        ctx.fillStyle = "rgba(20,35,48,0.85)"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.28); ctx.fill();
+        ctx.fillStyle = "#f4f0dc"; ctx.fill(new Path2D(moonPath(mx, my, mr)));
+      }
+      /* mountains, far to near, with a little snow on the far ridge */
+      ridges.forEach(function(rg, k){
+        ctx.beginPath(); ctx.moveTo(0, h);
+        rg.forEach(function(p){ ctx.lineTo(p[0]*w, p[1]*h); });
+        ctx.lineTo(w, h); ctx.closePath(); ctx.fillStyle = hills[mode][k]; ctx.fill();
+        if(k === 0){
+          ctx.save(); ctx.clip();
+          ctx.fillStyle = mode === "day" ? "rgba(255,255,255,0.55)" : "rgba(220,235,245,0.18)";
+          rg.forEach(function(p, j){ if(j > 0 && j < rg.length-1 && p[1] < rg[j-1][1] && p[1] < rg[j+1][1]){ ctx.beginPath(); ctx.moveTo(p[0]*w - 26, p[1]*h + 16); ctx.lineTo(p[0]*w, p[1]*h); ctx.lineTo(p[0]*w + 26, p[1]*h + 16); ctx.closePath(); ctx.fill(); } });
+          ctx.restore();
+        }
+      });
+      /* the fjord: a soft band of light at the bottom */
+      var fj = ctx.createLinearGradient(0, h*0.93, 0, h); fj.addColorStop(0, "rgba(255,255,255,0)"); fj.addColorStop(1, mode === "day" ? "rgba(200,225,240,0.35)" : "rgba(120,200,180,0.12)"); ctx.fillStyle = fj; ctx.fillRect(0, h*0.93, w, h*0.07);
+      if(!reduce){ requestAnimationFrame(draw); }
+    }
+    size(); window.addEventListener("resize", function(){ size(); if(reduce){ draw(performance.now()); } });
+    requestAnimationFrame(draw);
+  })();
+
+  /* ---- number medallion: one dot per unit of today's number ---- */
+  (function(){
+    var svg = $("medal"), ns = "http://www.w3.org/2000/svg", n = pDay > 9 ? (pDay === 11 ? 11 : pDay === 22 ? 22 : 33) : pDay;
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    svg.appendChild(mk("circle", {cx:60, cy:60, r:54, fill:"var(--soft-accent)"}));
+    svg.appendChild(mk("circle", {cx:60, cy:60, r:44, fill:"none", stroke:"var(--accent)", "stroke-width":2, "stroke-dasharray":"2 5"}));
+    var dots = Math.min(n, 33);
+    for(var i=0;i<dots;i++){ var a = -Math.PI/2 + i*2*Math.PI/dots; svg.appendChild(mk("circle", {cx:60 + 49*Math.cos(a), cy:60 + 49*Math.sin(a), r: dots > 12 ? 2.4 : 4, fill:"var(--sun)"})); }
+    var tx = mk("text", {x:60, y:61, "text-anchor":"middle", "dominant-baseline":"central", "font-size": pDay > 9 ? 40 : 54, fill:"var(--accent)"}); tx.textContent = pDay; svg.appendChild(tx);
+  })();
+
+  /* ---- moon card illustration ---- */
+  (function(){
+    var svg = $("moonsvg"), ns = "http://www.w3.org/2000/svg";
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    svg.appendChild(mk("circle", {cx:50, cy:50, r:48, fill:"var(--fact-bg)"}));
+    svg.appendChild(mk("circle", {cx:50, cy:50, r:34, fill:"var(--surface-2)", stroke:"var(--line)"}));
+    svg.appendChild(mk("path", {d: moonPath(50, 50, 34), fill:"var(--sun)"}));
+    [[22,20,1.6],[80,28,1.2],[16,74,1.2],[84,78,1.6]].forEach(function(s){ svg.appendChild(mk("circle", {cx:s[0], cy:s[1], r:s[2], fill:"var(--fact)"})); });
+  })();
+
+  /* ---- the sun's path today, as a small chart (local Oslo time on the x axis) ---- */
+  (function(){
+    var W = 320, Hh = 130, padL = 6, padR = 6, top = 14, bot = 26, ns = "http://www.w3.org/2000/svg";
+    var pts = [], lo = 90, hi = -90;
+    for(var L=0; L<=1440; L+=10){ var a = SUN.alt(L - SUN.offset); pts.push([L, a]); lo = Math.min(lo, a); hi = Math.max(hi, a); }
+    var yMax = Math.max(hi, 4) + 2, yMin = lo - 2;
+    function X(L){ return padL + L/1440*(W - padL - padR); }
+    function Y(a){ return top + (yMax - a)/(yMax - yMin)*(Hh - top - bot); }
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    var svg = mk("svg", {viewBox:"0 0 " + W + " " + Hh});
+    var y0 = Y(0);
+    svg.appendChild(mk("rect", {x:padL, y:top, width:W-padL-padR, height:y0-top, fill:"var(--soft-sun)"}));
+    svg.appendChild(mk("rect", {x:padL, y:y0, width:W-padL-padR, height:Hh-bot-y0, fill:"var(--surface-2)"}));
+    var d = pts.map(function(p, i){ return (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
+    svg.appendChild(mk("path", {d:d, fill:"none", stroke:"var(--sun)", "stroke-width":2.5}));
+    svg.appendChild(mk("line", {x1:padL, x2:W-padR, y1:y0, y2:y0, stroke:"var(--muted)", "stroke-width":1, "stroke-dasharray":"3 3"}));
+    [0,6,12,18,24].forEach(function(hr){ var tx = mk("text", {x:X(hr*60), y:Hh-8, "text-anchor": hr === 0 ? "start" : hr === 24 ? "end" : "middle", "class":"arc-label"}); tx.textContent = String(hr).padStart(2,"0"); svg.appendChild(tx); });
+    var hz = mk("text", {x:W-padR-2, y:y0-4, "text-anchor":"end", "class":"arc-label"}); hz.textContent = "horizonte"; svg.appendChild(hz);
+    var Lnow = (SUN.nowUtc + SUN.offset) % 1440, aNow = SUN.alt(SUN.nowUtc);
+    svg.appendChild(mk("circle", {cx:X(Lnow), cy:Y(aNow), r:5.5, fill:"var(--accent)", stroke:"var(--surface)", "stroke-width":2}));
+    var nt = mk("text", {x:X(Lnow), y:Math.max(top+10, Y(aNow) - 10), "text-anchor":"middle", "class":"arc-label"}); nt.textContent = "agora"; svg.appendChild(nt);
+    $("sunarc").appendChild(svg);
+  })();
+
+  /* ---- confetti: a short burst, skipped for reduced motion ---- */
+  var confetti = (function(){
+    var c = $("confetti"), ctx = c.getContext("2d"), parts = [], running = false;
+    function col(){ var cs = getComputedStyle(document.documentElement); return [cs.getPropertyValue("--accent"), cs.getPropertyValue("--sun"), cs.getPropertyValue("--meta"), cs.getPropertyValue("--fact")].map(function(s){ return s.trim(); }); }
+    function frame(){
+      var dpr = Math.min(window.devicePixelRatio||1, 2); if(c.width !== innerWidth*dpr){ c.width = innerWidth*dpr; c.height = innerHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      parts = parts.filter(function(p){ return p.life > 0; });
+      parts.forEach(function(p){ p.vy += 0.25; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.min(1, p.life/30); ctx.fillStyle = p.c; ctx.fillRect(-4, -2, 8, 4); ctx.restore(); });
+      if(parts.length){ requestAnimationFrame(frame); } else { running = false; ctx.clearRect(0,0,innerWidth,innerHeight); }
+    }
+    return function(x, y){
+      if(reduce){ return; }
+      var cs = col();
+      for(var i=0;i<70;i++){ var a = Math.random()*Math.PI*2, s = 3 + Math.random()*6; parts.push({x:x, y:y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 4, r:Math.random()*6, vr:(Math.random()-0.5)*0.4, c:cs[i%cs.length], life:70 + Math.random()*30}); }
+      if(!running){ running = true; requestAnimationFrame(frame); }
+    };
+  })();
+  function burstFrom(elm){ var r = elm.getBoundingClientRect(); confetti(r.left + r.width/2, r.top + r.height/2); }
+
+  /* ---- smiles ---- */
+  var smiles = ["Você sabia que as lontras dão as mãos enquanto dormem para não se afastarem umas das outras?","Um sorriso usa menos músculos do que você imagina e devolve mais do que você dá.","A aurora boreal sobre Nordreisa não cobra ingresso. Olhe para o céu hoje à noite.","Desafio do dia: agradeça a três pessoas antes das três da tarde.","Café é mais gostoso quando compartilhado com um vizinho.","Você não precisa ter tudo em ordem para ter um bom dia. Uma coisa boa basta."];
+  var si = Math.floor(Math.random()*smiles.length);
+  function showSmile(){ $("smile-text").textContent = smiles[si % smiles.length]; }
+  showSmile(); $("smile-next").addEventListener("click", function(){ si++; showSmile(); burstFrom($("smile-next")); });
+
+  /* ---- mood ---- */
+  var replies = {"Tung dag":"Obrigado por dizer. Faça só uma coisinha por você hoje.","Helt ok":"Tudo bem é um bom ponto de partida. Que tal uma caminhada à luz do dia?","God":"Que ótimo! Compartilhe um pouco do que é bom com alguém hoje.","Strålende":"Maravilha! Essa energia é contagiante. Use-a em algo que você estava esperando com alegria."};
+  document.querySelectorAll("[data-mood]").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("[data-mood]").forEach(function(x){ x.setAttribute("aria-pressed","false"); }); b.setAttribute("aria-pressed","true"); $("mood-reply").textContent = replies[b.dataset.mood]; }); });
+
+  /* ---- breathing ---- */
+  var breathing = false;
+  $("breath-btn").addEventListener("click", function(){
+    if(breathing){ return; } breathing = true;
+    var steps = [], i; for(i=0;i<3;i++){ steps.push(["Inspire", 4], ["Segure", 4], ["Expire", 6]); }
+    var idx = 0;
+    var orb = $("orb");
+    (function next(){ if(idx >= steps.length){ $("breath-state").textContent = "Pronto. Muito bem."; orb.style.transitionDuration = "1.5s"; orb.style.transform = "scale(1)"; breathing = false; return; } var s = steps[idx++]; var left = s[1];
+      if(!reduce){ orb.style.transitionDuration = s[1] + "s"; if(s[0] === "Inspire"){ orb.style.transform = "scale(1.75)"; } else if(s[0] === "Expire"){ orb.style.transform = "scale(1)"; } }
+      (function tick(){ $("breath-state").textContent = s[0] + " … " + left; if(left-- > 1){ setTimeout(tick, 1000); } else { setTimeout(next, 1000); } })(); })();
+  });
+
+  /* ---- todo ---- */
+  var todos = store("todos") || [{t:"08:30", x:"Café e cinco minutos de silêncio", done:true},{t:"10:00", x:"Responder ao e-mail do condomínio", done:false},{t:"12:15", x:"Caminhada à luz do dia, 20 minutos", done:false},{t:"17:00", x:"Jantar: salmão com batata e brócolis", done:false},{t:"20:00", x:"Votar na pauta das trilhas", done:false}];
+  function renderTodos(){
+    var ul = $("todo"); ul.textContent = "";
+    todos.sort(function(a,b){ return a.t < b.t ? -1 : 1; }).forEach(function(it, i){
+      var li = el("li"); if(it.done){ li.className = "done"; }
+      var id = "todo-" + i, lab = el("label", {"for": id});
+      var cb = el("input", {type:"checkbox", id:id}); cb.checked = !!it.done;
+      cb.addEventListener("change", function(){ it.done = cb.checked; var r = cb.getBoundingClientRect(); store("todos", todos); renderTodos(); if(it.done){ confetti(r.left + 10, r.top + 10); } });
+      lab.appendChild(cb); lab.appendChild(el("span", {"class":"time"}, it.t)); lab.appendChild(el("span", {"class":"t"}, it.x));
+      li.appendChild(lab);
+      var del = el("button", {type:"button", "aria-label":"Remover " + it.x}, "Remover");
+      del.addEventListener("click", function(){ todos.splice(todos.indexOf(it),1); store("todos", todos); renderTodos(); });
+      li.appendChild(del); ul.appendChild(li);
+    });
+    var left = todos.filter(function(x){ return !x.done; }).length;
+    $("todo-count").textContent = left === 0 ? "Tudo feito hoje. Aproveite a noite!" : left + " restantes hoje. Uma de cada vez.";
+  }
+  $("todo-form").addEventListener("submit", function(e){ e.preventDefault(); var x = $("todo-text").value.trim(); if(!x){ return; } todos.push({t:$("todo-time").value || "12:00", x:x, done:false}); $("todo-text").value = ""; store("todos", todos); renderTodos(); });
+  renderTodos();
+
+  /* ---- dinners, pantry, shopping list ---- */
+  var dishes = [
+    {id:"laks", name:"Salmão assado com batata e brócolis", why:"Rico em vitamina D", ing:["Salmão","Batata","Brócolis","Manteiga","Limão"]},
+    {id:"linse", name:"Ensopado de lentilhas com espinafre", why:"Rico em ferro e magnésio", ing:["Lentilhas vermelhas","Espinafre","Cebola","Alho","Tomate em lata","Leite de coco"]},
+    {id:"reinsdyr", name:"Rena refogada com purê de batata e mirtilo-vermelho", why:"Clássico local, rico em ferro", ing:["Rena refogada","Batata","Cebola","Creme de leite","Mirtilo-vermelho","Manteiga"]},
+    {id:"omelett", name:"Omelete com cogumelos e pão integral", why:"Jantar rápido, ovos dão vitamina D", ing:["Ovos","Cogumelos","Pão integral","Manteiga","Queijo"]},
+    {id:"makrell", name:"Cavala ao molho de tomate em torrada sueca com salada", why:"Peixe gordo, almoço ou lanche rápido", ing:["Cavala ao tomate","Torrada sueca","Alface","Pepino"]}
+  ];
+  var chosen = store("chosen") || ["laks","linse","reinsdyr"];
+  var pantryItems = ["Batata","Manteiga","Cebola","Alho","Ovos","Tomate em lata","Torrada sueca","Queijo","Creme de leite","Mirtilo-vermelho","Limão","Alface","Pepino","Leite de coco"];
+  var have = store("have") || ["Batata","Manteiga","Cebola","Alho","Ovos","Torrada sueca","Mirtilo-vermelho"];
+  function renderDishes(){
+    var box = $("dishes"); box.textContent = "";
+    dishes.forEach(function(dsh){
+      var id = "dish-" + dsh.id, lab = el("label", {"class":"dish", "for":id});
+      var cb = el("input", {type:"checkbox", id:id}); cb.checked = chosen.indexOf(dsh.id) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ chosen.push(dsh.id); } else { chosen = chosen.filter(function(x){ return x !== dsh.id; }); } store("chosen", chosen); renderShop(); });
+      var txt = el("span"); txt.appendChild(el("b", null, dsh.name)); txt.appendChild(el("br")); txt.appendChild(el("span", {"class":"muted"}, dsh.why));
+      lab.appendChild(cb); lab.appendChild(txt); box.appendChild(lab);
+    });
+  }
+  function renderPantry(){
+    var box = $("pantry"); box.textContent = "";
+    pantryItems.forEach(function(p, i){
+      var id = "pan-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = have.indexOf(p) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ have.push(p); } else { have = have.filter(function(x){ return x !== p; }); } store("have", have); renderShop(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(p)); box.appendChild(lab);
+    });
+  }
+  var shopText = "";
+  function renderShop(){
+    var need = {};
+    dishes.forEach(function(dsh){ if(chosen.indexOf(dsh.id) > -1){ dsh.ing.forEach(function(g){ if(have.indexOf(g) === -1){ (need[g] = need[g] || []).push(dsh.name.split(" ")[0] + " " + (dsh.name.split(" ")[1]||"")); } }); } });
+    var ul = $("shop"); ul.textContent = ""; var keys = Object.keys(need).sort(function(a,b){ return a.localeCompare(b, "pt"); });
+    if(!keys.length){ ul.appendChild(el("li", null, "Você tem tudo de que precisa. Nada de compras hoje!")); shopText = ""; return; }
+    keys.forEach(function(k){ var li = el("li"); li.appendChild(el("span", null, k)); li.appendChild(el("span", {"class":"muted"}, need[k].join(", "))); ul.appendChild(li); });
+    shopText = "Lista de compras\n" + keys.map(function(k){ return "- " + k; }).join("\n");
+  }
+  $("copy-shop").addEventListener("click", function(){
+    if(!shopText){ $("copy-state").textContent = "A lista está vazia."; return; }
+    var done = function(){ $("copy-state").textContent = "Copiado."; };
+    try{ navigator.clipboard.writeText(shopText).then(done, function(){ $("copy-state").textContent = "Não foi possível copiar. Selecione a lista e copie você mesmo."; }); }catch(e){ $("copy-state").textContent = "Não foi possível copiar. Selecione a lista e copie você mesmo."; }
+  });
+  renderDishes(); renderPantry(); renderShop();
+
+  /* ---- nutrients and foods (general food knowledge; real version cites Matvaretabellen) ---- */
+  var nutrients = {
+    "Vitamina D": {foods:["Salmão","Cavala","Arenque","Óleo de fígado de bacalhau","Ovos"], dish:"laks", tip:"Pouco sol na noite polar torna o peixe gordo ainda mais importante no norte."},
+    "Ferro": {foods:["Rena e carne vermelha","Patê de fígado","Lentilhas","Espinafre","Sementes de abóbora"], dish:"reinsdyr", tip:"Vitamina C na mesma refeição, por exemplo pimentão ou laranja, ajuda o corpo a absorver o ferro das plantas."},
+    "Magnésio": {foods:["Sementes de abóbora","Amêndoas","Aveia","Lentilhas e feijões","Chocolate amargo"], dish:"linse", tip:"Castanhas e sementes são um lanche fácil."},
+    "B12": {foods:["Peixes e frutos do mar","Ovos","Leite e queijo","Carne"], dish:"omelett", tip:"Se você segue uma dieta à base de plantas, converse com um médico sobre a B12."}
+  };
+  var following = store("following") || ["Vitamina D","Magnésio"];
+  function renderNutrients(){
+    var box = $("nutrients"); box.textContent = "";
+    Object.keys(nutrients).forEach(function(n, i){
+      var id = "nut-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = following.indexOf(n) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ following.push(n); } else { following = following.filter(function(x){ return x !== n; }); } store("following", following); renderFoods(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(n)); box.appendChild(lab);
+    });
+  }
+  function renderFoods(){
+    var box = $("foods"); box.textContent = "";
+    if(!following.length){ box.appendChild(el("p", {"class":"muted"}, "Escolha o que você quer acompanhar e as sugestões de alimentos aparecem aqui.")); return; }
+    following.forEach(function(n){
+      var c = el("div", {"class":"case"}); c.appendChild(el("b", null, n));
+      c.appendChild(el("span", null, nutrients[n].foods.join(", ")));
+      c.appendChild(el("span", {"class":"muted"}, nutrients[n].tip)); box.appendChild(c);
+    });
+  }
+  $("add-foods").addEventListener("click", function(){
+    var added = [];
+    following.forEach(function(n){ var dId = nutrients[n].dish; if(chosen.indexOf(dId) === -1){ chosen.push(dId); added.push(dId); } });
+    store("chosen", chosen); renderDishes(); renderShop();
+    $("foods-state").textContent = added.length ? "Adicionado ao plano de jantares. Veja Jantar e lista de compras." : "Os jantares já estão no plano.";
+  });
+  renderNutrients(); renderFoods();
+
+  /* ---- interests, cases, groups ---- */
+  var interestList = ["Natureza e vida ao ar livre","Saúde e bem-estar","Comida e produção local","Escola e crianças","Estradas e transporte","Cultura e voluntariado","Negócios e trabalho"];
+  var mine = store("interests") || ["Natureza e vida ao ar livre","Saúde e bem-estar","Comida e produção local"];
+  var cases = [
+    {t:"Devem ser construídas mais trilhas ao longo do rio Reisa?", i:"Natureza e vida ao ar livre", s:"Aberta para respostas", by:"Nordreisa"},
+    {t:"As escolas devem servir uma refeição quente todos os dias?", i:"Escola e crianças", s:"Aberta para respostas", by:"Nordreisa"},
+    {t:"A comida local deve ter prioridade nas compras do município?", i:"Comida e produção local", s:"Em andamento", by:"Nord-Troms"},
+    {t:"É preciso uma oferta acessível de exercícios para idosos?", i:"Saúde e bem-estar", s:"Aberta para respostas", by:"Nordreisa"},
+    {t:"A E6 que passa por Storslett deve ter um limite de velocidade menor?", i:"Estradas e transporte", s:"Encerrada, acompanhamento em curso", by:"Nordreisa"}
+  ];
+  var groups = [
+    {n:"Amigos de trilha em Nordreisa", i:"Natureza e vida ao ar livre", m:"Caminhada todo domingo às 11h"},
+    {n:"Comida saudável no norte", i:"Comida e produção local", m:"Compartilha receitas com ingredientes locais"},
+    {n:"Momento de silêncio", i:"Saúde e bem-estar", m:"Meditação online às terças às 20h"},
+    {n:"Estrelas e aurora boreal", i:"Natureza e vida ao ar livre", m:"Avisa quando a aurora boreal está forte"}
+  ];
+  function renderInterests(){
+    var box = $("interests"); box.textContent = "";
+    interestList.forEach(function(n, i){
+      var id = "int-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = mine.indexOf(n) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ mine.push(n); } else { mine = mine.filter(function(x){ return x !== n; }); } store("interests", mine); renderCases(); renderGroups(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(n)); box.appendChild(lab);
+    });
+  }
+  function renderCases(){
+    var box = $("cases"); box.textContent = "";
+    var list = cases.filter(function(c){ return mine.indexOf(c.i) > -1; });
+    if(!list.length){ box.appendChild(el("p", {"class":"muted"}, "Escolha um interesse e você verá as pautas que combinam com você.")); return; }
+    list.forEach(function(c){ var d = el("div", {"class":"case"}); d.appendChild(el("b", null, c.t)); var r = el("div", {"class":"meta-row"}); r.appendChild(el("span", null, c.i)); r.appendChild(el("span", null, "· " + c.s)); r.appendChild(el("span", null, "· " + c.by)); r.appendChild(el("span", null, "· exemplo")); d.appendChild(r); box.appendChild(d); });
+  }
+  var joined = store("joined") || [];
+  function renderGroups(){
+    var box = $("groups"); box.textContent = "";
+    groups.forEach(function(g){
+      var d = el("div", {"class":"case"}); d.appendChild(el("b", null, g.n));
+      d.appendChild(el("span", {"class":"muted"}, g.m + " · " + g.i + " · exemplo"));
+      var isIn = joined.indexOf(g.n) > -1;
+      var b = el("button", {type:"button"}, isIn ? "Você está no grupo. Sair do grupo" : "Participar");
+      if(!isIn && mine.indexOf(g.i) > -1){ b.className = "primary"; }
+      b.addEventListener("click", function(){ if(isIn){ joined = joined.filter(function(x){ return x !== g.n; }); } else { joined.push(g.n); } store("joined", joined); renderGroups(); });
+      d.appendChild(b); box.appendChild(d);
+    });
+  }
+  renderInterests(); renderCases(); renderGroups();
+
+  /* ---- privacy actions (demo, nothing leaves the page) ---- */
+  $("export-btn").addEventListener("click", function(){ $("pv-msg").textContent = ""; var p = el("p", {"class":"note"}, "Na versão real, você recebe um arquivo com tudo o que inseriu. Este protótipo só guarda dados de exemplo no seu navegador."); $("pv-msg").appendChild(p); });
+  $("delete-btn").addEventListener("click", function(){
+    var box = $("pv-msg"); box.textContent = "";
+    var c = el("div", {"class":"confirm"}); c.appendChild(el("b", null, "Apagar tudo o que você inseriu no meg.voteapp.eu?"));
+    c.appendChild(el("span", null, "Sua conta do VoteApp e seus votos não são afetados. No protótipo, apenas os dados de exemplo são redefinidos."));
+    var row = el("div", {"class":"row"}), yes = el("button", {type:"button", "class":"primary"}, "Sim, apagar"), no = el("button", {type:"button"}, "Cancelar");
+    yes.addEventListener("click", function(){ ["todos","chosen","have","following","interests","joined"].forEach(function(k){ try{ localStorage.removeItem("meg-pt-"+k); }catch(e){} }); box.textContent = ""; box.appendChild(el("p", {"class":"note"}, "Apagado. Recarregue a página para recomeçar com os dados de exemplo.")); });
+    no.addEventListener("click", function(){ box.textContent = ""; });
+    row.appendChild(yes); row.appendChild(no); c.appendChild(row); box.appendChild(c);
+  });
+
+  /* ---- hash routing ---- */
+  var views = ["dag","plan","mat","helse","interesser","personvern"];
+  function route(){
+    var v = (location.hash || "#dag").slice(1); if(views.indexOf(v) === -1){ v = "dag"; }
+    views.forEach(function(x){ $("view-" + x).hidden = x !== v; });
+    $("view-" + v).querySelectorAll(".card").forEach(function(cd, i){ cd.style.setProperty("--i", i); cd.style.animation = "none"; void cd.offsetWidth; cd.style.animation = ""; });
+    document.querySelectorAll("nav.tabs a").forEach(function(a){ if(a.getAttribute("href") === "#" + v){ a.setAttribute("aria-current","page"); } else { a.removeAttribute("aria-current"); } });
+  }
+  window.addEventListener("hashchange", route); route();
+})();
+</script>
+<script>
+(function(){
+  var s = document.getElementById("lang-select"); if(!s){ return; }
+  s.addEventListener("change", function(){
+    try{ localStorage.setItem("meg-lang", s.value); }catch(e){}
+    location.href = "/" + (s.value === "nb" ? "" : s.value + "/") + location.hash;
+  });
+})();
+</script>
