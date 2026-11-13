@@ -1,0 +1,774 @@
+<title>meg.voteapp.eu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<style>
+/* Layout: phone-first personal day app. A sky band on top, a wrapping tab row, then one view at a time as a column of cards. */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e8efee; --ink:#14232b; --muted:#56666d; --line:#d3dedd;
+  --accent:#1f8a6d; --accent-ink:#ffffff; --sun:#d98a1c; --soft-accent:#d8efe7; --soft-sun:#f7e8cf;
+  --fact:#1f6f9e; --fact-bg:#dcebf5; --hyp:#8a6a12; --hyp-bg:#f4ecd2; --meta:#7a4a9c; --meta-bg:#ece2f4;
+  --warn-bg:#fdf1e4; --warn-ink:#7a4a10;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Nunito Sans", "Segoe UI", system-ui, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+.demo{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);color:var(--warn-ink);border-radius:var(--r);padding:10px 14px;font-size:14px}
+.demo b{white-space:nowrap}
+/* sky */
+.sky{position:relative;border-radius:20px;overflow:hidden;min-height:210px;background:#0b1d2b;color:#f2f7f6}
+.sky canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sky-inner{position:relative;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding:22px}
+.sky .who{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sky .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.sky .msg{font-size:17px;max-width:42ch;opacity:.95}
+.sky .facts{display:grid;grid-template-columns:repeat(2,minmax(0,auto));gap:6px 18px;align-content:start;font-size:14px;background:rgba(5,15,22,.45);border-radius:12px;padding:12px 14px}
+.sky .facts span{opacity:.8}
+.sky .facts b{font-variant-numeric:tabular-nums}
+/* tabs */
+nav.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+nav.tabs a{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:9px 14px;border-radius:999px;font-weight:700;font-size:15px}
+nav.tabs a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--sun);outline-offset:2px}
+/* grid of cards */
+.view{display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.wide{grid-column:1/-1}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tag{font-size:12px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.tag.fact{background:var(--fact-bg);color:var(--fact)}
+.tag.hyp{background:var(--hyp-bg);color:var(--hyp)}
+.tag.meta{background:var(--meta-bg);color:var(--meta)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:14px}
+.big{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);padding:8px 14px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:hover{filter:brightness(1.05)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px;cursor:pointer;user-select:none}
+.chip input{accent-color:var(--accent);margin:0}
+.chip:has(input:checked){background:var(--soft-accent);border-color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.mood{display:flex;gap:8px;flex-wrap:wrap}
+.mood button[aria-pressed="true"]{background:var(--soft-sun);border-color:var(--sun)}
+.smile{background:var(--soft-sun);border-color:transparent}
+.smile .q{font-family:var(--display);font-size:20px;font-weight:700}
+ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+.todo li label{display:flex;gap:10px;align-items:center;flex:1;min-width:0;cursor:pointer}
+.todo li .time{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:46px}
+.todo input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+.todo li.done span.t{text-decoration:line-through;color:var(--muted)}
+form.add{display:flex;gap:8px;flex-wrap:wrap}
+form.add input[type=text],form.add input[type=time],select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0}
+form.add input[type=text]{flex:1 1 180px}
+.dish{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;border:1px solid var(--line)}
+.dish:has(input:checked){border-color:var(--accent);background:var(--soft-accent)}
+.dish input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}
+.shop li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.shop li:last-child{border-bottom:0}
+.note{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.case{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;background:var(--surface-2)}
+.case .meta-row{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tablebox{overflow-x:auto}
+.confirm{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--sun);background:var(--soft-sun)}
+footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
+/* v0.2 visuals */
+.sky{min-height:300px}
+.sky-inner{padding-bottom:64px}
+.sky .phase{position:absolute;left:22px;bottom:14px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+.art{display:flex;gap:16px;align-items:center}
+.art > :last-child{min-width:0}
+.medal{flex:0 0 auto;width:104px;height:104px}
+.medal text{font-family:var(--display);font-weight:800}
+.glyph{flex:0 0 auto;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:var(--meta-bg);color:var(--meta);font-size:54px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif}
+.moonsvg{flex:0 0 auto;width:96px;height:96px}
+.arcbox{width:100%;overflow:hidden}
+.arcbox svg{display:block;width:100%;height:auto}
+.arc-label{font-size:11px;fill:var(--muted);font-family:var(--body)}
+.orb-wrap{display:grid;place-items:center;height:132px}
+.orb{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--soft-accent),var(--accent));box-shadow:0 0 0 10px var(--soft-accent);transform:scale(1);transition-property:transform;transition-timing-function:ease-in-out}
+.sunny{position:relative;overflow:hidden}
+.sunny::after{content:"";position:absolute;right:-36px;top:-36px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--sun) 0 34%,transparent 35%),repeating-conic-gradient(var(--sun) 0 6deg,transparent 6deg 24deg);opacity:.35;pointer-events:none}
+.sunny > *{position:relative;z-index:1}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+@keyframes rise{from{transform:translateY(10px);opacity:.6}to{transform:none;opacity:1}}
+.view:not([hidden]) .card{animation:rise .55s ease both;animation-delay:calc(var(--i,0) * 55ms)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}.view .card{animation:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="demo" role="note"><b>Prototype</b><span>Alt her er eksempeldata for testpersonen «Kari». Ingen ekte persondata lagres eller sendes. Bygget for å prøve ideene i meg.voteapp.eu før noe utvikles.</span></div>
+
+  <header class="sky" id="sky">
+    <canvas id="skycanvas" aria-hidden="true"></canvas>
+    <div class="sky-inner">
+      <div class="who">
+        <span class="eyebrow" id="today-label">I dag</span>
+        <h1 id="greeting">God morgen, Kari</h1>
+        <p class="msg" id="day-msg">Dagens tall er en invitasjon til å starte noe nytt. Ta det første lille steget før lunsj.</p>
+      </div>
+      <div class="facts" aria-label="Fakta for Storslett i dag">
+        <span>Sted</span><b>Storslett, Nordreisa</b>
+        <span>Sol opp</span><b id="sunrise">–</b>
+        <span>Sol ned</span><b id="sunset">–</b>
+        <span>Dagslys</span><b id="daylen">–</b>
+        <span>Månen</span><b id="moon">–</b>
+      </div>
+    </div>
+    <span class="phase" id="sky-phase" aria-live="polite"></span>
+  </header>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <nav class="tabs" aria-label="Deler av meg.voteapp.eu">
+    <a href="#dag">Min dag</a>
+    <a href="#plan">Hva gjør jeg i dag?</a>
+    <a href="#mat">Middag og handleliste</a>
+    <a href="#helse">Kropp og balanse</a>
+    <a href="#interesser">Interesser og fellesskap</a>
+    <a href="#personvern">Mine data</a>
+  </nav>
+
+  <!-- MIN DAG -->
+  <section class="view" id="view-dag" aria-labelledby="h-dag">
+    <h2 id="h-dag" class="sr">Min dag</h2>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h3>Dagens tall</h3><span class="tag meta">Metafysikk</span></div>
+        <div class="art"><svg class="medal" id="medal" viewBox="0 0 120 120" role="img" aria-label="Dagens tall"></svg><div><p class="sr" id="pday">–</p><p id="pday-text">–</p></div></div>
+        <p class="muted" id="pday-calc">–</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Horoskop: Fisk</h3><span class="tag meta">Metafysikk</span></div>
+        <div class="art"><div class="glyph" aria-hidden="true">&#9811;&#65038;</div><p>Venus står vennlig til deg i dag. Si ja til en samtale du har utsatt, og legg merke til hvem som gir deg energi.</p></div>
+        <p class="muted">Eksempeltekst. Tolkningen er tradisjon og inspirasjon, og gir ingen råd om helse, stemmegivning eller penger.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Månefase</h3><span class="tag fact">Fakta</span></div>
+        <div class="art"><svg class="moonsvg" id="moonsvg" viewBox="0 0 100 100" role="img" aria-label="Månen i dag"></svg><p id="moon-long">–</p></div>
+        <p class="muted" id="moon-tradition">–</p>
+      </article>
+      <article class="card smile sunny">
+        <div class="card-head"><h3>Dagens smil</h3><span class="tag hyp">Gøy</span></div>
+        <p class="q" id="smile-text">–</p>
+        <div class="row"><button type="button" id="smile-next">Gi meg et nytt smil</button></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Hvordan har du det?</h3><span class="tag fact">Bare for deg</span></div>
+        <div class="mood" role="group" aria-label="Dagens humør">
+          <button type="button" aria-pressed="false" data-mood="Tung dag">Tung dag</button>
+          <button type="button" aria-pressed="false" data-mood="Helt ok">Helt ok</button>
+          <button type="button" aria-pressed="false" data-mood="God">God</button>
+          <button type="button" aria-pressed="false" data-mood="Strålende">Strålende</button>
+        </div>
+        <label class="muted" for="grateful">Tre ting du er takknemlig for</label>
+        <input id="grateful" type="text" placeholder="Kaffe på trappa, en hyggelig nabo, nysnø" style="font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+        <p class="muted" id="mood-reply">Velg et humør, så får du et lite ord på veien.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Lys og rytme i nord</h3><span class="tag fact">Fakta</span></div>
+        <div class="arcbox" id="sunarc" role="img" aria-label="Solas høyde over horisonten gjennom døgnet i Storslett"></div>
+        <p id="light-tip">–</p>
+        <p class="muted">Solbanen og soltidene er beregnet for Storslett (69,8° N). Fjellene rundt kan skjule sola i kortere tid enn tallene viser.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Ro og pust</h3><span class="tag meta">Opplevelse</span></div>
+        <p>Pust inn i fire, hold i fire, pust ut i seks. Tre runder gir en liten pause i en travel dag.</p>
+        <div class="orb-wrap" aria-hidden="true"><div class="orb" id="orb"></div></div>
+        <div class="row"><button type="button" class="primary" id="breath-btn">Start tre runder</button><span class="muted" id="breath-state" aria-live="polite"></span></div>
+        <p class="muted">Frekvensmusikk fra Ny Verden kan legges til her senere. Den merkes som personlig opplevelse, ikke som behandling.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Ny sak i VoteApp</h3><span class="tag fact">Dine interesser</span></div>
+        <p><b>Skal det bygges flere turstier langs Reisaelva?</b></p>
+        <p class="muted">Eksempelsak. Du får den fordi du følger «Natur og friluftsliv».</p>
+        <div class="row"><a class="btn" href="#interesser">Se saker for meg</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section class="view" id="view-plan" aria-labelledby="h-plan" hidden>
+    <div class="grid">
+      <article class="card wide">
+        <div class="card-head"><h2 id="h-plan">Hva gjør jeg i dag?</h2><span class="tag fact">Din plan</span></div>
+        <ul class="plain todo" id="todo"></ul>
+        <form class="add" id="todo-form">
+          <label class="sr" for="todo-time">Tid</label>
+          <input type="time" id="todo-time" value="16:00">
+          <label class="sr" for="todo-text">Ny oppgave</label>
+          <input type="text" id="todo-text" placeholder="Legg til noe du vil gjøre i dag" required>
+          <button class="primary" type="submit">Legg til</button>
+        </form>
+        <p class="muted" id="todo-count">–</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Merkedager</h3><span class="tag fact">Kalender</span></div>
+        <ul class="plain">
+          <li><b>Fredag:</b> Bursdag til Ola (eksempel)</li>
+          <li><b>Lørdag:</b> Julemarked i Storslett (eksempel)</li>
+        </ul>
+        <p class="muted">Senere kan én kalender kobles til med lesetilgang. Appen endrer aldri kalenderen din selv.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Bevegelse i dag</h3><span class="tag fact">Forslag</span></div>
+        <p>En rolig tur på 20 minutter i dagslyset, gjerne rundt lunsjtid når sola står høyest.</p>
+        <p class="muted">Forslaget kan senere tilpasses været på stedet ditt.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- MAT -->
+  <section class="view" id="view-mat" aria-labelledby="h-mat" hidden>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-mat">Velg middager</h2><span class="tag fact">Uka di</span></div>
+        <div id="dishes" class="view" style="gap:8px"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Dette har du hjemme</h3><span class="tag fact">Kjøleskap og skap</span></div>
+        <p class="muted">Kryss av det du har. Handlelisten oppdateres med en gang.</p>
+        <div class="chips" id="pantry"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Handleliste</h3><span class="tag fact">Mangler</span></div>
+        <ul class="plain shop" id="shop"></ul>
+        <div class="row"><button type="button" id="copy-shop">Kopier listen</button><span class="muted" id="copy-state" aria-live="polite"></span></div>
+        <p class="muted">Ingenting bestilles automatisk. Listen er din, og du kan endre den fritt.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- HELSE -->
+  <section class="view" id="view-helse" aria-labelledby="h-helse" hidden>
+    <div class="note"><b>Viktig:</b> meg.voteapp.eu stiller ingen diagnose. Her ser du matvarer som er naturlig rike på det du selv har valgt å følge med på. Snakk med lege eller annet helsepersonell hvis du lurer på om du har en mangel.</div>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-helse">Mine målinger</h2><span class="tag fact">Lagt inn av deg</span></div>
+        <div class="tablebox"><table>
+          <thead><tr><th>Dato</th><th>Kilde</th><th>Notat</th></tr></thead>
+          <tbody>
+            <tr><td>01.11</td><td>Blodprøve hos fastlege (eksempel)</td><td>Legen ba meg følge med på D-vitamin</td></tr>
+            <tr><td>05.11</td><td>Skanning, velværeverktøy (eksempel)</td><td>Rapporten nevner magnesium</td></tr>
+          </tbody>
+        </table></div>
+        <p class="muted">Rapportens egne ord vises som rapportens, ikke som appens vurdering.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Dette følger jeg med på</h3><span class="tag fact">Ditt valg</span></div>
+        <div class="chips" id="nutrients"></div>
+      </article>
+      <article class="card wide">
+        <div class="card-head"><h3>Mat som er rik på det du har valgt</h3><span class="tag fact">Matinformasjon</span></div>
+        <div id="foods" class="grid" style="gap:12px"></div>
+        <div class="row"><button type="button" id="add-foods" class="primary">Legg forslagene til middagsplanen</button><span class="muted" id="foods-state" aria-live="polite"></span></div>
+        <p class="muted">I ekte versjon hentes innhold fra Matvaretabellen (Mattilsynet), med kilde og dato på hvert tall.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- INTERESSER -->
+  <section class="view" id="view-interesser" aria-labelledby="h-int" hidden>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-int">Mine interesser</h2><span class="tag fact">Varsler</span></div>
+        <p class="muted">Du får melding når VoteApp har et spørsmål innen det du har valgt.</p>
+        <div class="chips" id="interests"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Saker for meg</h3><span class="tag fact">VoteApp</span></div>
+        <div id="cases" class="view" style="gap:8px"></div>
+      </article>
+      <article class="card wide">
+        <div class="card-head"><h3>Fellesskap med samme interesser</h3><span class="tag hyp">Prøves ut</span></div>
+        <div class="grid" id="groups" style="gap:12px"></div>
+        <p class="muted">Du velger selv om du vil være synlig i en gruppe. Det du gjør her, kobles aldri til hvordan du stemmer.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- PERSONVERN -->
+  <section class="view" id="view-personvern" aria-labelledby="h-pv" hidden>
+    <div class="grid">
+      <article class="card wide">
+        <div class="card-head"><h2 id="h-pv">Mine data</h2><span class="tag fact">Du bestemmer</span></div>
+        <div class="tablebox"><table>
+          <thead><tr><th>Hva</th><th>Hvorfor</th><th>Hvem ser det</th><th>Del av</th></tr></thead>
+          <tbody>
+            <tr><td>Fødselsdato og navn</td><td>Dagens tall og horoskop</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
+            <tr><td>Humør og takknemlighet</td><td>Din egen dagbok</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
+            <tr><td>Målinger og helsenotater</td><td>Matforslag</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
+            <tr><td>Matforråd og middager</td><td>Handleliste</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
+            <tr><td>Interesser</td><td>Varsler om saker</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
+            <tr><td>Synlighet i grupper</td><td>Fellesskap</td><td>Gruppene du velger</td><td><label class="chip"><input type="checkbox"> Av</label></td></tr>
+          </tbody>
+        </table></div>
+        <ul class="plain">
+          <li><b>Stemmene dine er helt atskilt.</b> Ingenting fra meg.voteapp.eu brukes til politisk profilering, annonser eller vekting av stemmer.</li>
+          <li><b>Lagret i EU</b>, kryptert. Helseopplysninger krever ditt eget samtykke.</li>
+          <li><b>Bare for voksne</b> (18 år og eldre) i første versjon.</li>
+        </ul>
+        <div class="row">
+          <button type="button" id="export-btn">Last ned mine data</button>
+          <button type="button" id="delete-btn">Slett alt i meg.voteapp.eu</button>
+        </div>
+        <div id="pv-msg" aria-live="polite"></div>
+      </article>
+    </div>
+  </section>
+
+  <footer>meg.voteapp.eu · prototype v0.1 · 12. november 2026 · eksempeldata, ingen ekte persondata</footer>
+</div>
+
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+<script>
+(function(){
+  "use strict";
+  var now = new Date();
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function store(k, v){ try{ if(v===undefined){ var s=localStorage.getItem("meg-"+k); return s?JSON.parse(s):null; } localStorage.setItem("meg-"+k, JSON.stringify(v)); }catch(e){ return null; } }
+  function $(id){ return document.getElementById(id); }
+  function el(tag, attrs, text){ var e=document.createElement(tag); if(attrs){ for(var a in attrs){ e.setAttribute(a, attrs[a]); } } if(text!=null){ e.textContent=text; } return e; }
+
+  /* ---- date and greeting ---- */
+  var oslo = { timeZone:"Europe/Oslo" };
+  $("today-label").textContent = now.toLocaleDateString("nb-NO", Object.assign({weekday:"long", day:"numeric", month:"long", year:"numeric"}, oslo));
+  var hour = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo)));
+  $("greeting").textContent = (hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld") + ", Kari";
+
+  /* ---- numerology: example birth date 14.03.1968 ---- */
+  function reduceNum(n){ while(n > 9 && n !== 11 && n !== 22 && n !== 33){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
+  var bDay = 14, bMonth = 3;
+  var y = Number(now.toLocaleString("en-GB", Object.assign({year:"numeric"}, oslo)));
+  var m = Number(now.toLocaleString("en-GB", Object.assign({month:"numeric"}, oslo)));
+  var d = Number(now.toLocaleString("en-GB", Object.assign({day:"numeric"}, oslo)));
+  var pYear = reduceNum(reduceNum(bDay) + reduceNum(bMonth) + reduceNum(y));
+  var pDay = reduceNum(pYear + reduceNum(m) + reduceNum(d));
+  var meanings = {1:"Start noe nytt. Dagen liker modige første steg.",2:"Samarbeid og lytting. Del oppgaven med noen.",3:"Uttrykk deg. Skriv, syng eller fortell en historie.",4:"Bygg grunnmur. Rydd, planlegg og fullfør.",5:"Forandring og eventyr. Prøv en ny vei hjem.",6:"Omsorg. Ring noen du er glad i.",7:"Ro og innsikt. Ta en stille stund alene.",8:"Handlekraft. Ta tak i det som gir resultater.",9:"Avslutning og raushet. Gi noe videre.",11:"Mestertall: intuisjon. Lytt til magefølelsen.",22:"Mestertall: byggeren. Store planer kan få føtter.",33:"Mestertall: omsorg i stort format."};
+  $("pday").textContent = pDay;
+  $("pday-text").textContent = meanings[pDay] || "";
+  $("pday-calc").textContent = "Personlig dag regnet fra fødselsdato 14.03 (eksempel): personlig år " + pYear + " + måned " + m + " + dag " + d + " = " + pDay + ". Pythagoreisk metode.";
+  $("day-msg").textContent = "Dagens tall er " + pDay + ". " + (meanings[pDay] || "");
+
+  /* ---- moon phase (synodic month from a known new moon 6 Jan 2000 18:14 UTC) ---- */
+  var syn = 29.530588853;
+  var age = ((now.getTime() - Date.UTC(2000,0,6,18,14)) / 86400000) % syn; if(age < 0){ age += syn; }
+  var illum = Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100);
+  var phase = age < 1.85 ? "Nymåne" : age < 5.54 ? "Voksende månesigd" : age < 9.23 ? "Første kvarter" : age < 12.92 ? "Voksende måne" : age < 16.61 ? "Fullmåne" : age < 20.30 ? "Minkende måne" : age < 23.99 ? "Siste kvarter" : age < 27.68 ? "Minkende månesigd" : "Nymåne";
+  var waxing = age < syn / 2;
+  $("moon").textContent = phase + ", " + illum + " %";
+  $("moon-long").textContent = phase + ". Omtrent " + illum + " % av månen er opplyst, og den er " + Math.round(age) + " dager gammel i denne syklusen.";
+  $("moon-tradition").textContent = "Tradisjon (metafysikk): " + (waxing ? "voksende måne regnes som god tid for å starte og bygge opp." : "minkende måne regnes som god tid for å rydde og avslutte.");
+
+  /* ---- sun for Storslett (69.77 N, 21.03 E): standard declination, equation of time and hour angle ---- */
+  var SUN = (function(){
+    var lat = 69.77 * Math.PI / 180, lon = 21.03;
+    var start = Date.UTC(now.getUTCFullYear(), 0, 0);
+    var doy = Math.floor((Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - start) / 86400000);
+    var g = 2 * Math.PI / 365 * (doy - 1);
+    var decl = 0.006918 - 0.399912*Math.cos(g) + 0.070257*Math.sin(g) - 0.006758*Math.cos(2*g) + 0.000907*Math.sin(2*g) - 0.002697*Math.cos(3*g) + 0.00148*Math.sin(3*g);
+    var eqt = 229.18 * (0.000075 + 0.001868*Math.cos(g) - 0.032077*Math.sin(g) - 0.014615*Math.cos(2*g) - 0.040849*Math.sin(2*g));
+    var noon = 720 - 4*lon - eqt; /* solar noon, minutes after 00:00 UTC */
+    var cosH = (Math.sin(-0.833*Math.PI/180) - Math.sin(lat)*Math.sin(decl)) / (Math.cos(lat)*Math.cos(decl));
+    function alt(minUtc){ var ha = (minUtc - noon) / 4 * Math.PI / 180; return Math.asin(Math.sin(lat)*Math.sin(decl) + Math.cos(lat)*Math.cos(decl)*Math.cos(ha)) * 180 / Math.PI; }
+    var utcMid = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    function fmt(minUtc){ return new Date(utcMid + minUtc*60000).toLocaleTimeString("nb-NO", Object.assign({hour:"2-digit", minute:"2-digit"}, oslo)); }
+    var nowUtc = now.getUTCHours()*60 + now.getUTCMinutes();
+    var osloH = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo))) % 24;
+    var osloM = Number(now.toLocaleString("en-GB", Object.assign({minute:"2-digit"}, oslo)));
+    var offset = ((osloH*60 + osloM) - nowUtc + 1440) % 1440; /* Oslo minus UTC, in minutes */
+    var s = {alt:alt, fmt:fmt, noon:noon, nowUtc:nowUtc, offset:offset, state:"normal", H:0};
+    if(cosH > 1){ s.state = "polar"; } else if(cosH < -1){ s.state = "midnight"; } else { s.H = Math.acos(cosH) * 180 / Math.PI * 4; }
+    return s;
+  })();
+  (function(){
+    var tip;
+    if(SUN.state === "polar"){ $("sunrise").textContent = "Mørketid"; $("sunset").textContent = "Mørketid"; $("daylen").textContent = "Ingen sol"; tip = "Det er mørketid. Gå ut i den blå timen midt på dagen, og bruk et godt dagslys inne om morgenen for å holde rytmen."; }
+    else if(SUN.state === "midnight"){ $("sunrise").textContent = "Midnattssol"; $("sunset").textContent = "Midnattssol"; $("daylen").textContent = "24 t"; tip = "Midnattssol. Mørklegg soverommet og hold faste leggetider, så sover du bedre."; }
+    else {
+      $("sunrise").textContent = SUN.fmt(SUN.noon - SUN.H); $("sunset").textContent = SUN.fmt(SUN.noon + SUN.H);
+      var len = Math.round(2*SUN.H); $("daylen").textContent = Math.floor(len/60) + " t " + (len%60) + " min";
+      tip = len < 360 ? "Dagslyset er kort nå. Gå ut rundt " + SUN.fmt(SUN.noon) + ", når sola står høyest. Lys tidlig på dagen hjelper søvnen om kvelden." : "Bruk dagslyset tidlig på dagen. Det hjelper kroppen å finne rytmen og gjør det lettere å sove om kvelden.";
+    }
+    $("light-tip").textContent = tip;
+  })();
+
+  /* ---- shared moon path: lit part of a disk for today's phase ---- */
+  function moonPath(cx, cy, r){
+    var k = Math.cos(2*Math.PI*age/syn), rx = Math.abs(k)*r, top = cx + "," + (cy - r), bot = cx + "," + (cy + r);
+    if(waxing){ return "M" + top + " A" + r + "," + r + " 0 0 1 " + bot + " A" + rx + "," + r + " 0 0 " + (k > 0 ? 0 : 1) + " " + top + " Z"; }
+    return "M" + top + " A" + r + "," + r + " 0 0 0 " + bot + " A" + rx + "," + r + " 0 0 " + (k > 0 ? 1 : 0) + " " + top + " Z";
+  }
+
+  /* ---- sky: real sun height picks the light; mountains, stars, aurora, moon ---- */
+  (function(){
+    var altNow = SUN.alt(SUN.nowUtc);
+    var mode = altNow > 0 ? "day" : altNow > -6 ? "twilight" : altNow > -12 ? "blue" : "night";
+    var names = {day:"Sola er oppe over Storslett nå", twilight:"Skumring over Storslett", blue:"Den blå timen over Storslett", night:"Natt over Storslett"};
+    $("sky-phase").textContent = names[mode] + " · sola står " + altNow.toFixed(1).replace(".", ",") + "° " + (altNow >= 0 ? "over" : "under") + " horisonten";
+    var skies = {
+      day:      [["#4f86c2",0],["#9cc0e0",0.55],["#f4cfa0",1]],
+      twilight: [["#1b335a",0],["#6c5a8f",0.55],["#e79a78",1]],
+      blue:     [["#0b2140",0],["#24456e",0.6],["#4b6f96",1]],
+      night:    [["#050f18",0],["#0b2233",0.6],["#123245",1]]
+    };
+    var hills = {
+      day:      ["#7d98ab","#5a7689","#3b5668"],
+      twilight: ["#4a4a6e","#353a59","#222b45"],
+      blue:     ["#24405e","#1a3350","#11253b"],
+      night:    ["#0f2230","#0b1a26","#07131c"]
+    };
+    var showStars = mode === "night" || mode === "blue";
+    var showAurora = mode === "night" || mode === "blue";
+    var c = $("skycanvas"), ctx = c.getContext("2d"), stars = [], t0 = performance.now(), ridges = [], shoot = null, nextShoot = 3;
+    for(var i=0;i<110;i++){ stars.push([Math.random(), Math.random()*0.62, Math.random()*1.2+0.3, Math.random()*6.28]); }
+    /* three mountain ridges, seeded so they stay the same between frames */
+    function ridge(seed, base, amp, peaks){
+      var pts = [], n = 64;
+      for(var j=0;j<=n;j++){
+        var x = j/n, yv = 0;
+        yv += Math.sin(x*Math.PI*peaks + seed)*0.5 + Math.sin(x*Math.PI*peaks*2.3 + seed*1.7)*0.25 + Math.sin(x*Math.PI*peaks*5.1 + seed*0.6)*0.12;
+        yv = Math.max(yv, -0.4);
+        pts.push([x, base - yv*amp]);
+      }
+      return pts;
+    }
+    ridges = [ridge(1.3, 0.70, 0.16, 2.2), ridge(4.1, 0.80, 0.11, 3.1), ridge(2.2, 0.90, 0.07, 4.3)];
+    function size(){ var r = c.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio||1, 2); c.width = Math.max(1, r.width*dpr); c.height = Math.max(1, r.height*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); }
+    function draw(ts){
+      var w = c.clientWidth, h = c.clientHeight, t = (ts - t0) / 1000;
+      var bg = ctx.createLinearGradient(0,0,0,h*0.85); skies[mode].forEach(function(s){ bg.addColorStop(s[1], s[0]); }); ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      if(showStars){
+        stars.forEach(function(s){ ctx.globalAlpha = (mode === "blue" ? 0.35 : 0.55) + 0.45*Math.sin(t*1.3 + s[3]); ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(s[0]*w, s[1]*h, s[2], 0, 6.28); ctx.fill(); });
+        ctx.globalAlpha = 1;
+      }
+      if(showAurora){
+        [["rgba(67,195,155,0.34)",0.30],["rgba(120,220,180,0.22)",0.42],["rgba(150,120,230,0.18)",0.52]].forEach(function(cl, k){
+          ctx.beginPath(); ctx.moveTo(0, h);
+          for(var x=0; x<=w; x+=8){ var yy = h*cl[1] + Math.sin(x/w*5 + t*0.35 + k*1.7)*h*0.08 + Math.sin(x/w*11 + t*0.2 + k)*h*0.03; ctx.lineTo(x, yy); }
+          ctx.lineTo(w, h); ctx.closePath();
+          var gr = ctx.createLinearGradient(0, h*0.15, 0, h*0.8); gr.addColorStop(0, cl[0]); gr.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = gr; ctx.fill();
+        });
+      }
+      if(mode === "day" || mode === "twilight"){
+        /* the low northern sun, placed by hour angle along the southern horizon */
+        var frac = SUN.H ? Math.min(1, Math.max(0, (SUN.nowUtc - (SUN.noon - SUN.H)) / (2*SUN.H))) : 0.5;
+        var sx = w*(0.15 + 0.7*frac), sy = h*0.62 - Math.max(0, SUN.alt(SUN.nowUtc))*h*0.03;
+        var glow = ctx.createRadialGradient(sx, sy, 2, sx, sy, h*0.45); glow.addColorStop(0, "rgba(255,214,150,0.85)"); glow.addColorStop(0.2, "rgba(255,190,120,0.35)"); glow.addColorStop(1, "rgba(255,190,120,0)");
+        ctx.fillStyle = glow; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = "#fff1d6"; ctx.beginPath(); ctx.arc(sx, sy, 13, 0, 6.28); ctx.fill();
+      }
+      if(!reduce && mode === "night"){
+        if(!shoot && t > nextShoot){ shoot = {x: w*(0.2+Math.random()*0.6), y: h*(0.05+Math.random()*0.25), t: t}; }
+        if(shoot){
+          var p = (t - shoot.t) / 0.9;
+          if(p >= 1){ shoot = null; nextShoot = t + 5 + Math.random()*6; }
+          else { var len = 90, dx = shoot.x + p*160, dy = shoot.y + p*60; var sg = ctx.createLinearGradient(dx, dy, dx - len, dy - len*0.38); sg.addColorStop(0, "rgba(255,255,255," + (1-p) + ")"); sg.addColorStop(1, "rgba(255,255,255,0)"); ctx.strokeStyle = sg; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx - len, dy - len*0.38); ctx.stroke(); }
+        }
+      }
+      /* moon with today's phase */
+      if(mode !== "day"){
+        var mx = w - 52, my = 44, mr = 17;
+        var mg = ctx.createRadialGradient(mx, my, mr*0.5, mx, my, mr*3); mg.addColorStop(0, "rgba(244,240,220,0.25)"); mg.addColorStop(1, "rgba(244,240,220,0)"); ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(mx, my, mr*3, 0, 6.28); ctx.fill();
+        ctx.fillStyle = "rgba(20,35,48,0.85)"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.28); ctx.fill();
+        ctx.fillStyle = "#f4f0dc"; ctx.fill(new Path2D(moonPath(mx, my, mr)));
+      }
+      /* mountains, far to near, with a little snow on the far ridge */
+      ridges.forEach(function(rg, k){
+        ctx.beginPath(); ctx.moveTo(0, h);
+        rg.forEach(function(p){ ctx.lineTo(p[0]*w, p[1]*h); });
+        ctx.lineTo(w, h); ctx.closePath(); ctx.fillStyle = hills[mode][k]; ctx.fill();
+        if(k === 0){
+          ctx.save(); ctx.clip();
+          ctx.fillStyle = mode === "day" ? "rgba(255,255,255,0.55)" : "rgba(220,235,245,0.18)";
+          rg.forEach(function(p, j){ if(j > 0 && j < rg.length-1 && p[1] < rg[j-1][1] && p[1] < rg[j+1][1]){ ctx.beginPath(); ctx.moveTo(p[0]*w - 26, p[1]*h + 16); ctx.lineTo(p[0]*w, p[1]*h); ctx.lineTo(p[0]*w + 26, p[1]*h + 16); ctx.closePath(); ctx.fill(); } });
+          ctx.restore();
+        }
+      });
+      /* the fjord: a soft band of light at the bottom */
+      var fj = ctx.createLinearGradient(0, h*0.93, 0, h); fj.addColorStop(0, "rgba(255,255,255,0)"); fj.addColorStop(1, mode === "day" ? "rgba(200,225,240,0.35)" : "rgba(120,200,180,0.12)"); ctx.fillStyle = fj; ctx.fillRect(0, h*0.93, w, h*0.07);
+      if(!reduce){ requestAnimationFrame(draw); }
+    }
+    size(); window.addEventListener("resize", function(){ size(); if(reduce){ draw(performance.now()); } });
+    requestAnimationFrame(draw);
+  })();
+
+  /* ---- number medallion: one dot per unit of today's number ---- */
+  (function(){
+    var svg = $("medal"), ns = "http://www.w3.org/2000/svg", n = pDay > 9 ? (pDay === 11 ? 11 : pDay === 22 ? 22 : 33) : pDay;
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    svg.appendChild(mk("circle", {cx:60, cy:60, r:54, fill:"var(--soft-accent)"}));
+    svg.appendChild(mk("circle", {cx:60, cy:60, r:44, fill:"none", stroke:"var(--accent)", "stroke-width":2, "stroke-dasharray":"2 5"}));
+    var dots = Math.min(n, 33);
+    for(var i=0;i<dots;i++){ var a = -Math.PI/2 + i*2*Math.PI/dots; svg.appendChild(mk("circle", {cx:60 + 49*Math.cos(a), cy:60 + 49*Math.sin(a), r: dots > 12 ? 2.4 : 4, fill:"var(--sun)"})); }
+    var tx = mk("text", {x:60, y:61, "text-anchor":"middle", "dominant-baseline":"central", "font-size": pDay > 9 ? 40 : 54, fill:"var(--accent)"}); tx.textContent = pDay; svg.appendChild(tx);
+  })();
+
+  /* ---- moon card illustration ---- */
+  (function(){
+    var svg = $("moonsvg"), ns = "http://www.w3.org/2000/svg";
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    svg.appendChild(mk("circle", {cx:50, cy:50, r:48, fill:"var(--fact-bg)"}));
+    svg.appendChild(mk("circle", {cx:50, cy:50, r:34, fill:"var(--surface-2)", stroke:"var(--line)"}));
+    svg.appendChild(mk("path", {d: moonPath(50, 50, 34), fill:"var(--sun)"}));
+    [[22,20,1.6],[80,28,1.2],[16,74,1.2],[84,78,1.6]].forEach(function(s){ svg.appendChild(mk("circle", {cx:s[0], cy:s[1], r:s[2], fill:"var(--fact)"})); });
+  })();
+
+  /* ---- the sun's path today, as a small chart (local Oslo time on the x axis) ---- */
+  (function(){
+    var W = 320, Hh = 130, padL = 6, padR = 6, top = 14, bot = 26, ns = "http://www.w3.org/2000/svg";
+    var pts = [], lo = 90, hi = -90;
+    for(var L=0; L<=1440; L+=10){ var a = SUN.alt(L - SUN.offset); pts.push([L, a]); lo = Math.min(lo, a); hi = Math.max(hi, a); }
+    var yMax = Math.max(hi, 4) + 2, yMin = lo - 2;
+    function X(L){ return padL + L/1440*(W - padL - padR); }
+    function Y(a){ return top + (yMax - a)/(yMax - yMin)*(Hh - top - bot); }
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    var svg = mk("svg", {viewBox:"0 0 " + W + " " + Hh});
+    var y0 = Y(0);
+    svg.appendChild(mk("rect", {x:padL, y:top, width:W-padL-padR, height:y0-top, fill:"var(--soft-sun)"}));
+    svg.appendChild(mk("rect", {x:padL, y:y0, width:W-padL-padR, height:Hh-bot-y0, fill:"var(--surface-2)"}));
+    var d = pts.map(function(p, i){ return (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
+    svg.appendChild(mk("path", {d:d, fill:"none", stroke:"var(--sun)", "stroke-width":2.5}));
+    svg.appendChild(mk("line", {x1:padL, x2:W-padR, y1:y0, y2:y0, stroke:"var(--muted)", "stroke-width":1, "stroke-dasharray":"3 3"}));
+    [0,6,12,18,24].forEach(function(hr){ var tx = mk("text", {x:X(hr*60), y:Hh-8, "text-anchor": hr === 0 ? "start" : hr === 24 ? "end" : "middle", "class":"arc-label"}); tx.textContent = String(hr).padStart(2,"0"); svg.appendChild(tx); });
+    var hz = mk("text", {x:W-padR-2, y:y0-4, "text-anchor":"end", "class":"arc-label"}); hz.textContent = "horisonten"; svg.appendChild(hz);
+    var Lnow = (SUN.nowUtc + SUN.offset) % 1440, aNow = SUN.alt(SUN.nowUtc);
+    svg.appendChild(mk("circle", {cx:X(Lnow), cy:Y(aNow), r:5.5, fill:"var(--accent)", stroke:"var(--surface)", "stroke-width":2}));
+    var nt = mk("text", {x:X(Lnow), y:Math.max(top+10, Y(aNow) - 10), "text-anchor":"middle", "class":"arc-label"}); nt.textContent = "nå"; svg.appendChild(nt);
+    $("sunarc").appendChild(svg);
+  })();
+
+  /* ---- confetti: a short burst, skipped for reduced motion ---- */
+  var confetti = (function(){
+    var c = $("confetti"), ctx = c.getContext("2d"), parts = [], running = false;
+    function col(){ var cs = getComputedStyle(document.documentElement); return [cs.getPropertyValue("--accent"), cs.getPropertyValue("--sun"), cs.getPropertyValue("--meta"), cs.getPropertyValue("--fact")].map(function(s){ return s.trim(); }); }
+    function frame(){
+      var dpr = Math.min(window.devicePixelRatio||1, 2); if(c.width !== innerWidth*dpr){ c.width = innerWidth*dpr; c.height = innerHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      parts = parts.filter(function(p){ return p.life > 0; });
+      parts.forEach(function(p){ p.vy += 0.25; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.min(1, p.life/30); ctx.fillStyle = p.c; ctx.fillRect(-4, -2, 8, 4); ctx.restore(); });
+      if(parts.length){ requestAnimationFrame(frame); } else { running = false; ctx.clearRect(0,0,innerWidth,innerHeight); }
+    }
+    return function(x, y){
+      if(reduce){ return; }
+      var cs = col();
+      for(var i=0;i<70;i++){ var a = Math.random()*Math.PI*2, s = 3 + Math.random()*6; parts.push({x:x, y:y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 4, r:Math.random()*6, vr:(Math.random()-0.5)*0.4, c:cs[i%cs.length], life:70 + Math.random()*30}); }
+      if(!running){ running = true; requestAnimationFrame(frame); }
+    };
+  })();
+  function burstFrom(elm){ var r = elm.getBoundingClientRect(); confetti(r.left + r.width/2, r.top + r.height/2); }
+
+  /* ---- smiles ---- */
+  var smiles = ["Visste du at oter holder hverandre i labben når de sover, så de ikke driver fra hverandre?","Et smil bruker færre muskler enn du tror, og gir mer tilbake enn du gir.","Nordlyset over Nordreisa har ingen billettpris. Se opp i kveld.","Dagens utfordring: si takk til tre personer før klokka tre.","Kaffe smaker best når den deles med en nabo.","Du trenger ikke ha alt på stell for å ha en god dag. Én god ting holder."];
+  var si = Math.floor(Math.random()*smiles.length);
+  function showSmile(){ $("smile-text").textContent = smiles[si % smiles.length]; }
+  showSmile(); $("smile-next").addEventListener("click", function(){ si++; showSmile(); burstFrom($("smile-next")); });
+
+  /* ---- mood ---- */
+  var replies = {"Tung dag":"Takk for at du sier det. Gjør bare én liten ting for deg selv i dag.","Helt ok":"Helt ok er et godt sted å starte fra. Kanskje en tur i dagslyset?","God":"Så fint! Del litt av det gode med noen i dag.","Strålende":"Herlig! Den energien smitter. Bruk den på noe du har gledet deg til."};
+  document.querySelectorAll("[data-mood]").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("[data-mood]").forEach(function(x){ x.setAttribute("aria-pressed","false"); }); b.setAttribute("aria-pressed","true"); $("mood-reply").textContent = replies[b.dataset.mood]; }); });
+
+  /* ---- breathing ---- */
+  var breathing = false;
+  $("breath-btn").addEventListener("click", function(){
+    if(breathing){ return; } breathing = true;
+    var steps = [], i; for(i=0;i<3;i++){ steps.push(["Pust inn", 4], ["Hold", 4], ["Pust ut", 6]); }
+    var idx = 0;
+    var orb = $("orb");
+    (function next(){ if(idx >= steps.length){ $("breath-state").textContent = "Ferdig. Godt gjort."; orb.style.transitionDuration = "1.5s"; orb.style.transform = "scale(1)"; breathing = false; return; } var s = steps[idx++]; var left = s[1];
+      if(!reduce){ orb.style.transitionDuration = s[1] + "s"; if(s[0] === "Pust inn"){ orb.style.transform = "scale(1.75)"; } else if(s[0] === "Pust ut"){ orb.style.transform = "scale(1)"; } }
+      (function tick(){ $("breath-state").textContent = s[0] + " … " + left; if(left-- > 1){ setTimeout(tick, 1000); } else { setTimeout(next, 1000); } })(); })();
+  });
+
+  /* ---- todo ---- */
+  var todos = store("todos") || [{t:"08:30", x:"Kaffe og fem minutter stillhet", done:true},{t:"10:00", x:"Svare på e-post fra sameiet", done:false},{t:"12:15", x:"Tur i dagslyset, 20 minutter", done:false},{t:"17:00", x:"Middag: laks med potet og brokkoli", done:false},{t:"20:00", x:"Stemme på saken om turstier", done:false}];
+  function renderTodos(){
+    var ul = $("todo"); ul.textContent = "";
+    todos.sort(function(a,b){ return a.t < b.t ? -1 : 1; }).forEach(function(it, i){
+      var li = el("li"); if(it.done){ li.className = "done"; }
+      var id = "todo-" + i, lab = el("label", {"for": id});
+      var cb = el("input", {type:"checkbox", id:id}); cb.checked = !!it.done;
+      cb.addEventListener("change", function(){ it.done = cb.checked; var r = cb.getBoundingClientRect(); store("todos", todos); renderTodos(); if(it.done){ confetti(r.left + 10, r.top + 10); } });
+      lab.appendChild(cb); lab.appendChild(el("span", {"class":"time"}, it.t)); lab.appendChild(el("span", {"class":"t"}, it.x));
+      li.appendChild(lab);
+      var del = el("button", {type:"button", "aria-label":"Fjern " + it.x}, "Fjern");
+      del.addEventListener("click", function(){ todos.splice(todos.indexOf(it),1); store("todos", todos); renderTodos(); });
+      li.appendChild(del); ul.appendChild(li);
+    });
+    var left = todos.filter(function(x){ return !x.done; }).length;
+    $("todo-count").textContent = left === 0 ? "Alt er gjort i dag. Nyt kvelden!" : left + " igjen i dag. Ta én om gangen.";
+  }
+  $("todo-form").addEventListener("submit", function(e){ e.preventDefault(); var x = $("todo-text").value.trim(); if(!x){ return; } todos.push({t:$("todo-time").value || "12:00", x:x, done:false}); $("todo-text").value = ""; store("todos", todos); renderTodos(); });
+  renderTodos();
+
+  /* ---- dinners, pantry, shopping list ---- */
+  var dishes = [
+    {id:"laks", name:"Ovnsbakt laks med potet og brokkoli", why:"Rik på D-vitamin", ing:["Laks","Potet","Brokkoli","Smør","Sitron"]},
+    {id:"linse", name:"Linsegryte med spinat", why:"Rik på jern og magnesium", ing:["Røde linser","Spinat","Løk","Hvitløk","Hermetiske tomater","Kokosmelk"]},
+    {id:"reinsdyr", name:"Finnbiff med potetmos og tyttebær", why:"Lokal klassiker, rik på jern", ing:["Finnbiff","Potet","Løk","Fløte","Tyttebær","Smør"]},
+    {id:"omelett", name:"Omelett med sopp og fullkornsbrød", why:"Rask middag, egg gir D-vitamin", ing:["Egg","Sopp","Fullkornsbrød","Smør","Ost"]},
+    {id:"makrell", name:"Makrell i tomat på knekkebrød med salat", why:"Fet fisk, rask lunsj eller kveldsmat", ing:["Makrell i tomat","Knekkebrød","Salat","Agurk"]}
+  ];
+  var chosen = store("chosen") || ["laks","linse","reinsdyr"];
+  var pantryItems = ["Potet","Smør","Løk","Hvitløk","Egg","Hermetiske tomater","Knekkebrød","Ost","Fløte","Tyttebær","Sitron","Salat","Agurk","Kokosmelk"];
+  var have = store("have") || ["Potet","Smør","Løk","Hvitløk","Egg","Knekkebrød","Tyttebær"];
+  function renderDishes(){
+    var box = $("dishes"); box.textContent = "";
+    dishes.forEach(function(dsh){
+      var id = "dish-" + dsh.id, lab = el("label", {"class":"dish", "for":id});
+      var cb = el("input", {type:"checkbox", id:id}); cb.checked = chosen.indexOf(dsh.id) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ chosen.push(dsh.id); } else { chosen = chosen.filter(function(x){ return x !== dsh.id; }); } store("chosen", chosen); renderShop(); });
+      var txt = el("span"); txt.appendChild(el("b", null, dsh.name)); txt.appendChild(el("br")); txt.appendChild(el("span", {"class":"muted"}, dsh.why));
+      lab.appendChild(cb); lab.appendChild(txt); box.appendChild(lab);
+    });
+  }
+  function renderPantry(){
+    var box = $("pantry"); box.textContent = "";
+    pantryItems.forEach(function(p, i){
+      var id = "pan-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = have.indexOf(p) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ have.push(p); } else { have = have.filter(function(x){ return x !== p; }); } store("have", have); renderShop(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(p)); box.appendChild(lab);
+    });
+  }
+  var shopText = "";
+  function renderShop(){
+    var need = {};
+    dishes.forEach(function(dsh){ if(chosen.indexOf(dsh.id) > -1){ dsh.ing.forEach(function(g){ if(have.indexOf(g) === -1){ (need[g] = need[g] || []).push(dsh.name.split(" ")[0] + " " + (dsh.name.split(" ")[1]||"")); } }); } });
+    var ul = $("shop"); ul.textContent = ""; var keys = Object.keys(need).sort(function(a,b){ return a.localeCompare(b, "nb"); });
+    if(!keys.length){ ul.appendChild(el("li", null, "Du har alt du trenger. Ingen handletur i dag!")); shopText = ""; return; }
+    keys.forEach(function(k){ var li = el("li"); li.appendChild(el("span", null, k)); li.appendChild(el("span", {"class":"muted"}, need[k].join(", "))); ul.appendChild(li); });
+    shopText = "Handleliste\n" + keys.map(function(k){ return "- " + k; }).join("\n");
+  }
+  $("copy-shop").addEventListener("click", function(){
+    if(!shopText){ $("copy-state").textContent = "Listen er tom."; return; }
+    var done = function(){ $("copy-state").textContent = "Kopiert."; };
+    try{ navigator.clipboard.writeText(shopText).then(done, function(){ $("copy-state").textContent = "Kunne ikke kopiere. Marker listen og kopier selv."; }); }catch(e){ $("copy-state").textContent = "Kunne ikke kopiere. Marker listen og kopier selv."; }
+  });
+  renderDishes(); renderPantry(); renderShop();
+
+  /* ---- nutrients and foods (general food knowledge; real version cites Matvaretabellen) ---- */
+  var nutrients = {
+    "D-vitamin": {foods:["Laks","Makrell","Sild","Tran","Egg"], dish:"laks", tip:"Lite sol i mørketiden gjør fet fisk ekstra aktuelt i nord."},
+    "Jern": {foods:["Finnbiff og rødt kjøtt","Leverpostei","Linser","Spinat","Gresskarkjerner"], dish:"reinsdyr", tip:"C-vitamin i samme måltid, for eksempel paprika eller appelsin, hjelper kroppen å ta opp jern fra planter."},
+    "Magnesium": {foods:["Gresskarkjerner","Mandler","Havregryn","Linser og bønner","Mørk sjokolade"], dish:"linse", tip:"Nøtter og frø er et enkelt mellommåltid."},
+    "B12": {foods:["Fisk og skalldyr","Egg","Melk og ost","Kjøtt"], dish:"omelett", tip:"Følger du et plantebasert kosthold, snakk med lege om B12."}
+  };
+  var following = store("following") || ["D-vitamin","Magnesium"];
+  function renderNutrients(){
+    var box = $("nutrients"); box.textContent = "";
+    Object.keys(nutrients).forEach(function(n, i){
+      var id = "nut-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = following.indexOf(n) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ following.push(n); } else { following = following.filter(function(x){ return x !== n; }); } store("following", following); renderFoods(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(n)); box.appendChild(lab);
+    });
+  }
+  function renderFoods(){
+    var box = $("foods"); box.textContent = "";
+    if(!following.length){ box.appendChild(el("p", {"class":"muted"}, "Velg hva du vil følge med på, så kommer matforslagene her.")); return; }
+    following.forEach(function(n){
+      var c = el("div", {"class":"case"}); c.appendChild(el("b", null, n));
+      c.appendChild(el("span", null, nutrients[n].foods.join(", ")));
+      c.appendChild(el("span", {"class":"muted"}, nutrients[n].tip)); box.appendChild(c);
+    });
+  }
+  $("add-foods").addEventListener("click", function(){
+    var added = [];
+    following.forEach(function(n){ var dId = nutrients[n].dish; if(chosen.indexOf(dId) === -1){ chosen.push(dId); added.push(dId); } });
+    store("chosen", chosen); renderDishes(); renderShop();
+    $("foods-state").textContent = added.length ? "Lagt til i middagsplanen. Se Middag og handleliste." : "Middagene er allerede med i planen.";
+  });
+  renderNutrients(); renderFoods();
+
+  /* ---- interests, cases, groups ---- */
+  var interestList = ["Natur og friluftsliv","Helse og velvære","Mat og lokalproduksjon","Skole og barn","Veier og samferdsel","Kultur og frivillighet","Næring og arbeid"];
+  var mine = store("interests") || ["Natur og friluftsliv","Helse og velvære","Mat og lokalproduksjon"];
+  var cases = [
+    {t:"Skal det bygges flere turstier langs Reisaelva?", i:"Natur og friluftsliv", s:"Åpen for svar", by:"Nordreisa"},
+    {t:"Bør skolene servere et varmt måltid hver dag?", i:"Skole og barn", s:"Åpen for svar", by:"Nordreisa"},
+    {t:"Skal lokal mat prioriteres i kommunale innkjøp?", i:"Mat og lokalproduksjon", s:"Under arbeid", by:"Nord-Troms"},
+    {t:"Trengs det et lavterskeltilbud for trening for eldre?", i:"Helse og velvære", s:"Åpen for svar", by:"Nordreisa"},
+    {t:"Bør E6 gjennom Storslett få lavere fartsgrense?", i:"Veier og samferdsel", s:"Avsluttet, oppfølging pågår", by:"Nordreisa"}
+  ];
+  var groups = [
+    {n:"Turvenner i Nordreisa", i:"Natur og friluftsliv", m:"Tur hver søndag kl. 11"},
+    {n:"Sunn mat i nord", i:"Mat og lokalproduksjon", m:"Deler oppskrifter med lokale råvarer"},
+    {n:"Stille stund", i:"Helse og velvære", m:"Digital meditasjon tirsdager kl. 20"},
+    {n:"Stjerner og nordlys", i:"Natur og friluftsliv", m:"Varsler når nordlyset er sterkt"}
+  ];
+  function renderInterests(){
+    var box = $("interests"); box.textContent = "";
+    interestList.forEach(function(n, i){
+      var id = "int-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = mine.indexOf(n) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ mine.push(n); } else { mine = mine.filter(function(x){ return x !== n; }); } store("interests", mine); renderCases(); renderGroups(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(n)); box.appendChild(lab);
+    });
+  }
+  function renderCases(){
+    var box = $("cases"); box.textContent = "";
+    var list = cases.filter(function(c){ return mine.indexOf(c.i) > -1; });
+    if(!list.length){ box.appendChild(el("p", {"class":"muted"}, "Velg en interesse, så ser du sakene som passer for deg.")); return; }
+    list.forEach(function(c){ var d = el("div", {"class":"case"}); d.appendChild(el("b", null, c.t)); var r = el("div", {"class":"meta-row"}); r.appendChild(el("span", null, c.i)); r.appendChild(el("span", null, "· " + c.s)); r.appendChild(el("span", null, "· " + c.by)); r.appendChild(el("span", null, "· eksempel")); d.appendChild(r); box.appendChild(d); });
+  }
+  var joined = store("joined") || [];
+  function renderGroups(){
+    var box = $("groups"); box.textContent = "";
+    groups.forEach(function(g){
+      var d = el("div", {"class":"case"}); d.appendChild(el("b", null, g.n));
+      d.appendChild(el("span", {"class":"muted"}, g.m + " · " + g.i + " · eksempel"));
+      var isIn = joined.indexOf(g.n) > -1;
+      var b = el("button", {type:"button"}, isIn ? "Du er med. Forlat gruppen" : "Bli med");
+      if(!isIn && mine.indexOf(g.i) > -1){ b.className = "primary"; }
+      b.addEventListener("click", function(){ if(isIn){ joined = joined.filter(function(x){ return x !== g.n; }); } else { joined.push(g.n); } store("joined", joined); renderGroups(); });
+      d.appendChild(b); box.appendChild(d);
+    });
+  }
+  renderInterests(); renderCases(); renderGroups();
+
+  /* ---- privacy actions (demo, nothing leaves the page) ---- */
+  $("export-btn").addEventListener("click", function(){ $("pv-msg").textContent = ""; var p = el("p", {"class":"note"}, "I ekte versjon får du en fil med alt du har lagt inn. Denne prototypen lagrer bare eksempeldata i nettleseren din."); $("pv-msg").appendChild(p); });
+  $("delete-btn").addEventListener("click", function(){
+    var box = $("pv-msg"); box.textContent = "";
+    var c = el("div", {"class":"confirm"}); c.appendChild(el("b", null, "Slette alt du har lagt inn i meg.voteapp.eu?"));
+    c.appendChild(el("span", null, "VoteApp-kontoen og stemmene dine berøres ikke. I prototypen nullstilles bare eksempeldataene."));
+    var row = el("div", {"class":"row"}), yes = el("button", {type:"button", "class":"primary"}, "Ja, slett"), no = el("button", {type:"button"}, "Avbryt");
+    yes.addEventListener("click", function(){ ["todos","chosen","have","following","interests","joined"].forEach(function(k){ try{ localStorage.removeItem("meg-"+k); }catch(e){} }); box.textContent = ""; box.appendChild(el("p", {"class":"note"}, "Slettet. Last siden på nytt for å starte med eksempeldata igjen.")); });
+    no.addEventListener("click", function(){ box.textContent = ""; });
+    row.appendChild(yes); row.appendChild(no); c.appendChild(row); box.appendChild(c);
+  });
+
+  /* ---- hash routing ---- */
+  var views = ["dag","plan","mat","helse","interesser","personvern"];
+  function route(){
+    var v = (location.hash || "#dag").slice(1); if(views.indexOf(v) === -1){ v = "dag"; }
+    views.forEach(function(x){ $("view-" + x).hidden = x !== v; });
+    $("view-" + v).querySelectorAll(".card").forEach(function(cd, i){ cd.style.setProperty("--i", i); cd.style.animation = "none"; void cd.offsetWidth; cd.style.animation = ""; });
+    document.querySelectorAll("nav.tabs a").forEach(function(a){ if(a.getAttribute("href") === "#" + v){ a.setAttribute("aria-current","page"); } else { a.removeAttribute("aria-current"); } });
+  }
+  window.addEventListener("hashchange", route); route();
+})();
+</script>
