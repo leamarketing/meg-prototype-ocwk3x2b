@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>meg.voteapp.eu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<style>
+/* Layout: phone-first personal day app. A sky band on top, a wrapping tab row, then one view at a time as a column of cards. */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e8efee; --ink:#14232b; --muted:#56666d; --line:#d3dedd;
+  --accent:#1f8a6d; --accent-ink:#ffffff; --sun:#d98a1c; --soft-accent:#d8efe7; --soft-sun:#f7e8cf;
+  --fact:#1f6f9e; --fact-bg:#dcebf5; --hyp:#8a6a12; --hyp-bg:#f4ecd2; --meta:#7a4a9c; --meta-bg:#ece2f4;
+  --warn-bg:#fdf1e4; --warn-ink:#7a4a10;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Nunito Sans", "Segoe UI", system-ui, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+.demo{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);color:var(--warn-ink);border-radius:var(--r);padding:10px 14px;font-size:14px}
+.demo b{white-space:nowrap}
+/* sky */
+.sky{position:relative;border-radius:20px;overflow:hidden;min-height:210px;background:#0b1d2b;color:#f2f7f6}
+.sky canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sky-inner{position:relative;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding:22px}
+.sky .who{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sky .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.sky .msg{font-size:17px;max-width:42ch;opacity:.95}
+.sky .facts{display:grid;grid-template-columns:repeat(2,minmax(0,auto));gap:6px 18px;align-content:start;font-size:14px;background:rgba(5,15,22,.45);border-radius:12px;padding:12px 14px}
+.sky .facts span{opacity:.8}
+.sky .facts b{font-variant-numeric:tabular-nums}
+/* tabs */
+nav.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+nav.tabs a{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:9px 14px;border-radius:999px;font-weight:700;font-size:15px}
+nav.tabs a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--sun);outline-offset:2px}
+/* grid of cards */
+.view{display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.wide{grid-column:1/-1}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tag{font-size:12px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.tag.fact{background:var(--fact-bg);color:var(--fact)}
+.tag.hyp{background:var(--hyp-bg);color:var(--hyp)}
+.tag.meta{background:var(--meta-bg);color:var(--meta)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:14px}
+.big{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);padding:8px 14px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:hover{filter:brightness(1.05)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px;cursor:pointer;user-select:none}
+.chip input{accent-color:var(--accent);margin:0}
+.chip:has(input:checked){background:var(--soft-accent);border-color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.mood{display:flex;gap:8px;flex-wrap:wrap}
+.mood button[aria-pressed="true"]{background:var(--soft-sun);border-color:var(--sun)}
+.smile{background:var(--soft-sun);border-color:transparent}
+.smile .q{font-family:var(--display);font-size:20px;font-weight:700}
+ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+.todo li label{display:flex;gap:10px;align-items:center;flex:1;min-width:0;cursor:pointer}
+.todo li .time{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:46px}
+.todo input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+.todo li.done span.t{text-decoration:line-through;color:var(--muted)}
+form.add{display:flex;gap:8px;flex-wrap:wrap}
+form.add input[type=text],form.add input[type=time],select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0}
+form.add input[type=text]{flex:1 1 180px}
+.dish{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;border:1px solid var(--line)}
+.dish:has(input:checked){border-color:var(--accent);background:var(--soft-accent)}
+.dish input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}
+.shop li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.shop li:last-child{border-bottom:0}
+.note{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.case{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;background:var(--surface-2)}
+.case .meta-row{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tablebox{overflow-x:auto}
+.confirm{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--sun);background:var(--soft-sun)}
+footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
+/* v0.2 visuals */
+.sky{min-height:300px}
+.sky-inner{padding-bottom:64px}
+.sky .phase{position:absolute;left:22px;bottom:14px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+.art{display:flex;gap:16px;align-items:center}
+.art > :last-child{min-width:0}
+.medal{flex:0 0 auto;width:104px;height:104px}
+.medal text{font-family:var(--display);font-weight:800}
+.glyph{flex:0 0 auto;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:var(--meta-bg);color:var(--meta);font-size:54px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif}
+.moonsvg{flex:0 0 auto;width:96px;height:96px}
+.arcbox{width:100%;overflow:hidden}
+.arcbox svg{display:block;width:100%;height:auto}
+.arc-label{font-size:11px;fill:var(--muted);font-family:var(--body)}
+.orb-wrap{display:grid;place-items:center;height:132px}
+.orb{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--soft-accent),var(--accent));box-shadow:0 0 0 10px var(--soft-accent);transform:scale(1);transition-property:transform;transition-timing-function:ease-in-out}
+.sunny{position:relative;overflow:hidden}
+.sunny::after{content:"";position:absolute;right:-36px;top:-36px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--sun) 0 34%,transparent 35%),repeating-conic-gradient(var(--sun) 0 6deg,transparent 6deg 24deg);opacity:.35;pointer-events:none}
+.sunny > *{position:relative;z-index:1}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+@keyframes rise{from{transform:translateY(10px);opacity:.6}to{transform:none;opacity:1}}
+.view:not([hidden]) .card{animation:rise .55s ease both;animation-delay:calc(var(--i,0) * 55ms)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}.view .card{animation:none!important}}
+.langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
+.langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+  <div class="langbar"><label for="lang-select"><span aria-hidden="true">&#127760;</span> 语言</label><select id="lang-select"><option value="nb">Norsk</option><option value="en">English</option><option value="pt">Português</option><option value="es">Español</option><option value="zh" selected>中文</option><option value="se">Davvisámegiella (utkast)</option><option value="fkv">Kväänin kieli (utkast)</option></select></div>
+  <div class="demo" role="note"><b>原型</b><span>这里的所有内容都是测试用户“Kari”的示例数据。不会保存或发送任何真实的个人数据。本原型用于在正式开发前试验 meg.voteapp.eu 的构想。</span></div>
+
+  <header class="sky" id="sky">
+    <canvas id="skycanvas" aria-hidden="true"></canvas>
+    <div class="sky-inner">
+      <div class="who">
+        <span class="eyebrow" id="today-label">今天</span>
+        <h1 id="greeting">早上好，Kari</h1>
+        <p class="msg" id="day-msg">今天的数字邀请你开始新的事情。午饭前迈出第一小步吧。</p>
+      </div>
+      <div class="facts" aria-label="Storslett 今日信息">
+        <span>地点</span><b>Storslett, Nordreisa</b>
+        <span>日出</span><b id="sunrise">–</b>
+        <span>日落</span><b id="sunset">–</b>
+        <span>日照</span><b id="daylen">–</b>
+        <span>月亮</span><b id="moon">–</b>
+      </div>
+    </div>
+    <span class="phase" id="sky-phase" aria-live="polite"></span>
+  </header>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <nav class="tabs" aria-label="meg.voteapp.eu 栏目">
+    <a href="#dag">我的一天</a>
+    <a href="#plan">今天做什么？</a>
+    <a href="#mat">晚餐与购物清单</a>
+    <a href="#helse">身体与平衡</a>
+    <a href="#interesser">兴趣与社群</a>
+    <a href="#personvern">我的数据</a>
+  </nav>
+
+  <!-- MIN DAG -->
+  <section class="view" id="view-dag" aria-labelledby="h-dag">
+    <h2 id="h-dag" class="sr">我的一天</h2>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h3>今日数字</h3><span class="tag meta">玄学</span></div>
+        <div class="art"><svg class="medal" id="medal" viewBox="0 0 120 120" role="img" aria-label="今日数字"></svg><div><p class="sr" id="pday">–</p><p id="pday-text">–</p></div></div>
+        <p class="muted" id="pday-calc">–</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>星座运势：双鱼座</h3><span class="tag meta">玄学</span></div>
+        <div class="art"><div class="glyph" aria-hidden="true">&#9811;&#65038;</div><p>今天金星对你很友好。答应一次你一直推迟的谈话，并留意谁给了你能量。</p></div>
+        <p class="muted">示例文字。解读属于传统与灵感，不提供任何关于健康、投票或金钱的建议。</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>月相</h3><span class="tag fact">事实</span></div>
+        <div class="art"><svg class="moonsvg" id="moonsvg" viewBox="0 0 100 100" role="img" aria-label="今天的月亮"></svg><p id="moon-long">–</p></div>
+        <p class="muted" id="moon-tradition">–</p>
+      </article>
+      <article class="card smile sunny">
+        <div class="card-head"><h3>今日微笑</h3><span class="tag hyp">趣味</span></div>
+        <p class="q" id="smile-text">–</p>
+        <div class="row"><button type="button" id="smile-next">再给我一个微笑</button></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>你今天感觉怎么样？</h3><span class="tag fact">仅你可见</span></div>
+        <div class="mood" role="group" aria-label="今日心情">
+          <button type="button" aria-pressed="false" data-mood="Tung dag">难熬的一天</button>
+          <button type="button" aria-pressed="false" data-mood="Helt ok">还行</button>
+          <button type="button" aria-pressed="false" data-mood="God">不错</button>
+          <button type="button" aria-pressed="false" data-mood="Strålende">好极了</button>
+        </div>
+        <label class="muted" for="grateful">三件让你感恩的事</label>
+        <input id="grateful" type="text" placeholder="门口的一杯咖啡、友善的邻居、新雪" style="font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+        <p class="muted" id="mood-reply">选一个心情，送你一句暖心话。</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>北方的光与作息</h3><span class="tag fact">事实</span></div>
+        <div class="arcbox" id="sunarc" role="img" aria-label="Storslett 全天太阳高度"></div>
+        <p id="light-tip">–</p>
+        <p class="muted">太阳轨迹和日出日落时间按 Storslett（北纬 69.8°）计算。周围的群山可能遮挡太阳，实际看到太阳的时间可能比数字显示的短。</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>平静与呼吸</h3><span class="tag meta">体验</span></div>
+        <p>吸气数四下，屏住数四下，呼气数六下。做三轮，为忙碌的一天留一点空隙。</p>
+        <div class="orb-wrap" aria-hidden="true"><div class="orb" id="orb"></div></div>
+        <div class="row"><button type="button" class="primary" id="breath-btn">开始三轮</button><span class="muted" id="breath-state" aria-live="polite"></span></div>
+        <p class="muted">以后可以在这里加入 Ny Verden 的频率音乐。它会被标注为个人体验，而不是治疗。</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>VoteApp 新议题</h3><span class="tag fact">你的兴趣</span></div>
+        <p><b>Skal det bygges flere turstier langs Reisaelva?</b></p>
+        <p class="muted">示例议题。你收到它是因为你关注了“自然与户外”。</p>
+        <div class="row"><a class="btn" href="#interesser">查看与我相关的议题</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section class="view" id="view-plan" aria-labelledby="h-plan" hidden>
+    <div class="grid">
+      <article class="card wide">
+        <div class="card-head"><h2 id="h-plan">今天做什么？</h2><span class="tag fact">你的计划</span></div>
+        <ul class="plain todo" id="todo"></ul>
+        <form class="add" id="todo-form">
+          <label class="sr" for="todo-time">时间</label>
+          <input type="time" id="todo-time" value="16:00">
+          <label class="sr" for="todo-text">新任务</label>
+          <input type="text" id="todo-text" placeholder="添加今天想做的事" required>
+          <button class="primary" type="submit">添加</button>
+        </form>
+        <p class="muted" id="todo-count">–</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>纪念日</h3><span class="tag fact">日历</span></div>
+        <ul class="plain">
+          <li><b>周五：</b>Ola 的生日（示例）</li>
+          <li><b>周六：</b>Storslett 圣诞集市（示例）</li>
+        </ul>
+        <p class="muted">以后可以以只读方式连接一个日历。应用绝不会自行修改你的日历。</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>今日运动</h3><span class="tag fact">建议</span></div>
+        <p>在日光下悠闲散步 20 分钟，最好在午饭前后太阳最高的时候。</p>
+        <p class="muted">以后建议可以根据你所在地的天气调整。</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- MAT -->
+  <section class="view" id="view-mat" aria-labelledby="h-mat" hidden>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-mat">选择晚餐</h2><span class="tag fact">你的一周</span></div>
+        <div id="dishes" class="view" style="gap:8px"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>家里已有的</h3><span class="tag fact">冰箱和橱柜</span></div>
+        <p class="muted">勾选你已有的东西，购物清单会立即更新。</p>
+        <div class="chips" id="pantry"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>购物清单</h3><span class="tag fact">缺少</span></div>
+        <ul class="plain shop" id="shop"></ul>
+        <div class="row"><button type="button" id="copy-shop">复制清单</button><span class="muted" id="copy-state" aria-live="polite"></span></div>
+        <p class="muted">不会自动下单。清单属于你，可以随意修改。</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- HELSE -->
+  <section class="view" id="view-helse" aria-labelledby="h-helse" hidden>
+    <div class="note"><b>重要：</b> meg.voteapp.eu 不做任何诊断。这里显示的是天然富含你自己选择关注的营养素的食物。如果你怀疑自己缺乏某种营养，请咨询医生或其他医护人员。</div>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-helse">我的测量记录</h2><span class="tag fact">由你录入</span></div>
+        <div class="tablebox"><table>
+          <thead><tr><th>日期</th><th>来源</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td>01.11</td><td>家庭医生处验血（示例）</td><td>医生让我关注维生素 D</td></tr>
+            <tr><td>05.11</td><td>扫描，健康辅助工具（示例）</td><td>报告提到了镁</td></tr>
+          </tbody>
+        </table></div>
+        <p class="muted">报告原文按报告本身显示，不代表应用的评估。</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>我关注的营养素</h3><span class="tag fact">你的选择</span></div>
+        <div class="chips" id="nutrients"></div>
+      </article>
+      <article class="card wide">
+        <div class="card-head"><h3>富含你所选营养素的食物</h3><span class="tag fact">食物信息</span></div>
+        <div id="foods" class="grid" style="gap:12px"></div>
+        <div class="row"><button type="button" id="add-foods" class="primary">把建议加入晚餐计划</button><span class="muted" id="foods-state" aria-live="polite"></span></div>
+        <p class="muted">正式版中，营养数据将来自挪威食物成分表（Matvaretabellen），每个数字都附有来源和日期。</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- INTERESSER -->
+  <section class="view" id="view-interesser" aria-labelledby="h-int" hidden>
+    <div class="grid">
+      <article class="card">
+        <div class="card-head"><h2 id="h-int">我的兴趣</h2><span class="tag fact">提醒</span></div>
+        <p class="muted">当 VoteApp 有与你所选兴趣相关的问题时，你会收到通知。</p>
+        <div class="chips" id="interests"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>与我相关的议题</h3><span class="tag fact">VoteApp</span></div>
+        <div id="cases" class="view" style="gap:8px"></div>
+      </article>
+      <article class="card wide">
+        <div class="card-head"><h3>兴趣相投的社群</h3><span class="tag hyp">试行中</span></div>
+        <div class="grid" id="groups" style="gap:12px"></div>
+        <p class="muted">是否在小组中公开由你自己决定。你在这里的任何操作都不会与你的投票关联。</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- PERSONVERN -->
+  <section class="view" id="view-personvern" aria-labelledby="h-pv" hidden>
+    <div class="grid">
+      <article class="card wide">
+        <div class="card-head"><h2 id="h-pv">我的数据</h2><span class="tag fact">由你决定</span></div>
+        <div class="tablebox"><table>
+          <thead><tr><th>内容</th><th>用途</th><th>谁能看到</th><th>开关</th></tr></thead>
+          <tbody>
+            <tr><td>出生日期和姓名</td><td>今日数字和星座运势</td><td>仅你自己</td><td><label class="chip"><input type="checkbox" checked> 开</label></td></tr>
+            <tr><td>心情与感恩</td><td>你自己的日记</td><td>仅你自己</td><td><label class="chip"><input type="checkbox" checked> 开</label></td></tr>
+            <tr><td>测量记录和健康笔记</td><td>饮食建议</td><td>仅你自己</td><td><label class="chip"><input type="checkbox" checked> 开</label></td></tr>
+            <tr><td>存货与晚餐</td><td>购物清单</td><td>仅你自己</td><td><label class="chip"><input type="checkbox" checked> 开</label></td></tr>
+            <tr><td>兴趣</td><td>议题提醒</td><td>仅你自己</td><td><label class="chip"><input type="checkbox" checked> 开</label></td></tr>
+            <tr><td>在小组中的可见性</td><td>社群</td><td>你选择的小组</td><td><label class="chip"><input type="checkbox"> 关</label></td></tr>
+          </tbody>
+        </table></div>
+        <ul class="plain">
+          <li><b>你的投票完全独立。</b>meg.voteapp.eu 的任何内容都不会用于政治画像、广告或投票加权。</li>
+          <li><b>存储在欧盟境内</b>，并经过加密。健康信息需要你本人同意。</li>
+          <li><b>首个版本仅限成年人</b>（18 岁及以上）。</li>
+        </ul>
+        <div class="row">
+          <button type="button" id="export-btn">下载我的数据</button>
+          <button type="button" id="delete-btn">删除 meg.voteapp.eu 中的全部内容</button>
+        </div>
+        <div id="pv-msg" aria-live="polite"></div>
+      </article>
+    </div>
+  </section>
+
+  <footer>meg.voteapp.eu · 原型 v0.3 · 2026 年 11 月 13 日 · 示例数据，无真实个人数据</footer>
+</div>
+
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+<script>
+(function(){
+  "use strict";
+  var now = new Date();
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function store(k, v){ try{ if(v===undefined){ var s=localStorage.getItem("meg-zh-"+k); return s?JSON.parse(s):null; } localStorage.setItem("meg-zh-"+k, JSON.stringify(v)); }catch(e){ return null; } }
+  function $(id){ return document.getElementById(id); }
+  function el(tag, attrs, text){ var e=document.createElement(tag); if(attrs){ for(var a in attrs){ e.setAttribute(a, attrs[a]); } } if(text!=null){ e.textContent=text; } return e; }
+
+  /* ---- date and greeting ---- */
+  var oslo = { timeZone:"Europe/Oslo" };
+  $("today-label").textContent = now.toLocaleDateString("zh-CN", Object.assign({weekday:"long", day:"numeric", month:"long", year:"numeric"}, oslo));
+  var hour = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo)));
+  $("greeting").textContent = (hour < 10 ? "早上好" : hour < 17 ? "下午好" : "晚上好") + "，Kari";
+
+  /* ---- numerology: example birth date 14.03.1968 ---- */
+  function reduceNum(n){ while(n > 9 && n !== 11 && n !== 22 && n !== 33){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
+  var bDay = 14, bMonth = 3;
+  var y = Number(now.toLocaleString("en-GB", Object.assign({year:"numeric"}, oslo)));
+  var m = Number(now.toLocaleString("en-GB", Object.assign({month:"numeric"}, oslo)));
+  var d = Number(now.toLocaleString("en-GB", Object.assign({day:"numeric"}, oslo)));
+  var pYear = reduceNum(reduceNum(bDay) + reduceNum(bMonth) + reduceNum(y));
+  var pDay = reduceNum(pYear + reduceNum(m) + reduceNum(d));
+  var meanings = {1:"开始新事物。今天欢迎勇敢的第一步。",2:"合作与倾听。和别人一起分担任务。",3:"表达自己。写点什么、唱首歌或讲个故事。",4:"打好基础。整理、计划、完成。",5:"变化与冒险。换一条新路回家吧。",6:"关怀。给你爱的人打个电话。",7:"平静与洞察。独自安静片刻。",8:"行动力。着手做能带来成果的事。",9:"收尾与慷慨。把一些东西传递下去。",11:"大师数字：直觉。倾听你的第六感。",22:"大师数字：建造者。宏大的计划可以落地。",33:"大师数字：大爱的关怀。"};
+  $("pday").textContent = pDay;
+  $("pday-text").textContent = meanings[pDay] || "";
+  $("pday-calc").textContent = "根据出生日期 14.03（示例）计算的个人日：个人年 " + pYear + " + 月 " + m + " + 日 " + d + " = " + pDay + "。毕达哥拉斯算法。";
+  $("day-msg").textContent = "今日数字是 " + pDay + "。" + (meanings[pDay] || "");
+
+  /* ---- moon phase (synodic month from a known new moon 6 Jan 2000 18:14 UTC) ---- */
+  var syn = 29.530588853;
+  var age = ((now.getTime() - Date.UTC(2000,0,6,18,14)) / 86400000) % syn; if(age < 0){ age += syn; }
+  var illum = Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100);
+  var phase = age < 1.85 ? "新月" : age < 5.54 ? "娥眉月" : age < 9.23 ? "上弦月" : age < 12.92 ? "盈凸月" : age < 16.61 ? "满月" : age < 20.30 ? "亏凸月" : age < 23.99 ? "下弦月" : age < 27.68 ? "残月" : "新月";
+  var waxing = age < syn / 2;
+  $("moon").textContent = phase + ", " + illum + " %";
+  $("moon-long").textContent = phase + "。约 " + illum + "% 的月面被照亮，在本周期中已有 " + Math.round(age) + " 天。";
+  $("moon-tradition").textContent = "传统说法（玄学）：" + (waxing ? "上升的月亮被视为开始和积累的好时机。" : "渐亏的月亮被视为整理和收尾的好时机。");
+
+  /* ---- sun for Storslett (69.77 N, 21.03 E): standard declination, equation of time and hour angle ---- */
+  var SUN = (function(){
+    var lat = 69.77 * Math.PI / 180, lon = 21.03;
+    var start = Date.UTC(now.getUTCFullYear(), 0, 0);
+    var doy = Math.floor((Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - start) / 86400000);
+    var g = 2 * Math.PI / 365 * (doy - 1);
+    var decl = 0.006918 - 0.399912*Math.cos(g) + 0.070257*Math.sin(g) - 0.006758*Math.cos(2*g) + 0.000907*Math.sin(2*g) - 0.002697*Math.cos(3*g) + 0.00148*Math.sin(3*g);
+    var eqt = 229.18 * (0.000075 + 0.001868*Math.cos(g) - 0.032077*Math.sin(g) - 0.014615*Math.cos(2*g) - 0.040849*Math.sin(2*g));
+    var noon = 720 - 4*lon - eqt; /* solar noon, minutes after 00:00 UTC */
+    var cosH = (Math.sin(-0.833*Math.PI/180) - Math.sin(lat)*Math.sin(decl)) / (Math.cos(lat)*Math.cos(decl));
+    function alt(minUtc){ var ha = (minUtc - noon) / 4 * Math.PI / 180; return Math.asin(Math.sin(lat)*Math.sin(decl) + Math.cos(lat)*Math.cos(decl)*Math.cos(ha)) * 180 / Math.PI; }
+    var utcMid = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    function fmt(minUtc){ return new Date(utcMid + minUtc*60000).toLocaleTimeString("zh-CN", Object.assign({hour:"2-digit", minute:"2-digit"}, oslo)); }
+    var nowUtc = now.getUTCHours()*60 + now.getUTCMinutes();
+    var osloH = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo))) % 24;
+    var osloM = Number(now.toLocaleString("en-GB", Object.assign({minute:"2-digit"}, oslo)));
+    var offset = ((osloH*60 + osloM) - nowUtc + 1440) % 1440; /* Oslo minus UTC, in minutes */
+    var s = {alt:alt, fmt:fmt, noon:noon, nowUtc:nowUtc, offset:offset, state:"normal", H:0};
+    if(cosH > 1){ s.state = "polar"; } else if(cosH < -1){ s.state = "midnight"; } else { s.H = Math.acos(cosH) * 180 / Math.PI * 4; }
+    return s;
+  })();
+  (function(){
+    var tip;
+    if(SUN.state === "polar"){ $("sunrise").textContent = "极夜"; $("sunset").textContent = "极夜"; $("daylen").textContent = "无日照"; tip = "现在是极夜。中午蓝调时刻出去走走，早上在室内使用日光灯，帮助保持作息。"; }
+    else if(SUN.state === "midnight"){ $("sunrise").textContent = "午夜阳光"; $("sunset").textContent = "午夜阳光"; $("daylen").textContent = "24 小时"; tip = "午夜阳光。把卧室遮暗，保持固定的就寝时间，睡得会更好。"; }
+    else {
+      $("sunrise").textContent = SUN.fmt(SUN.noon - SUN.H); $("sunset").textContent = SUN.fmt(SUN.noon + SUN.H);
+      var len = Math.round(2*SUN.H); $("daylen").textContent = Math.floor(len/60) + " 小时 " + (len%60) + " 分钟";
+      tip = len < 360 ? "现在白昼很短。请在 " + SUN.fmt(SUN.noon) + " 前后太阳最高时出门。白天早些接触光线，有助于晚上入睡。" : "早点利用日光。这能帮助身体找到节律，晚上也更容易入睡。";
+    }
+    $("light-tip").textContent = tip;
+  })();
+
+  /* ---- shared moon path: lit part of a disk for today's phase ---- */
+  function moonPath(cx, cy, r){
+    var k = Math.cos(2*Math.PI*age/syn), rx = Math.abs(k)*r, top = cx + "," + (cy - r), bot = cx + "," + (cy + r);
+    if(waxing){ return "M" + top + " A" + r + "," + r + " 0 0 1 " + bot + " A" + rx + "," + r + " 0 0 " + (k > 0 ? 0 : 1) + " " + top + " Z"; }
+    return "M" + top + " A" + r + "," + r + " 0 0 0 " + bot + " A" + rx + "," + r + " 0 0 " + (k > 0 ? 1 : 0) + " " + top + " Z";
+  }
+
+  /* ---- sky: real sun height picks the light; mountains, stars, aurora, moon ---- */
+  (function(){
+    var altNow = SUN.alt(SUN.nowUtc);
+    var mode = altNow > 0 ? "day" : altNow > -6 ? "twilight" : altNow > -12 ? "blue" : "night";
+    var names = {day:"此刻 Storslett 太阳已升起", twilight:"Storslett 暮光", blue:"Storslett 蓝调时刻", night:"Storslett 夜色"};
+    $("sky-phase").textContent = names[mode] + " · 太阳高度 " + Math.abs(altNow).toFixed(1) + "° " + (altNow >= 0 ? "（地平线以上）" : "（地平线以下）") + "";
+    var skies = {
+      day:      [["#4f86c2",0],["#9cc0e0",0.55],["#f4cfa0",1]],
+      twilight: [["#1b335a",0],["#6c5a8f",0.55],["#e79a78",1]],
+      blue:     [["#0b2140",0],["#24456e",0.6],["#4b6f96",1]],
+      night:    [["#050f18",0],["#0b2233",0.6],["#123245",1]]
+    };
+    var hills = {
+      day:      ["#7d98ab","#5a7689","#3b5668"],
+      twilight: ["#4a4a6e","#353a59","#222b45"],
+      blue:     ["#24405e","#1a3350","#11253b"],
+      night:    ["#0f2230","#0b1a26","#07131c"]
+    };
+    var showStars = mode === "night" || mode === "blue";
+    var showAurora = mode === "night" || mode === "blue";
+    var c = $("skycanvas"), ctx = c.getContext("2d"), stars = [], t0 = performance.now(), ridges = [], shoot = null, nextShoot = 3;
+    for(var i=0;i<110;i++){ stars.push([Math.random(), Math.random()*0.62, Math.random()*1.2+0.3, Math.random()*6.28]); }
+    /* three mountain ridges, seeded so they stay the same between frames */
+    function ridge(seed, base, amp, peaks){
+      var pts = [], n = 64;
+      for(var j=0;j<=n;j++){
+        var x = j/n, yv = 0;
+        yv += Math.sin(x*Math.PI*peaks + seed)*0.5 + Math.sin(x*Math.PI*peaks*2.3 + seed*1.7)*0.25 + Math.sin(x*Math.PI*peaks*5.1 + seed*0.6)*0.12;
+        yv = Math.max(yv, -0.4);
+        pts.push([x, base - yv*amp]);
+      }
+      return pts;
+    }
+    ridges = [ridge(1.3, 0.70, 0.16, 2.2), ridge(4.1, 0.80, 0.11, 3.1), ridge(2.2, 0.90, 0.07, 4.3)];
+    function size(){ var r = c.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio||1, 2); c.width = Math.max(1, r.width*dpr); c.height = Math.max(1, r.height*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); }
+    function draw(ts){
+      var w = c.clientWidth, h = c.clientHeight, t = (ts - t0) / 1000;
+      var bg = ctx.createLinearGradient(0,0,0,h*0.85); skies[mode].forEach(function(s){ bg.addColorStop(s[1], s[0]); }); ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+      if(showStars){
+        stars.forEach(function(s){ ctx.globalAlpha = (mode === "blue" ? 0.35 : 0.55) + 0.45*Math.sin(t*1.3 + s[3]); ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(s[0]*w, s[1]*h, s[2], 0, 6.28); ctx.fill(); });
+        ctx.globalAlpha = 1;
+      }
+      if(showAurora){
+        [["rgba(67,195,155,0.34)",0.30],["rgba(120,220,180,0.22)",0.42],["rgba(150,120,230,0.18)",0.52]].forEach(function(cl, k){
+          ctx.beginPath(); ctx.moveTo(0, h);
+          for(var x=0; x<=w; x+=8){ var yy = h*cl[1] + Math.sin(x/w*5 + t*0.35 + k*1.7)*h*0.08 + Math.sin(x/w*11 + t*0.2 + k)*h*0.03; ctx.lineTo(x, yy); }
+          ctx.lineTo(w, h); ctx.closePath();
+          var gr = ctx.createLinearGradient(0, h*0.15, 0, h*0.8); gr.addColorStop(0, cl[0]); gr.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = gr; ctx.fill();
+        });
+      }
+      if(mode === "day" || mode === "twilight"){
+        /* the low northern sun, placed by hour angle along the southern horizon */
+        var frac = SUN.H ? Math.min(1, Math.max(0, (SUN.nowUtc - (SUN.noon - SUN.H)) / (2*SUN.H))) : 0.5;
+        var sx = w*(0.15 + 0.7*frac), sy = h*0.62 - Math.max(0, SUN.alt(SUN.nowUtc))*h*0.03;
+        var glow = ctx.createRadialGradient(sx, sy, 2, sx, sy, h*0.45); glow.addColorStop(0, "rgba(255,214,150,0.85)"); glow.addColorStop(0.2, "rgba(255,190,120,0.35)"); glow.addColorStop(1, "rgba(255,190,120,0)");
+        ctx.fillStyle = glow; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = "#fff1d6"; ctx.beginPath(); ctx.arc(sx, sy, 13, 0, 6.28); ctx.fill();
+      }
+      if(!reduce && mode === "night"){
+        if(!shoot && t > nextShoot){ shoot = {x: w*(0.2+Math.random()*0.6), y: h*(0.05+Math.random()*0.25), t: t}; }
+        if(shoot){
+          var p = (t - shoot.t) / 0.9;
+          if(p >= 1){ shoot = null; nextShoot = t + 5 + Math.random()*6; }
+          else { var len = 90, dx = shoot.x + p*160, dy = shoot.y + p*60; var sg = ctx.createLinearGradient(dx, dy, dx - len, dy - len*0.38); sg.addColorStop(0, "rgba(255,255,255," + (1-p) + ")"); sg.addColorStop(1, "rgba(255,255,255,0)"); ctx.strokeStyle = sg; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx - len, dy - len*0.38); ctx.stroke(); }
+        }
+      }
+      /* moon with today's phase */
+      if(mode !== "day"){
+        var mx = w - 52, my = 44, mr = 17;
+        var mg = ctx.createRadialGradient(mx, my, mr*0.5, mx, my, mr*3); mg.addColorStop(0, "rgba(244,240,220,0.25)"); mg.addColorStop(1, "rgba(244,240,220,0)"); ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(mx, my, mr*3, 0, 6.28); ctx.fill();
+        ctx.fillStyle = "rgba(20,35,48,0.85)"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.28); ctx.fill();
+        ctx.fillStyle = "#f4f0dc"; ctx.fill(new Path2D(moonPath(mx, my, mr)));
+      }
+      /* mountains, far to near, with a little snow on the far ridge */
+      ridges.forEach(function(rg, k){
+        ctx.beginPath(); ctx.moveTo(0, h);
+        rg.forEach(function(p){ ctx.lineTo(p[0]*w, p[1]*h); });
+        ctx.lineTo(w, h); ctx.closePath(); ctx.fillStyle = hills[mode][k]; ctx.fill();
+        if(k === 0){
+          ctx.save(); ctx.clip();
+          ctx.fillStyle = mode === "day" ? "rgba(255,255,255,0.55)" : "rgba(220,235,245,0.18)";
+          rg.forEach(function(p, j){ if(j > 0 && j < rg.length-1 && p[1] < rg[j-1][1] && p[1] < rg[j+1][1]){ ctx.beginPath(); ctx.moveTo(p[0]*w - 26, p[1]*h + 16); ctx.lineTo(p[0]*w, p[1]*h); ctx.lineTo(p[0]*w + 26, p[1]*h + 16); ctx.closePath(); ctx.fill(); } });
+          ctx.restore();
+        }
+      });
+      /* the fjord: a soft band of light at the bottom */
+      var fj = ctx.createLinearGradient(0, h*0.93, 0, h); fj.addColorStop(0, "rgba(255,255,255,0)"); fj.addColorStop(1, mode === "day" ? "rgba(200,225,240,0.35)" : "rgba(120,200,180,0.12)"); ctx.fillStyle = fj; ctx.fillRect(0, h*0.93, w, h*0.07);
+      if(!reduce){ requestAnimationFrame(draw); }
+    }
+    size(); window.addEventListener("resize", function(){ size(); if(reduce){ draw(performance.now()); } });
+    requestAnimationFrame(draw);
+  })();
+
+  /* ---- number medallion: one dot per unit of today's number ---- */
+  (function(){
+    var svg = $("medal"), ns = "http://www.w3.org/2000/svg", n = pDay > 9 ? (pDay === 11 ? 11 : pDay === 22 ? 22 : 33) : pDay;
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    svg.appendChild(mk("circle", {cx:60, cy:60, r:54, fill:"var(--soft-accent)"}));
+    svg.appendChild(mk("circle", {cx:60, cy:60, r:44, fill:"none", stroke:"var(--accent)", "stroke-width":2, "stroke-dasharray":"2 5"}));
+    var dots = Math.min(n, 33);
+    for(var i=0;i<dots;i++){ var a = -Math.PI/2 + i*2*Math.PI/dots; svg.appendChild(mk("circle", {cx:60 + 49*Math.cos(a), cy:60 + 49*Math.sin(a), r: dots > 12 ? 2.4 : 4, fill:"var(--sun)"})); }
+    var tx = mk("text", {x:60, y:61, "text-anchor":"middle", "dominant-baseline":"central", "font-size": pDay > 9 ? 40 : 54, fill:"var(--accent)"}); tx.textContent = pDay; svg.appendChild(tx);
+  })();
+
+  /* ---- moon card illustration ---- */
+  (function(){
+    var svg = $("moonsvg"), ns = "http://www.w3.org/2000/svg";
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    svg.appendChild(mk("circle", {cx:50, cy:50, r:48, fill:"var(--fact-bg)"}));
+    svg.appendChild(mk("circle", {cx:50, cy:50, r:34, fill:"var(--surface-2)", stroke:"var(--line)"}));
+    svg.appendChild(mk("path", {d: moonPath(50, 50, 34), fill:"var(--sun)"}));
+    [[22,20,1.6],[80,28,1.2],[16,74,1.2],[84,78,1.6]].forEach(function(s){ svg.appendChild(mk("circle", {cx:s[0], cy:s[1], r:s[2], fill:"var(--fact)"})); });
+  })();
+
+  /* ---- the sun's path today, as a small chart (local Oslo time on the x axis) ---- */
+  (function(){
+    var W = 320, Hh = 130, padL = 6, padR = 6, top = 14, bot = 26, ns = "http://www.w3.org/2000/svg";
+    var pts = [], lo = 90, hi = -90;
+    for(var L=0; L<=1440; L+=10){ var a = SUN.alt(L - SUN.offset); pts.push([L, a]); lo = Math.min(lo, a); hi = Math.max(hi, a); }
+    var yMax = Math.max(hi, 4) + 2, yMin = lo - 2;
+    function X(L){ return padL + L/1440*(W - padL - padR); }
+    function Y(a){ return top + (yMax - a)/(yMax - yMin)*(Hh - top - bot); }
+    function mk(tag, a){ var e = document.createElementNS(ns, tag); for(var k in a){ e.setAttribute(k, a[k]); } return e; }
+    var svg = mk("svg", {viewBox:"0 0 " + W + " " + Hh});
+    var y0 = Y(0);
+    svg.appendChild(mk("rect", {x:padL, y:top, width:W-padL-padR, height:y0-top, fill:"var(--soft-sun)"}));
+    svg.appendChild(mk("rect", {x:padL, y:y0, width:W-padL-padR, height:Hh-bot-y0, fill:"var(--surface-2)"}));
+    var d = pts.map(function(p, i){ return (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
+    svg.appendChild(mk("path", {d:d, fill:"none", stroke:"var(--sun)", "stroke-width":2.5}));
+    svg.appendChild(mk("line", {x1:padL, x2:W-padR, y1:y0, y2:y0, stroke:"var(--muted)", "stroke-width":1, "stroke-dasharray":"3 3"}));
+    [0,6,12,18,24].forEach(function(hr){ var tx = mk("text", {x:X(hr*60), y:Hh-8, "text-anchor": hr === 0 ? "start" : hr === 24 ? "end" : "middle", "class":"arc-label"}); tx.textContent = String(hr).padStart(2,"0"); svg.appendChild(tx); });
+    var hz = mk("text", {x:W-padR-2, y:y0-4, "text-anchor":"end", "class":"arc-label"}); hz.textContent = "地平线"; svg.appendChild(hz);
+    var Lnow = (SUN.nowUtc + SUN.offset) % 1440, aNow = SUN.alt(SUN.nowUtc);
+    svg.appendChild(mk("circle", {cx:X(Lnow), cy:Y(aNow), r:5.5, fill:"var(--accent)", stroke:"var(--surface)", "stroke-width":2}));
+    var nt = mk("text", {x:X(Lnow), y:Math.max(top+10, Y(aNow) - 10), "text-anchor":"middle", "class":"arc-label"}); nt.textContent = "现在"; svg.appendChild(nt);
+    $("sunarc").appendChild(svg);
+  })();
+
+  /* ---- confetti: a short burst, skipped for reduced motion ---- */
+  var confetti = (function(){
+    var c = $("confetti"), ctx = c.getContext("2d"), parts = [], running = false;
+    function col(){ var cs = getComputedStyle(document.documentElement); return [cs.getPropertyValue("--accent"), cs.getPropertyValue("--sun"), cs.getPropertyValue("--meta"), cs.getPropertyValue("--fact")].map(function(s){ return s.trim(); }); }
+    function frame(){
+      var dpr = Math.min(window.devicePixelRatio||1, 2); if(c.width !== innerWidth*dpr){ c.width = innerWidth*dpr; c.height = innerHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      parts = parts.filter(function(p){ return p.life > 0; });
+      parts.forEach(function(p){ p.vy += 0.25; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.min(1, p.life/30); ctx.fillStyle = p.c; ctx.fillRect(-4, -2, 8, 4); ctx.restore(); });
+      if(parts.length){ requestAnimationFrame(frame); } else { running = false; ctx.clearRect(0,0,innerWidth,innerHeight); }
+    }
+    return function(x, y){
+      if(reduce){ return; }
+      var cs = col();
+      for(var i=0;i<70;i++){ var a = Math.random()*Math.PI*2, s = 3 + Math.random()*6; parts.push({x:x, y:y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 4, r:Math.random()*6, vr:(Math.random()-0.5)*0.4, c:cs[i%cs.length], life:70 + Math.random()*30}); }
+      if(!running){ running = true; requestAnimationFrame(frame); }
+    };
+  })();
+  function burstFrom(elm){ var r = elm.getBoundingClientRect(); confetti(r.left + r.width/2, r.top + r.height/2); }
+
+  /* ---- smiles ---- */
+  var smiles = ["你知道吗？水獭睡觉时会牵着手，免得彼此漂散。","微笑用到的肌肉比你想的少，回报却比你付出的多。","Nordreisa 上空的北极光不收门票。今晚抬头看看吧。","今日挑战：下午三点前向三个人说声谢谢。","和邻居分享的咖啡最好喝。","不必事事妥当也能拥有美好的一天。一件好事就够了。"];
+  var si = Math.floor(Math.random()*smiles.length);
+  function showSmile(){ $("smile-text").textContent = smiles[si % smiles.length]; }
+  showSmile(); $("smile-next").addEventListener("click", function(){ si++; showSmile(); burstFrom($("smile-next")); });
+
+  /* ---- mood ---- */
+  var replies = {"Tung dag":"谢谢你说出来。今天只为自己做一件小事就好。","Helt ok":"还行就是很好的起点。要不要在日光下走一走？","God":"真好！今天把一点好心情分享给别人吧。","Strålende":"太棒了！这份能量会传染。用在你期待已久的事情上吧。"};
+  document.querySelectorAll("[data-mood]").forEach(function(b){ b.addEventListener("click", function(){ document.querySelectorAll("[data-mood]").forEach(function(x){ x.setAttribute("aria-pressed","false"); }); b.setAttribute("aria-pressed","true"); $("mood-reply").textContent = replies[b.dataset.mood]; }); });
+
+  /* ---- breathing ---- */
+  var breathing = false;
+  $("breath-btn").addEventListener("click", function(){
+    if(breathing){ return; } breathing = true;
+    var steps = [], i; for(i=0;i<3;i++){ steps.push(["吸气", 4], ["屏住", 4], ["呼气", 6]); }
+    var idx = 0;
+    var orb = $("orb");
+    (function next(){ if(idx >= steps.length){ $("breath-state").textContent = "完成，做得好。"; orb.style.transitionDuration = "1.5s"; orb.style.transform = "scale(1)"; breathing = false; return; } var s = steps[idx++]; var left = s[1];
+      if(!reduce){ orb.style.transitionDuration = s[1] + "s"; if(s[0] === "吸气"){ orb.style.transform = "scale(1.75)"; } else if(s[0] === "呼气"){ orb.style.transform = "scale(1)"; } }
+      (function tick(){ $("breath-state").textContent = s[0] + " … " + left; if(left-- > 1){ setTimeout(tick, 1000); } else { setTimeout(next, 1000); } })(); })();
+  });
+
+  /* ---- todo ---- */
+  var todos = store("todos") || [{t:"08:30", x:"咖啡加五分钟安静", done:true},{t:"10:00", x:"回复业主委员会的邮件", done:false},{t:"12:15", x:"日光下散步 20 分钟", done:false},{t:"17:00", x:"晚餐：三文鱼配土豆和西兰花", done:false},{t:"20:00", x:"就步道议题投票", done:false}];
+  function renderTodos(){
+    var ul = $("todo"); ul.textContent = "";
+    todos.sort(function(a,b){ return a.t < b.t ? -1 : 1; }).forEach(function(it, i){
+      var li = el("li"); if(it.done){ li.className = "done"; }
+      var id = "todo-" + i, lab = el("label", {"for": id});
+      var cb = el("input", {type:"checkbox", id:id}); cb.checked = !!it.done;
+      cb.addEventListener("change", function(){ it.done = cb.checked; var r = cb.getBoundingClientRect(); store("todos", todos); renderTodos(); if(it.done){ confetti(r.left + 10, r.top + 10); } });
+      lab.appendChild(cb); lab.appendChild(el("span", {"class":"time"}, it.t)); lab.appendChild(el("span", {"class":"t"}, it.x));
+      li.appendChild(lab);
+      var del = el("button", {type:"button", "aria-label":"删除 " + it.x}, "删除");
+      del.addEventListener("click", function(){ todos.splice(todos.indexOf(it),1); store("todos", todos); renderTodos(); });
+      li.appendChild(del); ul.appendChild(li);
+    });
+    var left = todos.filter(function(x){ return !x.done; }).length;
+    $("todo-count").textContent = left === 0 ? "今天的事都做完了，享受晚上吧！" : left + " 项待办。一件一件来。";
+  }
+  $("todo-form").addEventListener("submit", function(e){ e.preventDefault(); var x = $("todo-text").value.trim(); if(!x){ return; } todos.push({t:$("todo-time").value || "12:00", x:x, done:false}); $("todo-text").value = ""; store("todos", todos); renderTodos(); });
+  renderTodos();
+
+  /* ---- dinners, pantry, shopping list ---- */
+  var dishes = [
+    {id:"laks", name:"烤三文鱼配土豆和西兰花", why:"富含维生素 D", ing:["三文鱼","土豆","西兰花","黄油","柠檬"]},
+    {id:"linse", name:"菠菜炖扁豆", why:"富含铁和镁", ing:["红扁豆","菠菜","洋葱","大蒜","番茄罐头","椰奶"]},
+    {id:"reinsdyr", name:"驯鹿肉片配土豆泥和越橘", why:"本地经典菜，富含铁", ing:["驯鹿肉片","土豆","洋葱","奶油","越橘","黄油"]},
+    {id:"omelett", name:"蘑菇煎蛋卷配全麦面包", why:"快手晚餐，鸡蛋提供维生素 D", ing:["鸡蛋","蘑菇","全麦面包","黄油","奶酪"]},
+    {id:"makrell", name:"番茄鲭鱼配脆饼和沙拉", why:"高脂鱼，快手午餐或宵夜", ing:["番茄鲭鱼罐头","脆饼","生菜","黄瓜"]}
+  ];
+  var chosen = store("chosen") || ["laks","linse","reinsdyr"];
+  var pantryItems = ["土豆","黄油","洋葱","大蒜","鸡蛋","番茄罐头","脆饼","奶酪","奶油","越橘","柠檬","生菜","黄瓜","椰奶"];
+  var have = store("have") || ["土豆","黄油","洋葱","大蒜","鸡蛋","脆饼","越橘"];
+  function renderDishes(){
+    var box = $("dishes"); box.textContent = "";
+    dishes.forEach(function(dsh){
+      var id = "dish-" + dsh.id, lab = el("label", {"class":"dish", "for":id});
+      var cb = el("input", {type:"checkbox", id:id}); cb.checked = chosen.indexOf(dsh.id) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ chosen.push(dsh.id); } else { chosen = chosen.filter(function(x){ return x !== dsh.id; }); } store("chosen", chosen); renderShop(); });
+      var txt = el("span"); txt.appendChild(el("b", null, dsh.name)); txt.appendChild(el("br")); txt.appendChild(el("span", {"class":"muted"}, dsh.why));
+      lab.appendChild(cb); lab.appendChild(txt); box.appendChild(lab);
+    });
+  }
+  function renderPantry(){
+    var box = $("pantry"); box.textContent = "";
+    pantryItems.forEach(function(p, i){
+      var id = "pan-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = have.indexOf(p) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ have.push(p); } else { have = have.filter(function(x){ return x !== p; }); } store("have", have); renderShop(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(p)); box.appendChild(lab);
+    });
+  }
+  var shopText = "";
+  function renderShop(){
+    var need = {};
+    dishes.forEach(function(dsh){ if(chosen.indexOf(dsh.id) > -1){ dsh.ing.forEach(function(g){ if(have.indexOf(g) === -1){ (need[g] = need[g] || []).push(dsh.name.split(" ")[0] + " " + (dsh.name.split(" ")[1]||"")); } }); } });
+    var ul = $("shop"); ul.textContent = ""; var keys = Object.keys(need).sort(function(a,b){ return a.localeCompare(b, "zh"); });
+    if(!keys.length){ ul.appendChild(el("li", null, "你需要的都有了，今天不用去购物！")); shopText = ""; return; }
+    keys.forEach(function(k){ var li = el("li"); li.appendChild(el("span", null, k)); li.appendChild(el("span", {"class":"muted"}, need[k].join(", "))); ul.appendChild(li); });
+    shopText = "购物清单\n" + keys.map(function(k){ return "- " + k; }).join("\n");
+  }
+  $("copy-shop").addEventListener("click", function(){
+    if(!shopText){ $("copy-state").textContent = "清单是空的。"; return; }
+    var done = function(){ $("copy-state").textContent = "已复制。"; };
+    try{ navigator.clipboard.writeText(shopText).then(done, function(){ $("copy-state").textContent = "无法复制。请选中清单后手动复制。"; }); }catch(e){ $("copy-state").textContent = "无法复制。请选中清单后手动复制。"; }
+  });
+  renderDishes(); renderPantry(); renderShop();
+
+  /* ---- nutrients and foods (general food knowledge; real version cites Matvaretabellen) ---- */
+  var nutrients = {
+    "维生素 D": {foods:["三文鱼","鲭鱼","鲱鱼","鱼肝油","鸡蛋"], dish:"laks", tip:"极夜阳光稀少，所以在北方高脂鱼格外重要。"},
+    "铁": {foods:["驯鹿肉和红肉","肝酱","扁豆","菠菜","南瓜子"], dish:"reinsdyr", tip:"同一餐中摄入维生素 C（如甜椒或橙子），有助于身体吸收植物中的铁。"},
+    "镁": {foods:["南瓜子","杏仁","燕麦片","扁豆和豆类","黑巧克力"], dish:"linse", tip:"坚果和种子是方便的加餐。"},
+    "维生素 B12": {foods:["鱼和贝类","鸡蛋","牛奶和奶酪","肉类"], dish:"omelett", tip:"如果你是植物性饮食者，请就 B12 咨询医生。"}
+  };
+  var following = store("following") || ["维生素 D","镁"];
+  function renderNutrients(){
+    var box = $("nutrients"); box.textContent = "";
+    Object.keys(nutrients).forEach(function(n, i){
+      var id = "nut-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = following.indexOf(n) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ following.push(n); } else { following = following.filter(function(x){ return x !== n; }); } store("following", following); renderFoods(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(n)); box.appendChild(lab);
+    });
+  }
+  function renderFoods(){
+    var box = $("foods"); box.textContent = "";
+    if(!following.length){ box.appendChild(el("p", {"class":"muted"}, "选择你想关注的营养素，饮食建议就会显示在这里。")); return; }
+    following.forEach(function(n){
+      var c = el("div", {"class":"case"}); c.appendChild(el("b", null, n));
+      c.appendChild(el("span", null, nutrients[n].foods.join(", ")));
+      c.appendChild(el("span", {"class":"muted"}, nutrients[n].tip)); box.appendChild(c);
+    });
+  }
+  $("add-foods").addEventListener("click", function(){
+    var added = [];
+    following.forEach(function(n){ var dId = nutrients[n].dish; if(chosen.indexOf(dId) === -1){ chosen.push(dId); added.push(dId); } });
+    store("chosen", chosen); renderDishes(); renderShop();
+    $("foods-state").textContent = added.length ? "已加入晚餐计划。请查看“晚餐与购物清单”。" : "这些晚餐已经在计划里了。";
+  });
+  renderNutrients(); renderFoods();
+
+  /* ---- interests, cases, groups ---- */
+  var interestList = ["自然与户外","健康与幸福","食物与本地生产","学校与儿童","道路与交通","文化与志愿活动","产业与就业"];
+  var mine = store("interests") || ["自然与户外","健康与幸福","食物与本地生产"];
+  var cases = [
+    {t:"是否应沿 Reisa 河修建更多步道？", i:"自然与户外", s:"开放作答", by:"Nordreisa"},
+    {t:"学校是否应每天提供一顿热餐？", i:"学校与儿童", s:"开放作答", by:"Nordreisa"},
+    {t:"市政采购是否应优先选择本地食品？", i:"食物与本地生产", s:"筹备中", by:"Nord-Troms"},
+    {t:"是否需要为老年人提供低门槛的锻炼项目？", i:"健康与幸福", s:"开放作答", by:"Nordreisa"},
+    {t:"穿过 Storslett 的 E6 公路是否应降低限速？", i:"道路与交通", s:"已结束，跟进中", by:"Nordreisa"}
+  ];
+  var groups = [
+    {n:"Nordreisa 徒步伙伴", i:"自然与户外", m:"每周日 11 点徒步"},
+    {n:"北方健康饮食", i:"食物与本地生产", m:"分享本地食材食谱"},
+    {n:"静心时光", i:"健康与幸福", m:"每周二 20 点线上冥想"},
+    {n:"星空与北极光", i:"自然与户外", m:"北极光强烈时发出提醒"}
+  ];
+  function renderInterests(){
+    var box = $("interests"); box.textContent = "";
+    interestList.forEach(function(n, i){
+      var id = "int-" + i, lab = el("label", {"class":"chip", "for":id}), cb = el("input", {type:"checkbox", id:id});
+      cb.checked = mine.indexOf(n) > -1;
+      cb.addEventListener("change", function(){ if(cb.checked){ mine.push(n); } else { mine = mine.filter(function(x){ return x !== n; }); } store("interests", mine); renderCases(); renderGroups(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(n)); box.appendChild(lab);
+    });
+  }
+  function renderCases(){
+    var box = $("cases"); box.textContent = "";
+    var list = cases.filter(function(c){ return mine.indexOf(c.i) > -1; });
+    if(!list.length){ box.appendChild(el("p", {"class":"muted"}, "选择一个兴趣，就能看到适合你的议题。")); return; }
+    list.forEach(function(c){ var d = el("div", {"class":"case"}); d.appendChild(el("b", null, c.t)); var r = el("div", {"class":"meta-row"}); r.appendChild(el("span", null, c.i)); r.appendChild(el("span", null, "· " + c.s)); r.appendChild(el("span", null, "· " + c.by)); r.appendChild(el("span", null, "· 示例")); d.appendChild(r); box.appendChild(d); });
+  }
+  var joined = store("joined") || [];
+  function renderGroups(){
+    var box = $("groups"); box.textContent = "";
+    groups.forEach(function(g){
+      var d = el("div", {"class":"case"}); d.appendChild(el("b", null, g.n));
+      d.appendChild(el("span", {"class":"muted"}, g.m + " · " + g.i + " · 示例"));
+      var isIn = joined.indexOf(g.n) > -1;
+      var b = el("button", {type:"button"}, isIn ? "你已加入。退出小组" : "加入");
+      if(!isIn && mine.indexOf(g.i) > -1){ b.className = "primary"; }
+      b.addEventListener("click", function(){ if(isIn){ joined = joined.filter(function(x){ return x !== g.n; }); } else { joined.push(g.n); } store("joined", joined); renderGroups(); });
+      d.appendChild(b); box.appendChild(d);
+    });
+  }
+  renderInterests(); renderCases(); renderGroups();
+
+  /* ---- privacy actions (demo, nothing leaves the page) ---- */
+  $("export-btn").addEventListener("click", function(){ $("pv-msg").textContent = ""; var p = el("p", {"class":"note"}, "正式版中，你会收到一个包含你所录入全部内容的文件。本原型只在你的浏览器中保存示例数据。"); $("pv-msg").appendChild(p); });
+  $("delete-btn").addEventListener("click", function(){
+    var box = $("pv-msg"); box.textContent = "";
+    var c = el("div", {"class":"confirm"}); c.appendChild(el("b", null, "删除你在 meg.voteapp.eu 中录入的全部内容？"));
+    c.appendChild(el("span", null, "你的 VoteApp 账户和投票不受影响。原型中只会重置示例数据。"));
+    var row = el("div", {"class":"row"}), yes = el("button", {type:"button", "class":"primary"}, "是的，删除"), no = el("button", {type:"button"}, "取消");
+    yes.addEventListener("click", function(){ ["todos","chosen","have","following","interests","joined"].forEach(function(k){ try{ localStorage.removeItem("meg-zh-"+k); }catch(e){} }); box.textContent = ""; box.appendChild(el("p", {"class":"note"}, "已删除。重新加载页面即可用示例数据重新开始。")); });
+    no.addEventListener("click", function(){ box.textContent = ""; });
+    row.appendChild(yes); row.appendChild(no); c.appendChild(row); box.appendChild(c);
+  });
+
+  /* ---- hash routing ---- */
+  var views = ["dag","plan","mat","helse","interesser","personvern"];
+  function route(){
+    var v = (location.hash || "#dag").slice(1); if(views.indexOf(v) === -1){ v = "dag"; }
+    views.forEach(function(x){ $("view-" + x).hidden = x !== v; });
+    $("view-" + v).querySelectorAll(".card").forEach(function(cd, i){ cd.style.setProperty("--i", i); cd.style.animation = "none"; void cd.offsetWidth; cd.style.animation = ""; });
+    document.querySelectorAll("nav.tabs a").forEach(function(a){ if(a.getAttribute("href") === "#" + v){ a.setAttribute("aria-current","page"); } else { a.removeAttribute("aria-current"); } });
+  }
+  window.addEventListener("hashchange", route); route();
+})();
+</script>
+<script>
+(function(){
+  var s = document.getElementById("lang-select"); if(!s){ return; }
+  s.addEventListener("change", function(){
+    try{ localStorage.setItem("meg-lang", s.value); }catch(e){}
+    location.href = "/" + (s.value === "nb" ? "" : s.value + "/") + location.hash;
+  });
+})();
+</script>
