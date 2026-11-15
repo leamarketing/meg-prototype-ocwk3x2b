@@ -7,6 +7,18 @@
   var CHECKOUT = "https://scalepay.gg/checkout/4d6ceb71-f488-4599-a227-71a2c6ce50e8?flowId=f5724901-f2b3-4e6e-a1df-05099d638953&cardId=3cb184f1-2bee-4471-ba37-6398d51659e1";
   var $ = function(id){ return document.getElementById(id); };
   var msg = $("acct-msg"), out = $("acct-out");
+  /* Takkesiden: Scale.gg sender kjøperen hit med ?betalt=1. Innloggingen ligger lagret i nettleseren,
+     så den som betalte fra portalen er fortsatt innlogget. Vi venter til webhooken har gjort medlemmet aktivt. */
+  var PAID_RETURN = /[?&]betalt=1\b/.test(location.search), polls = 0;
+  var thanks = null;
+  if(PAID_RETURN){
+    thanks = document.createElement("div");
+    thanks.className = "thanks"; thanks.setAttribute("role", "status"); thanks.setAttribute("aria-live", "polite");
+    $("konto").insertBefore(thanks, out);
+    thanks.innerHTML = "<h3>Takk for betalingen!</h3><p>Velkommen som medlem i me.voteapp.</p>";
+    try { var saved = localStorage.getItem("me_checkout_email"); if(saved){ $("lemail").value = saved; } } catch(e){}
+  }
+  function rememberEmail(){ try { localStorage.setItem("me_checkout_email", me.email); } catch(e){} }
   function say(t, err){ msg.textContent = t || ""; msg.className = "acct-msg" + (err ? " err" : ""); }
   function esc(s){ return String(s || "").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
   function lock(on){
@@ -48,6 +60,16 @@
     html += "<div class=\"acct-actions\"><button type=\"button\" class=\"linkbtn\" id=\"logout\">Logg ut</button><button type=\"button\" class=\"linkbtn\" id=\"delete-me\">Slett kontoen min og alle data</button></div>";
     out.innerHTML = html;
 
+    if(thanks){
+      if(st === "active"){
+        thanks.innerHTML = "<h3>Takk for betalingen!</h3><p>Betalingen er registrert, og du er medlem. Du er logget inn og kan bruke modulene under.</p>";
+      } else if(polls < 24){
+        thanks.innerHTML = "<h3>Takk for betalingen!</h3><p>Vi venter på beskjed fra betalingen. Det tar vanligvis noen sekunder. Du er logget inn og kan bruke portalen imens.</p>";
+        polls++; setTimeout(load, 5000);
+      } else {
+        thanks.innerHTML = "<h3>Takk for betalingen!</h3><p>Betalingen er ikke registrert hos oss ennå. Har du brukt en annen e-post i kassen enn <b>" + esc(me.email) + "</b>, ta kontakt, så ordner vi det.</p>";
+      }
+    }
     lock(!isOpen(row));
     if(st === "trial" && left === 0){ say("Svar på spørsmålet over for å fortsette."); }
 
@@ -73,12 +95,15 @@
     var yes = $("ans-yes"), no = $("ans-no");
     if(yes){ yes.addEventListener("click", function(){ answer("wants_to_continue"); }); }
     if(no){ no.addEventListener("click", function(){ answer("ended"); }); }
+    var pay = out.querySelector(".paylink");
+    if(pay){ pay.addEventListener("click", rememberEmail); }
   }
 
   function answer(choice){
     sb.rpc("answer_trial", {choice: choice}).then(function(r){
       if(r.error){ say("Kunne ikke lagre svaret: " + r.error.message, true); return; }
       if(choice === "wants_to_continue"){
+        rememberEmail();
         say("Svaret er lagret. Nå går du til betalingen. Bruk " + me.email + " i kassen.");
         setTimeout(function(){ location.href = CHECKOUT; }, 1500);
         return;
@@ -161,6 +186,9 @@
   sb.auth.getSession().then(function(r){
     var s = r.data && r.data.session;
     if(s && !me){ me = s.user; load(); }
+    else if(!s && thanks){
+      thanks.innerHTML = "<h3>Takk for betalingen!</h3><p>Logg inn under med samme e-post som du brukte i kassen, så finner vi medlemskapet ditt. Du får en innloggingslenke på e-post.</p>";
+    }
   });
   sb.auth.onAuthStateChange(function(ev, s){
     if(ev === "SIGNED_IN" && s && (!me || me.id !== s.user.id)){
