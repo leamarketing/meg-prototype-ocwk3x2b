@@ -164,6 +164,24 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
 .facts div{padding:12px;border-radius:14px;background:rgba(31,122,92,.08)}
 .facts b{display:block;font-family:var(--display);font-size:26px}
+.coords{grid-column:1/-1;font-size:15px}
+.coords summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.coords summary:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
+.coord-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+.wheel{width:100%;max-width:420px;margin:6px auto 0;display:block}
+.wheel text{font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif}
+.legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;font-size:14px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.ptable{width:100%;border-collapse:collapse;font-size:15px}
+.ptable th,.ptable td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.ptable td:first-child{white-space:nowrap}
+@media (max-width:480px){.ptable{font-size:13.5px}.ptable th,.ptable td{padding:6px 3px}.ptable th{font-size:11px}}
+.asp{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.asp li{padding:12px 14px;border-radius:14px;background:var(--meta-bg)}
+.asp b{color:var(--meta)}
+.big3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.big3 div{padding:12px;border-radius:14px;background:var(--meta-bg)}
+.big3 b{display:block;font-family:var(--display);font-size:22px}
 @media (prefers-color-scheme: dark){
   .namebox select{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
   .berr{color:#ff8a7a}
@@ -242,17 +260,33 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
       </select></label>
       <label>År<input id="by" name="by" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="For eksempel 1965" required></label>
       <label>Klokkeslett<input id="bt" name="bt" type="time" aria-describedby="bt-hint"></label>
-      <label>Fødested<input id="bp" name="bp" placeholder="Valgfritt, f.eks. Tromsø"></label>
+      <label>Fødested<input id="bp" name="bp" list="places" placeholder="Velg fra listen, f.eks. Tromsø"></label>
+      <datalist id="places"></datalist>
       <button type="submit">Vis fødselsdagen min</button>
+      <details class="coords">
+        <summary>Fødestedet ditt er ikke i listen?</summary>
+        <p class="muted">Skriv inn koordinatene selv (desimalgrader, sør og vest med minus). Klokkeslettet regnes da som norsk tid.</p>
+        <div class="coord-row">
+          <label>Breddegrad<input id="blat" name="blat" inputmode="decimal" placeholder="f.eks. 69.77"></label>
+          <label>Lengdegrad<input id="blon" name="blon" inputmode="decimal" placeholder="f.eks. 21.03"></label>
+        </div>
+      </details>
     </form>
     <p class="muted" id="bt-hint">Fødselsdatoen din lagres ikke og sendes ikke noe sted. Alt regnes ut i nettleseren din.</p>
     <p id="birth-err" class="berr" role="alert"></p>
     <div id="birth-out" aria-live="polite"></div>
   </section>
 
-  <footer>Medlemsportal · prototype v0.2 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
+  <section id="horo" aria-labelledby="horo-h" class="namebox" hidden>
+    <div class="card-head"><h2 id="horo-h">Dagens horoskop</h2><span class="tag meta">Metafysikk</span></div>
+    <p>Hvor planetene står i dag, sammenlignet med hvor de sto da du ble født. Regnet ut i nettleseren din, ingenting sendes ut.</p>
+    <div id="horo-out" aria-live="polite"></div>
+  </section>
+
+  <footer>Medlemsportal · prototype v0.3 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
 <script>
 (function(){
   /* Betydning og opprinnelse: bare navn med kontrollert kilde. Gjengitt med egne ord etter Store norske leksikon. */
@@ -401,13 +435,210 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     html += "<div class=\"art\"><div class=\"glyph\" aria-hidden=\"true\">" + sign.g + "&#xFE0E;</div><div><p><b>" + sign.n + "</b>, et " + sign.e + "tegn i vestlig astrologi.</p>";
     if(nearCusp(m, d)){ html += "<p class=\"muted\">Du er født rett ved overgangen mellom to tegn. Grensen flytter seg litt fra år til år, så den ekte versjonen må regne med nøyaktig tid og sted.</p>"; }
     html += "</div></div>";
-    if(t && place){ html += "<p class=\"muted\">Med klokkeslett og fødested kan en astrolog regne ut ascendant (stigende tegn). Den utregningen trenger koordinatene og tidssonen for " + esc(place) + ", og kommer i den ekte versjonen.</p>"; }
-    else if(t){ html += "<p class=\"muted\">Ascendant (stigende tegn) trenger både klokkeslett og fødested. Skriv inn fødestedet om du vil ha den med når den ekte versjonen kommer.</p>"; }
+    html += "<p class=\"muted\">Hele fødselshoroskopet ditt, med måne og ascendant, finner du under Dagens horoskop rett nedenfor.</p>";
     html += "<p class=\"muted\">Astrologi er tradisjon og inspirasjon, ikke fakta, og gir ingen råd om helse, stemmegivning eller penger.</p></article>";
 
     out.innerHTML = html;
     out.scrollIntoView({behavior:"smooth", block:"start"});
+    renderHoro(d, m, y, t, place, life);
   });
+
+  /* ---------- Dagens horoskop (metafysikk). Planetposisjoner fra astronomy-engine, regnet lokalt. ---------- */
+  var PLACES = [
+    {n:"Nordreisa (Storslett)", lat:69.77, lon:21.03, tz:"Europe/Oslo"},
+    {n:"Tromsø", lat:69.65, lon:18.96, tz:"Europe/Oslo"},
+    {n:"Alta", lat:69.97, lon:23.27, tz:"Europe/Oslo"},
+    {n:"Hammerfest", lat:70.66, lon:23.68, tz:"Europe/Oslo"},
+    {n:"Kirkenes", lat:69.73, lon:30.05, tz:"Europe/Oslo"},
+    {n:"Harstad", lat:68.80, lon:16.54, tz:"Europe/Oslo"},
+    {n:"Narvik", lat:68.44, lon:17.43, tz:"Europe/Oslo"},
+    {n:"Bodø", lat:67.28, lon:14.40, tz:"Europe/Oslo"},
+    {n:"Trondheim", lat:63.43, lon:10.40, tz:"Europe/Oslo"},
+    {n:"Bergen", lat:60.39, lon:5.32, tz:"Europe/Oslo"},
+    {n:"Oslo", lat:59.91, lon:10.75, tz:"Europe/Oslo"},
+    {n:"Stavanger", lat:58.97, lon:5.73, tz:"Europe/Oslo"},
+    {n:"Sandnes", lat:58.85, lon:5.74, tz:"Europe/Oslo"},
+    {n:"Arendal", lat:58.46, lon:8.77, tz:"Europe/Oslo"},
+    {n:"Kristiansand", lat:58.15, lon:7.99, tz:"Europe/Oslo"},
+    {n:"Maragogi, Brasil", lat:-9.01, lon:-35.22, tz:"America/Maceio"}
+  ];
+  (function(){ var dl = document.getElementById("places"); PLACES.forEach(function(p){ var o = document.createElement("option"); o.value = p.n; dl.appendChild(o); }); })();
+  function findPlace(txt){
+    var k = txt.trim().toLowerCase(); if(!k){ return null; }
+    for(var i = 0; i < PLACES.length; i++){ var n = PLACES[i].n.toLowerCase(); if(n === k || n.split(/[\s,()]+/).indexOf(k) >= 0){ return PLACES[i]; } }
+    return null;
+  }
+
+  var ZS = ["Væren","Tyren","Tvillingene","Krepsen","Løven","Jomfruen","Vekten","Skorpionen","Skytten","Steinbukken","Vannmannen","Fiskene"];
+  var ZG = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
+  var PL = [
+    {k:"Sun", n:"Sola", g:"☉", th:"kjernen din og livskraften"},
+    {k:"Moon", n:"Månen", g:"☽", th:"følelser og trygghet"},
+    {k:"Mercury", n:"Merkur", g:"☿", th:"tanker og samtaler"},
+    {k:"Venus", n:"Venus", g:"♀", th:"kjærlighet, vennskap og skjønnhet"},
+    {k:"Mars", n:"Mars", g:"♂", th:"vilje og handlekraft"},
+    {k:"Jupiter", n:"Jupiter", g:"♃", th:"vekst og tillit"},
+    {k:"Saturn", n:"Saturn", g:"♄", th:"ansvar og struktur"},
+    {k:"Uranus", n:"Uranus", g:"♅", th:"forandring og fornyelse"},
+    {k:"Neptune", n:"Neptun", g:"♆", th:"drømmer og intuisjon"},
+    {k:"Pluto", n:"Pluto", g:"♇", th:"dyp omforming"}
+  ];
+  var ASP = [
+    {a:0, n:"konjunksjon", rel:"står i konjunksjon med", txt:function(A,B){ return cap(A) + " og " + B + " smelter sammen."; }},
+    {a:60, n:"sekstil", rel:"står i sekstil til", txt:function(A,B){ return cap(A) + " gir en lett åpning for " + B + "."; }},
+    {a:90, n:"kvadrat", rel:"står i kvadrat til", txt:function(A,B){ return cap(A) + " gnisser mot " + B + ", og friksjonen kan bli til handling."; }},
+    {a:120, n:"trigon", rel:"står i trigon til", txt:function(A,B){ return cap(A) + " og " + B + " flyter lett sammen."; }},
+    {a:180, n:"opposisjon", rel:"står i opposisjon til", txt:function(A,B){ return cap(A) + " og " + B + " trekker hver sin vei og ber om balanse."; }}
+  ];
+  function norm360(x){ x %= 360; return x < 0 ? x + 360 : x; }
+  function fmtLon(l){ var s = Math.floor(l / 30), deg = l - s * 30, dd = Math.floor(deg), mm = Math.floor((deg - dd) * 60); return {s:s, txt:dd + "°" + (mm < 10 ? "0" : "") + mm + "′ " + ZS[s]}; }
+  function tzOffsetMs(ms, tz){
+    var p = {}; new Intl.DateTimeFormat("en-US", {timeZone:tz, hourCycle:"h23", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit"})
+      .formatToParts(new Date(ms)).forEach(function(x){ p[x.type] = x.value; });
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - ms;
+  }
+  function zonedToUtc(y, m, d, hh, mm, tz){
+    var local = Date.UTC(y, m - 1, d, hh, mm), g = local;
+    for(var i = 0; i < 3; i++){ g = local - tzOffsetMs(g, tz); }
+    return new Date(g);
+  }
+  function lonOf(k, date){
+    if(k === "Sun"){ return Astronomy.SunPosition(date).elon; }
+    if(k === "Moon"){ return Astronomy.EclipticGeoMoon(date).lon; }
+    return Astronomy.Ecliptic(Astronomy.GeoVector(k, date, true)).elon;
+  }
+  function positions(date){ var o = {}; PL.forEach(function(p){ o[p.k] = norm360(lonOf(p.k, date)); }); return o; }
+  /* Ascendant fra lokal stjernetid og ekliptikkens helning: atan2(cos θ, -(sin θ cos ε + tan φ sin ε)) */
+  function ascendant(date, lat, lon){
+    var t = Astronomy.MakeTime(date);
+    var th = norm360(Astronomy.SiderealTime(t) * 15 + lon) * Math.PI / 180;
+    var eps = (23.439291 - 0.0130042 * (t.tt / 36525)) * Math.PI / 180, ph = lat * Math.PI / 180;
+    var asc = norm360(Math.atan2(Math.cos(th), -(Math.sin(th) * Math.cos(eps) + Math.tan(ph) * Math.sin(eps))) * 180 / Math.PI);
+    /* Nord for polarsirkelen kan formelen gi motsatt punkt. Ascendanten skal ligge innen 180° etter MC. */
+    var mc = norm360(Math.atan2(Math.sin(th), Math.cos(th) * Math.cos(eps)) * 180 / Math.PI);
+    if(norm360(asc - mc) > 180){ asc = norm360(asc + 180); }
+    return asc;
+  }
+  function digitSum(n){ return String(n).split("").reduce(function(a, b){ return a + Number(b); }, 0); }
+
+  function wheel(nat, now, asc){
+    var c = 160, ref = asc == null ? 0 : asc, s = "";
+    function pt(l, r){ var a = (180 + (l - ref)) * Math.PI / 180; return [c + r * Math.cos(a), c - r * Math.sin(a)]; }
+    s += "<circle cx=\"160\" cy=\"160\" r=\"156\" fill=\"var(--surface)\" stroke=\"var(--line)\"/>";
+    s += "<circle cx=\"160\" cy=\"160\" r=\"128\" fill=\"none\" stroke=\"var(--line)\"/>";
+    s += "<circle cx=\"160\" cy=\"160\" r=\"98\" fill=\"none\" stroke=\"var(--line)\" stroke-dasharray=\"3 4\"/>";
+    s += "<circle cx=\"160\" cy=\"160\" r=\"66\" fill=\"var(--surface-2)\" stroke=\"var(--line)\"/>";
+    for(var i = 0; i < 12; i++){
+      var a1 = pt(i * 30, 128), a2 = pt(i * 30, 156), g = pt(i * 30 + 15, 142);
+      s += "<line x1=\"" + a1[0].toFixed(1) + "\" y1=\"" + a1[1].toFixed(1) + "\" x2=\"" + a2[0].toFixed(1) + "\" y2=\"" + a2[1].toFixed(1) + "\" stroke=\"var(--line)\"/>";
+      s += "<text x=\"" + g[0].toFixed(1) + "\" y=\"" + g[1].toFixed(1) + "\" font-size=\"15\" text-anchor=\"middle\" dominant-baseline=\"central\" style=\"fill:var(--muted)\">" + ZG[i] + "&#xFE0E;</text>";
+    }
+    if(asc != null){ var x1 = pt(asc, 66), x2 = pt(asc, 156), at = pt(asc, 46);
+      s += "<line x1=\"" + x1[0].toFixed(1) + "\" y1=\"" + x1[1].toFixed(1) + "\" x2=\"" + x2[0].toFixed(1) + "\" y2=\"" + x2[1].toFixed(1) + "\" stroke=\"var(--ink)\" stroke-width=\"1.5\"/>";
+      s += "<text x=\"" + at[0].toFixed(1) + "\" y=\"" + at[1].toFixed(1) + "\" font-size=\"12\" font-weight=\"700\" text-anchor=\"middle\" dominant-baseline=\"central\" style=\"fill:var(--ink);font-family:var(--body)\">AC</text>"; }
+    function ring(pos, r0, color, skip){
+      var list = PL.filter(function(p){ return !(skip && skip[p.k]); }).map(function(p){ return {g:p.g, l:pos[p.k]}; }).sort(function(a, b){ return a.l - b.l; });
+      var last = -99, step = 0;
+      list.forEach(function(p){
+        step = (p.l - last < 8) ? step + 1 : 0; last = p.l;
+        var q = pt(p.l, r0 - (step % 3) * 11), tick = pt(p.l, r0 + 9);
+        s += "<line x1=\"" + q[0].toFixed(1) + "\" y1=\"" + q[1].toFixed(1) + "\" x2=\"" + tick[0].toFixed(1) + "\" y2=\"" + tick[1].toFixed(1) + "\" stroke=\"" + color + "\" stroke-opacity=\".35\"/>";
+        s += "<text x=\"" + q[0].toFixed(1) + "\" y=\"" + q[1].toFixed(1) + "\" font-size=\"16\" text-anchor=\"middle\" dominant-baseline=\"central\" style=\"fill:" + color + "\">" + p.g + "&#xFE0E;</text>";
+      });
+    }
+    ring(now, 116, "var(--meta)");
+    ring(nat, 86, "var(--accent)", null);
+    return "<svg class=\"wheel\" viewBox=\"0 0 320 320\" role=\"img\" aria-label=\"Horoskophjul: dyrekretsen ytterst, dagens planeter i lilla ring, fødselsplanetene i grønn ring innenfor. Alle posisjonene står også i tabellen under.\">" + s + "</svg>";
+  }
+
+  function renderHoro(d, m, y, t, placeTxt, life){
+    var sec = document.getElementById("horo"), out = document.getElementById("horo-out");
+    sec.hidden = false;
+    if(typeof Astronomy === "undefined"){ out.innerHTML = "<p class=\"berr\">Klarte ikke å laste regnemotoren for planetene. Sjekk nettforbindelsen og prøv igjen.</p>"; return; }
+    var place = findPlace(placeTxt || ""), lat = parseFloat(String(document.getElementById("blat").value).replace(",", ".")), lon = parseFloat(String(document.getElementById("blon").value).replace(",", "."));
+    if(!isNaN(lat) && !isNaN(lon) && Math.abs(lat) <= 89 && Math.abs(lon) <= 180){ place = {n:"egne koordinater (" + lat + ", " + lon + ")", lat:lat, lon:lon, tz:"Europe/Oslo"}; }
+    var tz = place ? place.tz : "Europe/Oslo";
+    var hh = 12, mi = 0; if(t){ hh = parseInt(t.split(":")[0], 10); mi = parseInt(t.split(":")[1], 10); }
+    var bornUtc = zonedToUtc(y, m, d, hh, mi, tz), now = new Date();
+    var nat = positions(bornUtc), cur = positions(now);
+    var asc = (t && place) ? ascendant(bornUtc, place.lat, place.lon) : null;
+    var moonSure = !!t;
+
+    var html = "";
+    /* Notat om grunnlaget */
+    var basis = [];
+    basis.push(t ? "født klokka " + esc(t) + (place ? "" : " (regnet som norsk tid)") : "uten klokkeslett, regnet for klokka 12");
+    basis.push(place ? (place.lat && place.n.indexOf("egne") === 0 ? "med " : "i ") + esc(place.n) : (placeTxt ? "fant ikke «" + esc(placeTxt) + "» i listen" : "uten fødested"));
+    html += "<p class=\"muted\">Grunnlag: " + basis.join(", ") + ". Dagens planeter er regnet for " + now.toLocaleString("nb-NO", {day:"numeric", month:"long", hour:"2-digit", minute:"2-digit"}) + ".</p>";
+
+    /* De tre store */
+    var sun = fmtLon(nat.Sun), moon = fmtLon(nat.Moon);
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Dine tre store</h3><span class=\"tag meta\">Metafysikk</span></div><div class=\"big3\">";
+    html += "<div><span>Sol</span><b>" + ZS[sun.s] + "</b>" + sun.txt + "</div>";
+    html += "<div><span>Måne</span><b>" + (moonSure ? ZS[moon.s] : "Usikker") + "</b>" + (moonSure ? moon.txt : "Månen flytter seg rundt 13° i døgnet, så den trenger klokkeslett") + "</div>";
+    html += "<div><span>Ascendant</span><b>" + (asc != null ? ZS[fmtLon(asc).s] : "Ukjent") + "</b>" + (asc != null ? fmtLon(asc).txt : "Trenger både klokkeslett og fødested fra listen") + "</div>";
+    html += "</div></article>";
+
+    /* Hjul og tabell */
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Hjulet ditt i dag</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    html += wheel(nat, cur, asc);
+    html += "<div class=\"legend\"><span style=\"--c:var(--accent)\">Da du ble født (innerst)</span><span style=\"--c:var(--meta)\">I dag (ytterst)</span>" + (asc != null ? "<span style=\"--c:var(--ink)\">AC = ascendant, til venstre</span>" : "") + "</div>";
+    html += "<div class=\"tablebox\"><table class=\"ptable\"><thead><tr><th scope=\"col\">Planet</th><th scope=\"col\">Da du ble født</th><th scope=\"col\">I dag</th></tr></thead><tbody>";
+    PL.forEach(function(p){
+      var a = (p.k === "Moon" && !moonSure) ? "Usikker" : fmtLon(nat[p.k]).txt;
+      html += "<tr><td>" + p.g + "&#xFE0E; " + p.n + "</td><td>" + a + "</td><td>" + fmtLon(cur[p.k]).txt + "</td></tr>";
+    });
+    if(asc != null){ html += "<tr><td>AC Ascendant</td><td>" + fmtLon(asc).txt + "</td><td></td></tr>"; }
+    html += "</tbody></table></div></article>";
+
+    /* Dagens aspekter: dagens planeter mot fødselsplanetene */
+    var hits = [];
+    PL.forEach(function(tp){
+      var natList = PL.filter(function(np){ return np.k !== "Moon" || moonSure; }).map(function(np){ return {k:np.k, n:np.n + " i fødselshoroskopet ditt", th:np.th, l:nat[np.k]}; });
+      if(asc != null){ natList.push({k:"ASC", n:"ascendanten din", th:"måten du møter verden på", l:asc}); }
+      natList.forEach(function(np){
+        var diff = Math.abs(norm360(cur[tp.k] - np.l)); if(diff > 180){ diff = 360 - diff; }
+        var orbMax = tp.k === "Moon" ? 5 : 3;
+        ASP.forEach(function(as){ var orb = Math.abs(diff - as.a); if(orb <= orbMax){ hits.push({tp:tp, np:np, as:as, orb:orb, w:orb / orbMax}); } });
+      });
+    });
+    hits.sort(function(a, b){ return a.w - b.w; });
+    var top = hits.slice(0, 5);
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Det som preger dagen din</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    if(top.length){
+      html += "<ul class=\"asp\">" + top.map(function(h){
+        return "<li><b>" + h.tp.n + " i dag " + h.as.rel + " " + h.np.n + "</b><br><span class=\"muted\">" + cap(h.as.n) + ", " + h.orb.toFixed(1).replace(".", ",") + "° fra eksakt</span><p>I tradisjonen: " + h.as.txt(h.tp.th, h.tp.k === h.np.k ? "utgangspunktet ditt fra fødselen" : h.np.th) + "</p></li>";
+      }).join("") + "</ul>";
+      html += "<p class=\"muted\">Viser de " + top.length + " tetteste av " + hits.length + " forbindelser i dag. Jo nærmere eksakt, jo sterkere regnes den i tradisjonen.</p>";
+    } else {
+      html += "<p>I dag danner ingen av planetene tette forbindelser til fødselshoroskopet ditt. I tradisjonen regnes det som en rolig dag.</p>";
+    }
+    html += "</article>";
+
+    /* Dagens tall mot dine tall */
+    var td = new Date(), tdD = td.getDate(), tdM = td.getMonth() + 1, tdY = td.getFullYear();
+    var uni = reduce(digitSum(tdD) + digitSum(tdM) + digitSum(tdY));
+    var py = reduce(digitSum(d) + digitSum(m) + digitSum(tdY)), pm = reduce(py + tdM), pd = reduce(pm + tdD);
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Dagens tall og dine tall</h3><span class=\"tag meta\">Metafysikk</span></div><div class=\"nums\">";
+    html += "<div><span>Dagens tall for alle</span><b>" + uni + "</b>" + NUMTXT[uni] + "</div>";
+    html += "<div><span>Din personlige dag</span><b>" + pd + "</b>" + NUMTXT[pd] + "</div>";
+    html += "<div><span>Ditt personlige år " + tdY + "</span><b>" + py + "</b>" + NUMTXT[py] + "</div>";
+    html += "<div><span>Ditt livstall</span><b>" + life + "</b>" + NUMTXT[life] + "</div>";
+    html += "</div><p>" + (pd === life ? "Din personlige dag har samme tall som livstallet ditt. I tradisjonen regnes det som en dag der du er ekstra i takt med deg selv." : "I tradisjonen farger din personlige dag (" + pd + ") hvordan livstallet ditt (" + life + ") kommer til uttrykk i dag: " + NUMTXT[pd].toLowerCase() + " møter " + NUMTXT[life].toLowerCase() + ".") + "</p>";
+    html += "<p class=\"muted\">Personlig år = fødselsdag + fødselsmåned + årstallet, personlig måned = år + måned, personlig dag = måned + dag, alt lagt sammen til ett siffer (11 og 22 står som mestertall).</p></article>";
+
+    html += "<p class=\"muted\" style=\"margin-top:10px\">Astrologi og tallmystikk er tradisjon og inspirasjon, ikke fakta, og gir ingen råd om helse, stemmegivning eller penger. Planetposisjonene er regnet astronomisk med tropisk dyrekrets.</p>";
+
+    /* Kommende moduler */
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Mer i medlemsportalen etter hvert</h3><span class=\"tag\">Kommer</span></div>";
+    html += "<p>Dette er moduler vi jobber med. Når de er klare, finner du dem her i portalen.</p><div class=\"tiles\">";
+    html += "<div class=\"tile soon\" aria-disabled=\"true\"><span class=\"tag\">Kommer</span><h3>Uka og måneden din</h3><p>Planetene og tallene dine for de neste dagene, og månefasene sett fra der du bor.</p></div>";
+    html += "<div class=\"tile soon\" aria-disabled=\"true\"><span class=\"tag\">Kommer</span><h3>Året ditt</h3><p>Ditt personlige år i tall og planeter, med de viktigste datoene.</p></div>";
+    html += "<div class=\"tile soon\" aria-disabled=\"true\"><span class=\"tag\">Kommer</span><h3>Interessene dine i VoteApp</h3><p>Saker og fellesskap som passer det du bryr deg om, koblet til Min dag.</p></div>";
+    html += "</div></article>";
+
+    out.innerHTML = html;
+  }
 })();
 </script>
 </body>
