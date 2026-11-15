@@ -179,6 +179,15 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 .asp{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
 .asp li{padding:12px 14px;border-radius:14px;background:var(--meta-bg)}
 .asp b{color:var(--meta)}
+.guide{display:flex;flex-direction:column;gap:12px}
+.guide h4{margin:4px 0 4px;font-family:var(--display);font-size:18px}
+.guide ul{margin:0;padding-left:20px}
+.guide li{margin:3px 0}
+.daypick{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:8px 0 4px}
+.daypick label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:15px}
+.daypick input{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.daypick input:focus-visible,.daypick button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.daypick button{font:inherit;font-weight:600;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 .big3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .big3 div{padding:12px;border-radius:14px;background:var(--meta-bg)}
 .big3 b{display:block;font-family:var(--display);font-size:22px}
@@ -280,10 +289,14 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
   <section id="horo" aria-labelledby="horo-h" class="namebox" hidden>
     <div class="card-head"><h2 id="horo-h">Dagens horoskop</h2><span class="tag meta">Metafysikk</span></div>
     <p>Hvor planetene står i dag, sammenlignet med hvor de sto da du ble født. Regnet ut i nettleseren din, ingenting sendes ut.</p>
+    <div class="daypick">
+      <label>Se en annen dag<input id="hday" type="date"></label>
+      <button type="button" id="htoday">I dag</button>
+    </div>
     <div id="horo-out" aria-live="polite"></div>
   </section>
 
-  <footer>Medlemsportal · prototype v0.3 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
+  <footer>Medlemsportal · prototype v0.4 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -304,6 +317,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     7:"Refleksjon og innsikt", 8:"Handlekraft og resultater", 9:"Helhet og raushet",
     11:"Intuisjon (mestertall i tradisjonen)", 22:"Byggmester (mestertall i tradisjonen)"
   };
+  var lastExpr = null, lastHoro = null;
   function norm(s){ return s.toLowerCase().replace(/æ/g,"ae").replace(/ø/g,"o").replace(/å/g,"a").normalize("NFD").replace(/[̀-ͯ]/g,""); }
   function val(c){ var i = "abcdefghijklmnopqrstuvwxyz".indexOf(c); return i < 0 ? 0 : (i % 9) + 1; }
   function reduce(n){ while(n > 9 && n !== 11 && n !== 22){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
@@ -330,6 +344,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     if(!full){ return; }
     var letters = full.replace(/[^\p{L}]/gu, "");
     var expr = reduce(sum(full, function(){ return true; }));
+    lastExpr = expr;
     var soul = reduce(sum(full, vow));
     var pers = reduce(sum(full, function(c){ return !vow(c); }));
     var initials = full.split(/\s+/).map(function(w){ return w.charAt(0).toUpperCase(); }).join(".") + ".";
@@ -627,15 +642,114 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     return "<svg class=\"wheel\" viewBox=\"0 0 320 320\" role=\"img\" aria-label=\"Horoskophjul: dyrekretsen ytterst, dagens planeter i lilla ring, fødselsplanetene i grønn ring innenfor. Alle posisjonene står også i tabellen under.\">" + s + "</svg>";
   }
 
-  function renderHoro(d, m, y, t, placeTxt, life){
+  /* ---------- Din dag i dag: en kort dagsguide (metafysikk, med noen astronomiske fakta) ---------- */
+  var ELEM = ["ild","jord","luft","vann"];
+  var ELTONE = {ild:"lyst til å komme i gang", jord:"sans for det praktiske og konkrete", luft:"lyst til å snakke, lære og møte folk", vann:"følelser og omtanke nær overflaten"};
+  var ELGOOD = {ild:"Å ta initiativ til noe du har tenkt på en stund", jord:"Praktiske gjøremål og rydding", luft:"Samtaler, læring og å møte folk", vann:"Ro, hvile og omsorg for deg selv og andre"};
+  var GOOD = {
+    Mercury:"Samtaler og avtaler", Venus:"Samarbeid, vennskap og det som er vakkert", Jupiter:"Planlegging på lang sikt og å si ja til noe nytt",
+    Mars:"Fysisk arbeid og å få ting gjort", Saturn:"Struktur, orden og ting som krever tålmodighet", Sun:"Å vise hvem du er og stå for det",
+    Moon:"Familie, hjem og omsorg", Uranus:"Å prøve en ny måte å gjøre ting på", Neptune:"Kreativt arbeid, musikk og drømmer", Pluto:"Å gå i dybden på noe som betyr mye for deg"
+  };
+  var CARE = {
+    Mercury:"Misforståelser i samtaler og meldinger. Les gjennom en ekstra gang før du sender.", Venus:"Å legge for mye vekt på hva andre synes.",
+    Mars:"Å presse på for fort. Ta pauser underveis.", Saturn:"Å kreve for mye av deg selv.", Jupiter:"Å love mer enn du rekker.",
+    Sun:"Å ta ting for personlig.", Moon:"Sterke følelser som går over igjen. Vent litt med store svar.", Uranus:"Brå endringer i planene.",
+    Neptune:"Å stole på noe som er uklart. Be om det skriftlig.", Pluto:"Dragkamp om hvem som bestemmer. Gi deg selv rom."
+  };
+  var PDGOOD = {1:"Å starte noe nytt", 2:"Samarbeid og å lytte", 3:"Kreativt arbeid og glede", 4:"Planlegging og orden", 5:"Å prøve noe nytt",
+    6:"Omsorg for familie og venner", 7:"Ro, refleksjon og hvile", 8:"Å følge opp oppgaver og avtaler", 9:"Å avslutte og rydde", 11:"Å lytte til intuisjonen", 22:"Å bygge noe som varer"};
+  var RULER = ["Sola","Månen","Mars","Merkur","Jupiter","Venus","Saturn"];
+  function moonPhaseName(a){
+    if(a < 10 || a >= 350){ return "Nymåne"; } if(a < 80){ return "Voksende månesigd"; } if(a < 100){ return "Første kvarter"; }
+    if(a < 170){ return "Voksende måne"; } if(a < 190){ return "Fullmåne"; } if(a < 260){ return "Avtagende måne"; }
+    if(a < 280){ return "Siste kvarter"; } return "Avtagende månesigd";
+  }
+  function mercuryRetro(date){
+    var a = lonOf("Mercury", date), b = lonOf("Mercury", new Date(date.getTime() + 86400000));
+    var dd = norm360(b - a); if(dd > 180){ dd -= 360; } return dd < 0;
+  }
+  function guide(now, isToday, cur, nat, hits, pd, life, d, m){
+    var ms = fmtLon(cur.Moon).s, el = ELEM[ms % 4];
+    var phaseAng = Astronomy.MoonPhase(now), illum = Math.round(Astronomy.Illumination("Moon", now).phase_fraction * 100);
+    var retro = mercuryRetro(now);
+    var soft = hits.filter(function(h){ return h.as.a === 60 || h.as.a === 120 || (h.as.a === 0 && ["Venus","Jupiter","Sun","Moon","Mercury"].indexOf(h.tp.k) >= 0); });
+    var hard = hits.filter(function(h){ return h.as.a === 90 || h.as.a === 180 || (h.as.a === 0 && ["Mars","Saturn","Uranus","Neptune","Pluto"].indexOf(h.tp.k) >= 0); });
+    var dayWord = isToday ? "i dag" : "denne dagen";
+
+    /* Dagens tone */
+    var tone = "Månen går " + dayWord + " gjennom " + ZS[ms] + ", et " + el + "tegn, og i tradisjonen gir det " + ELTONE[el] + ".";
+    if(hits.length){
+      var h = hits[0], np = h.tp.k === h.np.k ? "utgangspunktet ditt fra fødselen" : h.np.th;
+      var read = (soft.indexOf(h) >= 0) ? "en god støtte for " + np : (hard.indexOf(h) >= 0) ? "en dag for å ta det med ro rundt " + np : "at " + h.tp.th + " får ekstra oppmerksomhet";
+      tone += " Den tetteste forbindelsen er at " + h.tp.n + " " + h.as.rel + " " + h.np.n + ", som tradisjonen leser som " + read + ".";
+    }
+    tone += " Din personlige dag er " + pd + ": " + NUMTXT[pd].toLowerCase() + ".";
+
+    /* Godt for dagen */
+    var good = [];
+    function add(x){ if(x && good.indexOf(x) < 0 && good.length < 4){ good.push(x); } }
+    soft.slice(0, 2).forEach(function(h){
+      var g = GOOD[h.tp.k];
+      if(h.tp.k === "Mercury" && retro){ g = "Å gå gjennom og rette opp avtaler du allerede har"; }
+      add(g);
+    });
+    add(PDGOOD[pd]);
+    add(ELGOOD[el]);
+
+    /* Vær varsom med */
+    var care = [];
+    hard.forEach(function(h){ var c = CARE[h.tp.k]; if(c && care.indexOf(c) < 0 && care.length < 2){ care.push(c); } });
+    if(retro && care.length < 2){ care.push("Å skrive under på noe nytt uten å lese gjennom. Merkur går baklengs, og i tradisjonen er det tid for å se over."); }
+
+    /* Nyttig å vite */
+    var next = new Date(now.getFullYear(), m - 1, d); var base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if(next < base){ next = new Date(now.getFullYear() + 1, m - 1, d); }
+    var toNext = Math.round((next - base) / 86400000);
+    var wd = now.getDay();
+
+    var html = "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Din dag " + (isToday ? "i dag" : now.toLocaleDateString("nb-NO", {weekday:"long", day:"numeric", month:"long"})) + "</h3><span class=\"tag meta\">Metafysikk</span></div><div class=\"guide\">";
+    html += "<div><h4>Dagens tone</h4><p>" + tone + "</p></div>";
+    html += "<div><h4>Godt for " + dayWord + " (etter tradisjonen)</h4><ul>" + good.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul></div>";
+    html += "<div><h4>Vær varsom med</h4>" + (care.length ? "<ul>" + care.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul>" : "<p>Ingen tydelige spenninger " + dayWord + ". I tradisjonen regnes det som en jevn dag.</p>") + "</div>";
+    html += "<div><h4>Andre ting du kan ha glede av å vite</h4><ul>";
+    html += "<li><span class=\"tag fact\">Fakta</span> Månefase: <b>" + moonPhaseName(phaseAng) + "</b>, " + illum + " % av månen er opplyst.</li>";
+    html += "<li><span class=\"tag fact\">Fakta</span> Månen står i <b>" + ZS[ms] + "</b> (tropisk dyrekrets).</li>";
+    html += "<li><span class=\"tag fact\">Fakta</span> Merkur går " + (retro ? "<b>baklengs</b> sett fra jorda. I tradisjonen er det tid for å se over, rette opp og gå tilbake til ting." : "<b>forlengs</b> som vanlig.") + "</li>";
+    html += "<li>" + cap(DAYS[wd]) + " er i tradisjonen dagen til <b>" + RULER[wd] + "</b>.</li>";
+    if(lastExpr != null){ html += "<li>" + (lastExpr === pd ? "Din personlige dag har samme tall som navnet ditt (" + pd + "). I tradisjonen regnes det som en dag der navnet og dagen drar i samme retning." : "Navnet ditt har uttrykkstallet " + lastExpr + ", og din personlige dag er " + pd + ". I tradisjonen møtes «" + NUMTXT[lastExpr].toLowerCase() + "» og «" + NUMTXT[pd].toLowerCase() + "».") + "</li>"; }
+    html += "<li><span class=\"tag fact\">Fakta</span> " + (toNext === 0 ? "Det er bursdagen din!" : "Det er " + toNext + " dager til bursdagen din.") + "</li>";
+    html += "</ul></div>";
+    html += "<p class=\"muted\">Dette er tradisjon og inspirasjon. Viktige valg om penger, helse eller stemmegivning tar du selv, på et ekte grunnlag.</p>";
+    html += "</div></article>";
+    return html;
+  }
+  document.getElementById("hday").addEventListener("change", function(){ if(lastHoro){ renderHoro.apply(null, lastHoro.concat([this.value])); } });
+  document.getElementById("htoday").addEventListener("click", function(){ if(lastHoro){ renderHoro.apply(null, lastHoro.concat([null])); } });
+
+  function ymd(dt){ return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0"); }
+  function renderHoro(d, m, y, t, placeTxt, life, dayStr){
     var sec = document.getElementById("horo"), out = document.getElementById("horo-out");
     sec.hidden = false;
+    lastHoro = [d, m, y, t, placeTxt, life];
+    var realNow = new Date(), hdayEl = document.getElementById("hday");
+    var minD = new Date(realNow); minD.setDate(minD.getDate() - 30);
+    var maxD = new Date(realNow); maxD.setDate(maxD.getDate() + 30);
+    hdayEl.min = ymd(minD); hdayEl.max = ymd(maxD);
+    var isToday = !dayStr || dayStr === ymd(realNow);
+    var now = realNow;
+    if(!isToday){
+      var pp = dayStr.split("-").map(Number);
+      now = new Date(pp[0], pp[1] - 1, pp[2], 12, 0);
+      if(now < minD || now > maxD){ now = realNow; isToday = true; }
+    }
+    hdayEl.value = ymd(now);
     if(typeof Astronomy === "undefined"){ out.innerHTML = "<p class=\"berr\">Klarte ikke å laste regnemotoren for planetene. Sjekk nettforbindelsen og prøv igjen.</p>"; return; }
     var place = findPlace(placeTxt || ""), lat = parseFloat(String(document.getElementById("blat").value).replace(",", ".")), lon = parseFloat(String(document.getElementById("blon").value).replace(",", "."));
     if(!isNaN(lat) && !isNaN(lon) && Math.abs(lat) <= 89 && Math.abs(lon) <= 180){ place = {n:"egne koordinater (" + lat + ", " + lon + ")", lat:lat, lon:lon, tz:"Europe/Oslo"}; }
     var tz = place ? place.tz : "Europe/Oslo";
     var hh = 12, mi = 0; if(t){ hh = parseInt(t.split(":")[0], 10); mi = parseInt(t.split(":")[1], 10); }
-    var bornUtc = zonedToUtc(y, m, d, hh, mi, tz), now = new Date();
+    var bornUtc = zonedToUtc(y, m, d, hh, mi, tz);
     var nat = positions(bornUtc), cur = positions(now);
     var asc = (t && place) ? ascendant(bornUtc, place.lat, place.lon) : null;
     var moonSure = !!t;
@@ -645,8 +759,24 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     var basis = [];
     basis.push(t ? "født klokka " + esc(t) + (place ? "" : " (regnet som norsk tid)") : "uten klokkeslett, regnet for klokka 12");
     basis.push(place ? (place.lat && place.n.indexOf("egne") === 0 ? "med " : "i ") + esc(place.n) : (placeTxt ? "fant ikke «" + esc(placeTxt) + "» i listen" : "uten fødested"));
-    html += "<p class=\"muted\">Grunnlag: " + basis.join(", ") + ". Dagens planeter er regnet for " + now.toLocaleString("nb-NO", {day:"numeric", month:"long", hour:"2-digit", minute:"2-digit"}) + ".</p>";
+    html += "<p class=\"muted\">Grunnlag: " + basis.join(", ") + ". " + (isToday ? "Dagens planeter" : "Planetene") + " er regnet for " + now.toLocaleString("nb-NO", {day:"numeric", month:"long", hour:"2-digit", minute:"2-digit"}) + ".</p>";
 
+    /* Dagens aspekter: dagens planeter mot fødselsplanetene */
+    var hits = [];
+    PL.forEach(function(tp){
+      var natList = PL.filter(function(np){ return np.k !== "Moon" || moonSure; }).map(function(np){ return {k:np.k, n:np.n + " i fødselshoroskopet ditt", th:np.th, l:nat[np.k]}; });
+      if(asc != null){ natList.push({k:"ASC", n:"ascendanten din", th:"måten du møter verden på", l:asc}); }
+      natList.forEach(function(np){
+        var diff = Math.abs(norm360(cur[tp.k] - np.l)); if(diff > 180){ diff = 360 - diff; }
+        var orbMax = tp.k === "Moon" ? 5 : 3;
+        ASP.forEach(function(as){ var orb = Math.abs(diff - as.a); if(orb <= orbMax){ hits.push({tp:tp, np:np, as:as, orb:orb, w:orb / orbMax}); } });
+      });
+    });
+    hits.sort(function(a, b){ return a.w - b.w; });
+    var td = now, tdD = td.getDate(), tdM = td.getMonth() + 1, tdY = td.getFullYear();
+    var uni = reduce(digitSum(tdD) + digitSum(tdM) + digitSum(tdY));
+    var py = reduce(digitSum(d) + digitSum(m) + digitSum(tdY)), pm = reduce(py + tdM), pd = reduce(pm + tdD);
+    html += guide(now, isToday, cur, nat, hits, pd, life, d, m);
     /* De tre store */
     var sun = fmtLon(nat.Sun), moon = fmtLon(nat.Moon);
     html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Dine tre store</h3><span class=\"tag meta\">Metafysikk</span></div><div class=\"big3\">";
@@ -667,18 +797,6 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     if(asc != null){ html += "<tr><td>AC Ascendant</td><td>" + fmtLon(asc).txt + "</td><td></td></tr>"; }
     html += "</tbody></table></div></article>";
 
-    /* Dagens aspekter: dagens planeter mot fødselsplanetene */
-    var hits = [];
-    PL.forEach(function(tp){
-      var natList = PL.filter(function(np){ return np.k !== "Moon" || moonSure; }).map(function(np){ return {k:np.k, n:np.n + " i fødselshoroskopet ditt", th:np.th, l:nat[np.k]}; });
-      if(asc != null){ natList.push({k:"ASC", n:"ascendanten din", th:"måten du møter verden på", l:asc}); }
-      natList.forEach(function(np){
-        var diff = Math.abs(norm360(cur[tp.k] - np.l)); if(diff > 180){ diff = 360 - diff; }
-        var orbMax = tp.k === "Moon" ? 5 : 3;
-        ASP.forEach(function(as){ var orb = Math.abs(diff - as.a); if(orb <= orbMax){ hits.push({tp:tp, np:np, as:as, orb:orb, w:orb / orbMax}); } });
-      });
-    });
-    hits.sort(function(a, b){ return a.w - b.w; });
     var top = hits.slice(0, 5);
     html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Det som preger dagen din</h3><span class=\"tag meta\">Metafysikk</span></div>";
     if(top.length){
@@ -692,9 +810,6 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     html += "</article>";
 
     /* Dagens tall mot dine tall */
-    var td = new Date(), tdD = td.getDate(), tdM = td.getMonth() + 1, tdY = td.getFullYear();
-    var uni = reduce(digitSum(tdD) + digitSum(tdM) + digitSum(tdY));
-    var py = reduce(digitSum(d) + digitSum(m) + digitSum(tdY)), pm = reduce(py + tdM), pd = reduce(pm + tdD);
     html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Dagens tall og dine tall</h3><span class=\"tag meta\">Metafysikk</span></div><div class=\"nums\">";
     html += "<div><span>Dagens tall for alle</span><b>" + uni + "</b>" + NUMTXT[uni] + "</div>";
     html += "<div><span>Din personlige dag</span><b>" + pd + "</b>" + NUMTXT[pd] + "</div>";
