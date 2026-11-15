@@ -156,7 +156,17 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
 .nums div{padding:12px;border-radius:14px;background:rgba(124,92,196,.08)}
 .nums b{display:block;font-family:var(--display);font-size:30px}
+.namebox select{font:inherit;padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.25);background:#fff;color:#1b1b1b}
+.namebox select:focus-visible{outline:3px solid #1f7a5c;outline-offset:1px}
+.berr{color:#a3261b;font-weight:600;min-height:1em;margin:6px 0 0}
+.next-step{margin-top:14px;font-weight:700;padding:12px 18px;border-radius:999px;border:2px solid #1f7a5c;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.next-step:focus-visible{outline:3px solid #0d3b2c;outline-offset:2px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+.facts div{padding:12px;border-radius:14px;background:rgba(31,122,92,.08)}
+.facts b{display:block;font-family:var(--display);font-size:26px}
 @media (prefers-color-scheme: dark){
+  .namebox select{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
+  .berr{color:#ff8a7a}
   .namebox input{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
 }
 </style>
@@ -200,7 +210,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
         <span class="tag meta">Prototype</span>
         <h3>Navnet mitt</h3>
         <span class="addr">Opprinnelse og navnetall</span>
-        <p>Skriv inn navnet ditt og se hva det kommer av, og hvilke tall tradisjonen knytter til det.</p>
+        <p>Skriv inn navnet ditt og se hva det kommer av, og hvilke tall tradisjonen knytter til det. Deretter fødselsdagen din.</p>
       </a>
     </div>
   </section>
@@ -218,7 +228,29 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     <div id="name-out" aria-live="polite"></div>
   </section>
 
-  <footer>Medlemsportal · prototype v0.1 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
+  <section id="fodt" aria-labelledby="fodt-h" class="namebox" hidden>
+    <h2 id="fodt-h">Når ble du født?</h2>
+    <p>Skriv dag, måned og år. Klokkeslett og fødested er valgfritt. Trykk Enter når du er ferdig.</p>
+    <form id="birth-form" autocomplete="off" novalidate>
+      <label>Dag<input id="bd" name="bd" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="1 til 31" required></label>
+      <label>Måned<select id="bm" name="bm" required>
+        <option value="">Velg måned</option>
+        <option value="1">Januar</option><option value="2">Februar</option><option value="3">Mars</option>
+        <option value="4">April</option><option value="5">Mai</option><option value="6">Juni</option>
+        <option value="7">Juli</option><option value="8">August</option><option value="9">September</option>
+        <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+      </select></label>
+      <label>År<input id="by" name="by" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="For eksempel 1965" required></label>
+      <label>Klokkeslett<input id="bt" name="bt" type="time" aria-describedby="bt-hint"></label>
+      <label>Fødested<input id="bp" name="bp" placeholder="Valgfritt, f.eks. Tromsø"></label>
+      <button type="submit">Vis fødselsdagen min</button>
+    </form>
+    <p class="muted" id="bt-hint">Fødselsdatoen din lagres ikke og sendes ikke noe sted. Alt regnes ut i nettleseren din.</p>
+    <p id="birth-err" class="berr" role="alert"></p>
+    <div id="birth-out" aria-live="polite"></div>
+  </section>
+
+  <footer>Medlemsportal · prototype v0.2 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
 </div>
 
 <script>
@@ -277,7 +309,102 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     html += "</div><p class=\"muted\">Regnet med pythagoreisk metode, samme som «Dagens tall». Æ regnes som A og E, Ø som O og Å som A. Tallene er tradisjon og inspirasjon, ikke fakta, og gir ingen råd om helse, stemmegivning eller penger.</p></article>";
     html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Fakta om navnet</h3><span class=\"tag fact\">Fakta</span></div>";
     html += "<p>Initialer: <b>" + esc(initials) + "</b> · Antall bokstaver: <b>" + letters.length + "</b> · Antall navn: <b>" + full.split(/\s+/).length + "</b></p></article>";
+    html += "<button type=\"button\" class=\"next-step\" id=\"to-birth\">Neste: når ble du født?</button>";
     var out = document.getElementById("name-out");
+    out.innerHTML = html;
+    out.scrollIntoView({behavior:"smooth", block:"start"});
+    document.getElementById("to-birth").addEventListener("click", function(){
+      var sec = document.getElementById("fodt");
+      sec.hidden = false;
+      sec.scrollIntoView({behavior:"smooth", block:"start"});
+      document.getElementById("bd").focus({preventScroll:true});
+    });
+  });
+
+  /* Fødselsdato: alt regnes i nettleseren, ingenting lagres. */
+  var DAYS = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
+  var MONTHS = ["januar","februar","mars","april","mai","juni","juli","august","september","oktober","november","desember"];
+  /* Tropisk stjernetegn (vestlig tradisjon). Grensene kan flytte seg en dag fra år til år. */
+  var SIGNS = [
+    {n:"Steinbukken", g:"♑", e:"jord", from:[12,22], to:[1,19]},
+    {n:"Vannmannen", g:"♒", e:"luft", from:[1,20], to:[2,18]},
+    {n:"Fiskene", g:"♓", e:"vann", from:[2,19], to:[3,20]},
+    {n:"Væren", g:"♈", e:"ild", from:[3,21], to:[4,19]},
+    {n:"Tyren", g:"♉", e:"jord", from:[4,20], to:[5,20]},
+    {n:"Tvillingene", g:"♊", e:"luft", from:[5,21], to:[6,20]},
+    {n:"Krepsen", g:"♋", e:"vann", from:[6,21], to:[7,22]},
+    {n:"Løven", g:"♌", e:"ild", from:[7,23], to:[8,22]},
+    {n:"Jomfruen", g:"♍", e:"jord", from:[8,23], to:[9,22]},
+    {n:"Vekten", g:"♎", e:"luft", from:[9,23], to:[10,22]},
+    {n:"Skorpionen", g:"♏", e:"vann", from:[10,23], to:[11,21]},
+    {n:"Skytten", g:"♐", e:"ild", from:[11,22], to:[12,21]}
+  ];
+  function signOf(m, d){
+    var k = m * 100 + d;
+    for(var i = 0; i < SIGNS.length; i++){
+      var s = SIGNS[i], a = s.from[0] * 100 + s.from[1], b = s.to[0] * 100 + s.to[1];
+      if(a <= b ? (k >= a && k <= b) : (k >= a || k <= b)){ return s; }
+    }
+    return SIGNS[0];
+  }
+  function nearCusp(m, d){
+    return SIGNS.some(function(s){ return (s.from[0] === m && Math.abs(s.from[1] - d) <= 1) || (s.to[0] === m && Math.abs(s.to[1] - d) <= 1); });
+  }
+  function partOfDay(h){
+    if(h < 6){ return "natten"; } if(h < 10){ return "morgenen"; } if(h < 12){ return "formiddagen"; }
+    if(h < 18){ return "ettermiddagen"; } return "kvelden";
+  }
+
+  document.getElementById("birth-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var err = document.getElementById("birth-err"), out = document.getElementById("birth-out");
+    err.textContent = ""; out.innerHTML = "";
+    var d = parseInt(document.getElementById("bd").value, 10);
+    var m = parseInt(document.getElementById("bm").value, 10);
+    var y = parseInt(document.getElementById("by").value, 10);
+    var t = document.getElementById("bt").value;
+    var place = document.getElementById("bp").value.trim();
+    var born = new Date(y, m - 1, d);
+    var today = new Date(); today.setHours(0,0,0,0);
+    if(!d || !m || !y){ err.textContent = "Skriv inn dag, velg måned og skriv inn år."; return; }
+    if(y < 1900 || born.getFullYear() !== y || born.getMonth() !== m - 1 || born.getDate() !== d){ err.textContent = "Den datoen finnes ikke. Sjekk dag, måned og år."; return; }
+    if(born > today){ err.textContent = "Datoen ligger fram i tid. Sjekk året."; return; }
+
+    /* Alder i år, måneder og dager */
+    var ay = today.getFullYear() - y, am = today.getMonth() - (m - 1), ad = today.getDate() - d;
+    if(ad < 0){ am -= 1; ad += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+    if(am < 0){ ay -= 1; am += 12; }
+    var lived = Math.round((today - born) / 86400000);
+    var next = new Date(today.getFullYear(), m - 1, d);
+    if(next.getMonth() !== m - 1){ next = new Date(today.getFullYear(), 2, 1); } /* 29. februar i et vanlig år */
+    if(next < today){ next = new Date(today.getFullYear() + 1, m - 1, d); if(next.getMonth() !== m - 1){ next = new Date(today.getFullYear() + 1, 2, 1); } }
+    var toNext = Math.round((next - today) / 86400000);
+
+    var digits = String(d) + String(m) + String(y);
+    var life = reduce(digits.split("").reduce(function(a, b){ return a + Number(b); }, 0));
+    var sign = signOf(m, d);
+
+    var html = "<h3>Født " + DAYS[born.getDay()] + " " + d + ". " + MONTHS[m - 1] + " " + y + (t ? " klokka " + esc(t) : "") + "</h3>";
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Fakta om fødselsdagen</h3><span class=\"tag fact\">Fakta</span></div><div class=\"facts\">";
+    html += "<div><span>Ukedag du ble født</span><b>" + cap(DAYS[born.getDay()]) + "</b></div>";
+    html += "<div><span>Alder i dag</span><b>" + ay + " år</b>" + am + " måneder og " + ad + " dager</div>";
+    html += "<div><span>Dager levd</span><b>" + lived.toLocaleString("nb-NO") + "</b></div>";
+    html += "<div><span>Neste bursdag</span><b>" + (toNext === 0 ? "I dag!" : "Om " + toNext + " dager") + "</b></div>";
+    if(t){ html += "<div><span>Tid på døgnet</span><b>" + cap(partOfDay(parseInt(t.split(":")[0], 10))) + "</b></div>"; }
+    html += "</div></article>";
+
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Livstall</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    html += "<div class=\"nums\"><div><span>Livstall</span><b>" + life + "</b>" + NUMTXT[life] + "</div></div>";
+    html += "<p class=\"muted\">Regnet ved å legge sammen alle sifrene i datoen (" + esc(digits.split("").join(" + ")) + ") til ett siffer, der 11 og 22 står som mestertall. Tradisjon og inspirasjon, ikke fakta.</p></article>";
+
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Stjernetegn</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    html += "<div class=\"art\"><div class=\"glyph\" aria-hidden=\"true\">" + sign.g + "&#xFE0E;</div><div><p><b>" + sign.n + "</b>, et " + sign.e + "tegn i vestlig astrologi.</p>";
+    if(nearCusp(m, d)){ html += "<p class=\"muted\">Du er født rett ved overgangen mellom to tegn. Grensen flytter seg litt fra år til år, så den ekte versjonen må regne med nøyaktig tid og sted.</p>"; }
+    html += "</div></div>";
+    if(t && place){ html += "<p class=\"muted\">Med klokkeslett og fødested kan en astrolog regne ut ascendant (stigende tegn). Den utregningen trenger koordinatene og tidssonen for " + esc(place) + ", og kommer i den ekte versjonen.</p>"; }
+    else if(t){ html += "<p class=\"muted\">Ascendant (stigende tegn) trenger både klokkeslett og fødested. Skriv inn fødestedet om du vil ha den med når den ekte versjonen kommer.</p>"; }
+    html += "<p class=\"muted\">Astrologi er tradisjon og inspirasjon, ikke fakta, og gir ingen råd om helse, stemmegivning eller penger.</p></article>";
+
     out.innerHTML = html;
     out.scrollIntoView({behavior:"smooth", block:"start"});
   });
