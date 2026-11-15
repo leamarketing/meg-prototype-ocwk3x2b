@@ -2,7 +2,7 @@
    prøvetid på 7 dager og spørsmål om å fortsette etterpå. Betaling er ikke satt opp. */
 (function(){
   var CFG = window.ME_SUPABASE || {};
-  var TRIAL_DAYS = 7, PRICE = "9 dollar";
+  var TRIAL_DAYS = 7, PRICE = "9 dollar i måneden";
   var $ = function(id){ return document.getElementById(id); };
   var msg = $("acct-msg"), out = $("acct-out");
   function say(t, err){ msg.textContent = t || ""; msg.className = "acct-msg" + (err ? " err" : ""); }
