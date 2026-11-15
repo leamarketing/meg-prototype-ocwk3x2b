@@ -1,8 +1,10 @@
 /* Medlemskap for me.voteapp: innlogging med e-postlenke, lagring av navn og fødselsdata (bare med samtykke),
-   prøvetid på 7 dager og spørsmål om å fortsette etterpå. Betaling er ikke satt opp. */
+   prøvetid på 7 dager og spørsmål om å fortsette etterpå. Etter "Ja" går man til kassen i Scale.gg (ScalePay).
+   Webhooken scale-webhook kjenner igjen kjøperen på e-posten, så den må være den samme som innloggingen. */
 (function(){
   var CFG = window.ME_SUPABASE || {};
   var TRIAL_DAYS = 7, PRICE = "9 dollar i måneden";
+  var CHECKOUT = "https://scalepay.gg/checkout/4d6ceb71-f488-4599-a227-71a2c6ce50e8?flowId=f5724901-f2b3-4e6e-a1df-05099d638953&cardId=3cb184f1-2bee-4471-ba37-6398d51659e1";
   var $ = function(id){ return document.getElementById(id); };
   var msg = $("acct-msg"), out = $("acct-out");
   function say(t, err){ msg.textContent = t || ""; msg.className = "acct-msg" + (err ? " err" : ""); }
@@ -30,10 +32,13 @@
     } else if(st === "trial"){
       html += "<div class=\"ask\" role=\"region\" aria-labelledby=\"ask-h\"><h3 id=\"ask-h\">Prøvetiden din er over</h3>";
       html += "<p>Takk for at du har prøvd me.voteapp en uke. Vil du fortsette? Prisen er " + PRICE + ". Du velger selv, og du kan slutte når du vil.</p>";
-      html += "<p class=\"muted\">Betaling er ikke satt opp ennå. Svarer du ja, noterer vi det og tar kontakt før noe blir trukket.</p>";
+      html += "<p class=\"muted\">Svarer du ja, kommer du til betalingssiden. Bruk samme e-post som du logger inn med her.</p>";
       html += "<div class=\"row\"><button type=\"button\" id=\"ans-yes\">Ja, jeg vil fortsette</button><button type=\"button\" class=\"no\" id=\"ans-no\">Nei takk</button></div></div>";
     } else if(st === "wants_to_continue"){
-      html += "<div class=\"trial\"><b>Takk!</b> Du har sagt at du vil fortsette. Betaling er ikke satt opp ennå, så du har full tilgang til vi tar kontakt.</div>";
+      html += "<div class=\"trial\"><b>Takk!</b> Du har sagt at du vil fortsette. Det siste steget er betalingen (" + PRICE + "). Du kan slutte når du vil.";
+      html += "<p>Bruk denne e-posten i kassen, så kjenner vi deg igjen: <b>" + esc(me.email) + "</b></p>";
+      html += "<a class=\"btn paylink\" href=\"" + esc(CHECKOUT) + "\">Gå til betaling</a>";
+      html += "<p class=\"muted\">Når betalingen er registrert, står det «Medlem» her. Det kan ta et lite øyeblikk.</p></div>";
     } else if(st === "active"){
       html += "<div class=\"trial\"><b>Medlem.</b> Takk for at du er med.</div>";
     } else if(st === "ended"){
@@ -73,7 +78,12 @@
   function answer(choice){
     sb.rpc("answer_trial", {choice: choice}).then(function(r){
       if(r.error){ say("Kunne ikke lagre svaret: " + r.error.message, true); return; }
-      say(choice === "ended" ? "Svaret er lagret. Takk for at du prøvde." : "Svaret er lagret. Takk!");
+      if(choice === "wants_to_continue"){
+        say("Svaret er lagret. Nå går du til betalingen. Bruk " + me.email + " i kassen.");
+        setTimeout(function(){ location.href = CHECKOUT; }, 1500);
+        return;
+      }
+      say("Svaret er lagret. Takk for at du prøvde.");
       load();
     });
   }
