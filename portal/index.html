@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Medlemsportal · VoteApp</title>
+<meta name="description" content="Medlemsportal for VoteApp: alle modulene samlet på ett sted, og hva navnet ditt kommer av. Prototype med eksempeldata.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<style>
+/* Layout: phone-first personal day app. A sky band on top, a wrapping tab row, then one view at a time as a column of cards. */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e8efee; --ink:#14232b; --muted:#56666d; --line:#d3dedd;
+  --accent:#1f8a6d; --accent-ink:#ffffff; --sun:#d98a1c; --soft-accent:#d8efe7; --soft-sun:#f7e8cf;
+  --fact:#1f6f9e; --fact-bg:#dcebf5; --hyp:#8a6a12; --hyp-bg:#f4ecd2; --meta:#7a4a9c; --meta-bg:#ece2f4;
+  --warn-bg:#fdf1e4; --warn-ink:#7a4a10;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Nunito Sans", "Segoe UI", system-ui, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+.demo{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);color:var(--warn-ink);border-radius:var(--r);padding:10px 14px;font-size:14px}
+.demo b{white-space:nowrap}
+/* sky */
+.sky{position:relative;border-radius:20px;overflow:hidden;min-height:210px;background:#0b1d2b;color:#f2f7f6}
+.sky canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sky-inner{position:relative;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding:22px}
+.sky .who{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sky .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.sky .msg{font-size:17px;max-width:42ch;opacity:.95}
+.sky .facts{display:grid;grid-template-columns:repeat(2,minmax(0,auto));gap:6px 18px;align-content:start;font-size:14px;background:rgba(5,15,22,.45);border-radius:12px;padding:12px 14px}
+.sky .facts span{opacity:.8}
+.sky .facts b{font-variant-numeric:tabular-nums}
+/* tabs */
+nav.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+nav.tabs a{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:9px 14px;border-radius:999px;font-weight:700;font-size:15px}
+nav.tabs a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--sun);outline-offset:2px}
+/* grid of cards */
+.view{display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.wide{grid-column:1/-1}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tag{font-size:12px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.tag.fact{background:var(--fact-bg);color:var(--fact)}
+.tag.hyp{background:var(--hyp-bg);color:var(--hyp)}
+.tag.meta{background:var(--meta-bg);color:var(--meta)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:14px}
+.big{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);padding:8px 14px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:hover{filter:brightness(1.05)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px;cursor:pointer;user-select:none}
+.chip input{accent-color:var(--accent);margin:0}
+.chip:has(input:checked){background:var(--soft-accent);border-color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.mood{display:flex;gap:8px;flex-wrap:wrap}
+.mood button[aria-pressed="true"]{background:var(--soft-sun);border-color:var(--sun)}
+.smile{background:var(--soft-sun);border-color:transparent}
+.smile .q{font-family:var(--display);font-size:20px;font-weight:700}
+ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+.todo li label{display:flex;gap:10px;align-items:center;flex:1;min-width:0;cursor:pointer}
+.todo li .time{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:46px}
+.todo input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+.todo li.done span.t{text-decoration:line-through;color:var(--muted)}
+form.add{display:flex;gap:8px;flex-wrap:wrap}
+form.add input[type=text],form.add input[type=time],select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0}
+form.add input[type=text]{flex:1 1 180px}
+.dish{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;border:1px solid var(--line)}
+.dish:has(input:checked){border-color:var(--accent);background:var(--soft-accent)}
+.dish input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}
+.shop li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.shop li:last-child{border-bottom:0}
+.note{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.case{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;background:var(--surface-2)}
+.case .meta-row{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tablebox{overflow-x:auto}
+.confirm{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--sun);background:var(--soft-sun)}
+footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
+/* v0.2 visuals */
+.sky{min-height:300px}
+.sky-inner{padding-bottom:64px}
+.sky .phase{position:absolute;left:22px;bottom:14px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+.art{display:flex;gap:16px;align-items:center}
+.art > :last-child{min-width:0}
+.medal{flex:0 0 auto;width:104px;height:104px}
+.medal text{font-family:var(--display);font-weight:800}
+.glyph{flex:0 0 auto;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:var(--meta-bg);color:var(--meta);font-size:54px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif}
+.moonsvg{flex:0 0 auto;width:96px;height:96px}
+.arcbox{width:100%;overflow:hidden}
+.arcbox svg{display:block;width:100%;height:auto}
+.arc-label{font-size:11px;fill:var(--muted);font-family:var(--body)}
+.orb-wrap{display:grid;place-items:center;height:132px}
+.orb{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--soft-accent),var(--accent));box-shadow:0 0 0 10px var(--soft-accent);transform:scale(1);transition-property:transform;transition-timing-function:ease-in-out}
+.sunny{position:relative;overflow:hidden}
+.sunny::after{content:"";position:absolute;right:-36px;top:-36px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--sun) 0 34%,transparent 35%),repeating-conic-gradient(var(--sun) 0 6deg,transparent 6deg 24deg);opacity:.35;pointer-events:none}
+.sunny > *{position:relative;z-index:1}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+@keyframes rise{from{transform:translateY(10px);opacity:.6}to{transform:none;opacity:1}}
+.view:not([hidden]) .card{animation:rise .55s ease both;animation-delay:calc(var(--i,0) * 55ms)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}.view .card{animation:none!important}}
+.langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
+.langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<style>
+.portal-head{padding:28px 0 8px}
+.portal-head h1{font-family:var(--display);font-size:clamp(30px,6vw,44px);margin:0 0 6px}
+.portal-head p{margin:0;max-width:60ch}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:18px 0 8px}
+.tile{display:flex;flex-direction:column;gap:6px;padding:18px;border-radius:18px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.08);color:inherit;text-decoration:none;min-height:150px}
+a.tile:hover{border-color:currentColor}
+a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
+.tile h3{margin:0;font-family:var(--display);font-size:20px}
+.tile .addr{font-size:13px;opacity:.75}
+.tile p{margin:0;font-size:15px}
+.tile .tag{align-self:flex-start}
+.tile.soon{opacity:.75}
+.namebox{margin-top:10px}
+.namebox form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+.namebox label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:15px}
+.namebox input{font:inherit;padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.25);background:#fff;color:#1b1b1b}
+.namebox input:focus-visible{outline:3px solid #1f7a5c;outline-offset:1px}
+.namebox button{font:inherit;font-weight:700;padding:12px 18px;border-radius:999px;border:0;background:#1f7a5c;color:#fff;cursor:pointer}
+.namebox button:focus-visible{outline:3px solid #0d3b2c;outline-offset:2px}
+.nres{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:18px}
+.nres article{padding:16px;border-radius:16px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.08)}
+.nres h4{margin:0 0 6px;font-family:var(--display);font-size:22px}
+.nres .src{font-size:13px;opacity:.8}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+.nums div{padding:12px;border-radius:14px;background:rgba(124,92,196,.08)}
+.nums b{display:block;font-family:var(--display);font-size:30px}
+@media (prefers-color-scheme: dark){
+  .namebox input{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
+}
+</style>
+
+<div class="wrap">
+  <div class="demo" role="note"><b>Prototype</b><span>Medlemsportalen er en skisse med eksempeldata. Ingen ekte persondata lagres eller sendes. Foreløpig bare på norsk.</span></div>
+
+  <header class="portal-head">
+    <h1>Medlemsportal</h1>
+    <p>Her samles modulene i VoteApp på ett sted. Velg det du vil bruke, eller start med navnet ditt nederst på siden.</p>
+  </header>
+
+  <section aria-labelledby="mod-h">
+    <h2 id="mod-h">Mine moduler</h2>
+    <div class="tiles">
+      <a class="tile" href="/">
+        <span class="tag meta">Prototype</span>
+        <h3>Min dag</h3>
+        <span class="addr">me.voteapp.eu</span>
+        <p>Dagsoversikt, plan, middag og handleliste, og saker innen dine interesser.</p>
+      </a>
+      <a class="tile" href="https://voteapp.eu" rel="noopener">
+        <span class="tag fact">Første versjon</span>
+        <h3>Saker og forum</h3>
+        <span class="addr">voteapp.eu</span>
+        <p>Finn en sak, forstå den, diskuter og gi ditt rådgivende svar.</p>
+      </a>
+      <div class="tile soon" aria-disabled="true">
+        <span class="tag">Kommer</span>
+        <h3>Medlemspuls</h3>
+        <span class="addr">For foreninger og boligsameier</span>
+        <p>Rådgivende avstemning blant medlemmene før en beslutning. Ikke bygget ennå.</p>
+      </div>
+      <div class="tile soon" aria-disabled="true">
+        <span class="tag">Kommer</span>
+        <h3>Decision Room</h3>
+        <span class="addr">Lukkede grupper</span>
+        <p>Private avstemninger for lag og organisasjoner, med kommentarer og rapport. Ikke bygget ennå.</p>
+      </div>
+      <a class="tile" href="#navn">
+        <span class="tag meta">Prototype</span>
+        <h3>Navnet mitt</h3>
+        <span class="addr">Opprinnelse og navnetall</span>
+        <p>Skriv inn navnet ditt og se hva det kommer av, og hvilke tall tradisjonen knytter til det.</p>
+      </a>
+    </div>
+  </section>
+
+  <section id="navn" aria-labelledby="navn-h" class="namebox">
+    <h2 id="navn-h">Navnet mitt</h2>
+    <p>Skriv fornavn, mellomnavn og etternavn, og trykk Enter.</p>
+    <form id="name-form" autocomplete="off">
+      <label>Fornavn<input id="fn" name="fn" required></label>
+      <label>Mellomnavn<input id="mn" name="mn" placeholder="Valgfritt"></label>
+      <label>Etternavn<input id="ln" name="ln"></label>
+      <button type="submit">Vis navnet mitt</button>
+    </form>
+    <p class="muted">Navnet ditt sendes ikke noe sted. Alt regnes ut i nettleseren din, og vi søker aldri opp personer på nettet.</p>
+    <div id="name-out" aria-live="polite"></div>
+  </section>
+
+  <footer>Medlemsportal · prototype v0.1 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
+</div>
+
+<script>
+(function(){
+  /* Betydning og opprinnelse: bare navn med kontrollert kilde. Gjengitt med egne ord etter Store norske leksikon. */
+  var NAMES = {
+    "geir": {o:"Mannsnavn fra norrønt Geirr, som betyr «spyd».", u:"https://snl.no/Geir"},
+    "kari": {o:"Kvinnenavn, norsk form av Karin, med røtter i gresk Aikaterine. Betydningen er usikker, men har tidlig vært knyttet til gresk katharos, «ren».", u:"https://snl.no/Kari"},
+    "anne": {o:"Kvinnenavn, en form av Anna, knyttet til hebraisk channa, «nåde».", u:"https://snl.no/Anne"},
+    "hege": {o:"Kvinnenavn, dialektform av norrønt Helga, «den hellige».", u:"https://snl.no/Hege"},
+    "ola":  {o:"Mannsnavn, yngre form av Olav. Leksikonet oppgir ingen egen betydning.", u:"https://snl.no/Ola"}
+  };
+  /* Navnetall (tradisjon, metafysikk): pythagoreisk bokstavverdi. Æ regnes som A+E, Ø som O, Å som A. */
+  var NUMTXT = {
+    1:"Initiativ og selvstendighet", 2:"Samarbeid og lydhørhet", 3:"Uttrykk og glede",
+    4:"Struktur og utholdenhet", 5:"Frihet og forandring", 6:"Omsorg og ansvar",
+    7:"Refleksjon og innsikt", 8:"Handlekraft og resultater", 9:"Helhet og raushet",
+    11:"Intuisjon (mestertall i tradisjonen)", 22:"Byggmester (mestertall i tradisjonen)"
+  };
+  function norm(s){ return s.toLowerCase().replace(/æ/g,"ae").replace(/ø/g,"o").replace(/å/g,"a").normalize("NFD").replace(/[̀-ͯ]/g,""); }
+  function val(c){ var i = "abcdefghijklmnopqrstuvwxyz".indexOf(c); return i < 0 ? 0 : (i % 9) + 1; }
+  function reduce(n){ while(n > 9 && n !== 11 && n !== 22){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
+  function sum(s, pick){ var t = 0; norm(s).split("").forEach(function(c){ if(/[a-z]/.test(c) && pick(c)){ t += val(c); } }); return t; }
+  var vow = function(c){ return "aeiouy".indexOf(c) >= 0; };
+  function esc(s){ return s.replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function card(label, raw){
+    var parts = raw.trim().split(/[\s]+/).filter(Boolean);
+    return parts.map(function(p){
+      var key = p.toLowerCase(), hit = NAMES[key], body;
+      if(hit){ body = "<p>" + hit.o + "</p><p class=\"src\">Kilde: <a href=\"" + hit.u + "\" target=\"_blank\" rel=\"noopener\">Store norske leksikon</a></p>"; }
+      else if(label === "Etternavn"){ body = "<p>Mange norske etternavn kommer fra gårdsnavn eller stedsnavn. Opprinnelsen til akkurat dette navnet har vi ingen kilde for ennå.</p>"; }
+      else { body = "<p>Vi har ingen kontrollert kilde for dette navnet ennå. I den ekte versjonen hentes betydningen fra en navnedatabase, med kilde.</p>"; }
+      return "<article><span class=\"tag fact\">" + label + "</span><h4>" + esc(cap(p)) + "</h4>" + body + "</article>";
+    }).join("");
+  }
+
+  document.getElementById("name-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var fn = document.getElementById("fn").value, mn = document.getElementById("mn").value, ln = document.getElementById("ln").value;
+    var full = [fn, mn, ln].join(" ").trim().replace(/\s+/g, " ");
+    if(!full){ return; }
+    var letters = full.replace(/[^\p{L}]/gu, "");
+    var expr = reduce(sum(full, function(){ return true; }));
+    var soul = reduce(sum(full, vow));
+    var pers = reduce(sum(full, function(c){ return !vow(c); }));
+    var initials = full.split(/\s+/).map(function(w){ return w.charAt(0).toUpperCase(); }).join(".") + ".";
+    var html = "<h3>" + esc(full.split(/\s+/).map(cap).join(" ")) + "</h3>";
+    html += "<div class=\"nres\">" + card("Fornavn", fn) + card("Mellomnavn", mn) + card("Etternavn", ln) + "</div>";
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Navnetall</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    html += "<div class=\"nums\">";
+    html += "<div><span>Uttrykkstall</span><b>" + expr + "</b>" + NUMTXT[expr] + "</div>";
+    html += "<div><span>Sjeletall (vokaler)</span><b>" + soul + "</b>" + NUMTXT[soul] + "</div>";
+    html += "<div><span>Personlighetstall (konsonanter)</span><b>" + pers + "</b>" + NUMTXT[pers] + "</div>";
+    html += "</div><p class=\"muted\">Regnet med pythagoreisk metode, samme som «Dagens tall». Æ regnes som A og E, Ø som O og Å som A. Tallene er tradisjon og inspirasjon, ikke fakta, og gir ingen råd om helse, stemmegivning eller penger.</p></article>";
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Fakta om navnet</h3><span class=\"tag fact\">Fakta</span></div>";
+    html += "<p>Initialer: <b>" + esc(initials) + "</b> · Antall bokstaver: <b>" + letters.length + "</b> · Antall navn: <b>" + full.split(/\s+/).length + "</b></p></article>";
+    var out = document.getElementById("name-out");
+    out.innerHTML = html;
+    out.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+})();
+</script>
+</body>
+</html>
