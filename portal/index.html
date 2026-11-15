@@ -191,20 +191,48 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 .big3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .big3 div{padding:12px;border-radius:14px;background:var(--meta-bg)}
 .big3 b{display:block;font-family:var(--display);font-size:22px}
+.acct form{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.acct-msg{font-weight:600;min-height:1em;margin:8px 0 0}
+.acct-msg.err{color:#a3261b}
+.trial{padding:14px 16px;border-radius:14px;background:rgba(31,122,92,.10);margin:10px 0}
+.trial b{font-family:var(--display)}
+.consent{display:flex!important;flex-direction:row!important;gap:10px;align-items:flex-start;font-weight:400!important}
+.consent input{width:22px;height:22px;flex:0 0 auto;margin-top:2px}
+.acct-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.linkbtn{font:inherit;background:none;border:0;padding:6px 0;color:inherit;text-decoration:underline;cursor:pointer}
+.linkbtn:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
+.ask{padding:18px;border-radius:16px;border:2px solid #1f7a5c;margin:12px 0}
+.ask h3{margin:0 0 6px;font-family:var(--display)}
+.ask .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.ask .no{background:transparent;color:inherit;border:2px solid currentColor}
 @media (prefers-color-scheme: dark){
   .namebox select{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
   .berr{color:#ff8a7a}
+  .trial{background:rgba(31,122,92,.18)!important}
+  .acct-msg.err{color:#ff8a7a}
   .namebox input{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
 }
 </style>
 
 <div class="wrap">
-  <div class="demo" role="note"><b>Prototype</b><span>Medlemsportalen er en skisse med eksempeldata. Ingen ekte persondata lagres eller sendes. Foreløpig bare på norsk.</span></div>
+  <div class="demo" role="note"><b>Testversjon</b><span>Medlemsportalen er under testing. Når du logger inn, lagres navn og fødselsdata på din konto i en database i EU, adskilt fra stemmesvar. Betaling er ikke satt opp ennå. Foreløpig bare på norsk.</span></div>
 
   <header class="portal-head">
     <h1>Medlemsportal</h1>
-    <p>Her samles modulene i VoteApp på ett sted. Velg det du vil bruke, eller start med navnet ditt nederst på siden.</p>
+    <p>Her samles modulene i VoteApp på ett sted. Logg inn for å bruke dem. De første 7 dagene er gratis.</p>
   </header>
+
+  <section id="konto" aria-labelledby="konto-h" class="namebox acct">
+    <h2 id="konto-h">Min konto</h2>
+    <div id="acct-out">
+      <form id="login-form" autocomplete="on">
+        <label>E-postadressen din<input id="lemail" name="email" type="email" required autocomplete="email" placeholder="navn@eksempel.no"></label>
+        <button type="submit">Send meg en innloggingslenke</button>
+      </form>
+      <p class="muted">Du får en lenke på e-post. Trykk på den, så er du logget inn. Ingen passord å huske. Ny her? Da starter prøvetiden på 7 dager når du logger inn første gang.</p>
+    </div>
+    <p id="acct-msg" class="acct-msg" role="status" aria-live="polite"></p>
+  </section>
 
   <section aria-labelledby="mod-h">
     <h2 id="mod-h">Mine moduler</h2>
@@ -242,7 +270,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     </div>
   </section>
 
-  <section id="navn" aria-labelledby="navn-h" class="namebox">
+  <section id="navn" aria-labelledby="navn-h" class="namebox" hidden>
     <h2 id="navn-h">Navnet mitt</h2>
     <p>Skriv fornavn, mellomnavn og etternavn, og trykk Enter.</p>
     <form id="name-form" autocomplete="off">
@@ -251,7 +279,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
       <label>Etternavn<input id="ln" name="ln"></label>
       <button type="submit">Vis navnet mitt</button>
     </form>
-    <p class="muted">Navnet ditt sendes ikke noe sted. Alt regnes ut i nettleseren din, og vi søker aldri opp personer på nettet.</p>
+    <p class="muted">Alt regnes ut i nettleseren din, og vi søker aldri opp personer på nettet. Navnet lagres på kontoen din bare hvis du har sagt ja til det under Min konto.</p>
     <div id="name-out" aria-live="polite"></div>
   </section>
 
@@ -281,7 +309,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
         </div>
       </details>
     </form>
-    <p class="muted" id="bt-hint">Fødselsdatoen din lagres ikke og sendes ikke noe sted. Alt regnes ut i nettleseren din.</p>
+    <p class="muted" id="bt-hint">Horoskopet regnes ut i nettleseren din. Fødselsdata lagres på kontoen din bare hvis du har sagt ja til det under Min konto, så du slipper å skrive dem inn igjen neste dag.</p>
     <p id="birth-err" class="berr" role="alert"></p>
     <div id="birth-out" aria-live="polite"></div>
   </section>
@@ -296,7 +324,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     <div id="horo-out" aria-live="polite"></div>
   </section>
 
-  <footer>Medlemsportal · prototype v0.4 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
+  <footer>Medlemsportal · testversjon v0.5 · 15. november 2026 · data lagres i EU, adskilt fra stemmesvar</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -832,5 +860,8 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
   }
 })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script src="supabase-public.js"></script>
+<script src="medlem.js"></script>
 </body>
 </html>
