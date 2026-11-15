@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Medlemsportal · VoteApp</title>
+<meta name="description" content="Medlemsportal for VoteApp: alle modulene samlet på ett sted, og hva navnet ditt kommer av. Prototype med eksempeldata.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<style>
+/* Layout: phone-first personal day app. A sky band on top, a wrapping tab row, then one view at a time as a column of cards. */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e8efee; --ink:#14232b; --muted:#56666d; --line:#d3dedd;
+  --accent:#1f8a6d; --accent-ink:#ffffff; --sun:#d98a1c; --soft-accent:#d8efe7; --soft-sun:#f7e8cf;
+  --fact:#1f6f9e; --fact-bg:#dcebf5; --hyp:#8a6a12; --hyp-bg:#f4ecd2; --meta:#7a4a9c; --meta-bg:#ece2f4;
+  --warn-bg:#fdf1e4; --warn-ink:#7a4a10;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Nunito Sans", "Segoe UI", system-ui, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#9db0b6; --line:#2a3d45;
+  --accent:#43c39b; --accent-ink:#06231a; --sun:#f0a94a; --soft-accent:#173a31; --soft-sun:#3a2c16;
+  --fact:#7cc0ea; --fact-bg:#183245; --hyp:#e6c76a; --hyp-bg:#3a3117; --meta:#cfa6ec; --meta-bg:#33243f;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; color-scheme:dark }
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+.demo{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);color:var(--warn-ink);border-radius:var(--r);padding:10px 14px;font-size:14px}
+.demo b{white-space:nowrap}
+/* sky */
+.sky{position:relative;border-radius:20px;overflow:hidden;min-height:210px;background:#0b1d2b;color:#f2f7f6}
+.sky canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sky-inner{position:relative;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding:22px}
+.sky .who{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sky .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.sky .msg{font-size:17px;max-width:42ch;opacity:.95}
+.sky .facts{display:grid;grid-template-columns:repeat(2,minmax(0,auto));gap:6px 18px;align-content:start;font-size:14px;background:rgba(5,15,22,.45);border-radius:12px;padding:12px 14px}
+.sky .facts span{opacity:.8}
+.sky .facts b{font-variant-numeric:tabular-nums}
+/* tabs */
+nav.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+nav.tabs a{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:9px 14px;border-radius:999px;font-weight:700;font-size:15px}
+nav.tabs a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--sun);outline-offset:2px}
+/* grid of cards */
+.view{display:flex;flex-direction:column;gap:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.wide{grid-column:1/-1}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tag{font-size:12px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.tag.fact{background:var(--fact-bg);color:var(--fact)}
+.tag.hyp{background:var(--hyp-bg);color:var(--hyp)}
+.tag.meta{background:var(--meta-bg);color:var(--meta)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:14px}
+.big{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);padding:8px 14px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:hover{filter:brightness(1.05)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px;cursor:pointer;user-select:none}
+.chip input{accent-color:var(--accent);margin:0}
+.chip:has(input:checked){background:var(--soft-accent);border-color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.mood{display:flex;gap:8px;flex-wrap:wrap}
+.mood button[aria-pressed="true"]{background:var(--soft-sun);border-color:var(--sun)}
+.smile{background:var(--soft-sun);border-color:transparent}
+.smile .q{font-family:var(--display);font-size:20px;font-weight:700}
+ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+.todo li label{display:flex;gap:10px;align-items:center;flex:1;min-width:0;cursor:pointer}
+.todo li .time{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);min-width:46px}
+.todo input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+.todo li.done span.t{text-decoration:line-through;color:var(--muted)}
+form.add{display:flex;gap:8px;flex-wrap:wrap}
+form.add input[type=text],form.add input[type=time],select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0}
+form.add input[type=text]{flex:1 1 180px}
+.dish{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;border:1px solid var(--line)}
+.dish:has(input:checked){border-color:var(--accent);background:var(--soft-accent)}
+.dish input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}
+.shop li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.shop li:last-child{border-bottom:0}
+.note{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.case{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;background:var(--surface-2)}
+.case .meta-row{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tablebox{overflow-x:auto}
+.confirm{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--sun);background:var(--soft-sun)}
+footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
+/* v0.2 visuals */
+.sky{min-height:300px}
+.sky-inner{padding-bottom:64px}
+.sky .phase{position:absolute;left:22px;bottom:14px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+.art{display:flex;gap:16px;align-items:center}
+.art > :last-child{min-width:0}
+.medal{flex:0 0 auto;width:104px;height:104px}
+.medal text{font-family:var(--display);font-weight:800}
+.glyph{flex:0 0 auto;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:var(--meta-bg);color:var(--meta);font-size:54px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif}
+.moonsvg{flex:0 0 auto;width:96px;height:96px}
+.arcbox{width:100%;overflow:hidden}
+.arcbox svg{display:block;width:100%;height:auto}
+.arc-label{font-size:11px;fill:var(--muted);font-family:var(--body)}
+.orb-wrap{display:grid;place-items:center;height:132px}
+.orb{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--soft-accent),var(--accent));box-shadow:0 0 0 10px var(--soft-accent);transform:scale(1);transition-property:transform;transition-timing-function:ease-in-out}
+.sunny{position:relative;overflow:hidden}
+.sunny::after{content:"";position:absolute;right:-36px;top:-36px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--sun) 0 34%,transparent 35%),repeating-conic-gradient(var(--sun) 0 6deg,transparent 6deg 24deg);opacity:.35;pointer-events:none}
+.sunny > *{position:relative;z-index:1}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+@keyframes rise{from{transform:translateY(10px);opacity:.6}to{transform:none;opacity:1}}
+.view:not([hidden]) .card{animation:rise .55s ease both;animation-delay:calc(var(--i,0) * 55ms)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}.view .card{animation:none!important}}
+.langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
+.langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<style>
+.portal-head{padding:28px 0 8px}
+.portal-head h1{font-family:var(--display);font-size:clamp(30px,6vw,44px);margin:0 0 6px}
+.portal-head p{margin:0;max-width:60ch}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:18px 0 8px}
+.tile{display:flex;flex-direction:column;gap:6px;padding:18px;border-radius:18px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.08);color:inherit;text-decoration:none;min-height:150px}
+a.tile:hover{border-color:currentColor}
+a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
+.tile h3{margin:0;font-family:var(--display);font-size:20px}
+.tile .addr{font-size:13px;opacity:.75}
+.tile p{margin:0;font-size:15px}
+.tile .tag{align-self:flex-start}
+.tile.soon{opacity:.75}
+.namebox{margin-top:10px}
+.namebox form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+.namebox label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:15px}
+.namebox input{font:inherit;padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.25);background:#fff;color:#1b1b1b}
+.namebox input:focus-visible{outline:3px solid #1f7a5c;outline-offset:1px}
+.namebox button{font:inherit;font-weight:700;padding:12px 18px;border-radius:999px;border:0;background:#1f7a5c;color:#fff;cursor:pointer}
+.namebox button:focus-visible{outline:3px solid #0d3b2c;outline-offset:2px}
+.nres{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:18px}
+.nres article{padding:16px;border-radius:16px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.08)}
+.nres h4{margin:0 0 6px;font-family:var(--display);font-size:22px}
+.nres .src{font-size:13px;opacity:.8}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+.nums div{padding:12px;border-radius:14px;background:rgba(124,92,196,.08)}
+.nums b{display:block;font-family:var(--display);font-size:30px}
+.namebox select{font:inherit;padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.25);background:#fff;color:#1b1b1b}
+.namebox select:focus-visible{outline:3px solid #1f7a5c;outline-offset:1px}
+.berr{color:#a3261b;font-weight:600;min-height:1em;margin:6px 0 0}
+.next-step{margin-top:14px;font-weight:700;padding:12px 18px;border-radius:999px;border:2px solid #1f7a5c;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.next-step:focus-visible{outline:3px solid #0d3b2c;outline-offset:2px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+.facts div{padding:12px;border-radius:14px;background:rgba(31,122,92,.08)}
+.facts b{display:block;font-family:var(--display);font-size:26px}
+.coords{grid-column:1/-1;font-size:15px}
+.coords summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.coords summary:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
+.coord-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+.wheel{width:100%;max-width:420px;margin:6px auto 0;display:block}
+.wheel text{font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif}
+.legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;font-size:14px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.ptable{width:100%;border-collapse:collapse;font-size:15px}
+.ptable th,.ptable td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.ptable td:first-child{white-space:nowrap}
+@media (max-width:480px){.ptable{font-size:13.5px}.ptable th,.ptable td{padding:6px 3px}.ptable th{font-size:11px}}
+.asp{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.asp li{padding:12px 14px;border-radius:14px;background:var(--meta-bg)}
+.asp b{color:var(--meta)}
+.guide{display:flex;flex-direction:column;gap:12px}
+.guide h4{margin:4px 0 4px;font-family:var(--display);font-size:18px}
+.guide ul{margin:0;padding-left:20px}
+.guide li{margin:3px 0}
+.daypick{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:8px 0 4px}
+.daypick label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:15px}
+.daypick input{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.daypick input:focus-visible,.daypick button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.daypick button{font:inherit;font-weight:600;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.big3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.big3 div{padding:12px;border-radius:14px;background:var(--meta-bg)}
+.big3 b{display:block;font-family:var(--display);font-size:22px}
+@media (prefers-color-scheme: dark){
+  .namebox select{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
+  .berr{color:#ff8a7a}
+  .namebox input{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
+}
+</style>
+
+<div class="wrap">
+  <div class="demo" role="note"><b>Prototype</b><span>Medlemsportalen er en skisse med eksempeldata. Ingen ekte persondata lagres eller sendes. Foreløpig bare på norsk.</span></div>
+
+  <header class="portal-head">
+    <h1>Medlemsportal</h1>
+    <p>Her samles modulene i VoteApp på ett sted. Velg det du vil bruke, eller start med navnet ditt nederst på siden.</p>
+  </header>
+
+  <section aria-labelledby="mod-h">
+    <h2 id="mod-h">Mine moduler</h2>
+    <div class="tiles">
+      <a class="tile" href="/">
+        <span class="tag meta">Prototype</span>
+        <h3>Min dag</h3>
+        <span class="addr">me.voteapp.eu</span>
+        <p>Dagsoversikt, plan, middag og handleliste, og saker innen dine interesser.</p>
+      </a>
+      <a class="tile" href="https://voteapp.eu" rel="noopener">
+        <span class="tag fact">Første versjon</span>
+        <h3>Saker og forum</h3>
+        <span class="addr">voteapp.eu</span>
+        <p>Finn en sak, forstå den, diskuter og gi ditt rådgivende svar.</p>
+      </a>
+      <div class="tile soon" aria-disabled="true">
+        <span class="tag">Kommer</span>
+        <h3>Medlemspuls</h3>
+        <span class="addr">For foreninger og boligsameier</span>
+        <p>Rådgivende avstemning blant medlemmene før en beslutning. Ikke bygget ennå.</p>
+      </div>
+      <div class="tile soon" aria-disabled="true">
+        <span class="tag">Kommer</span>
+        <h3>Decision Room</h3>
+        <span class="addr">Lukkede grupper</span>
+        <p>Private avstemninger for lag og organisasjoner, med kommentarer og rapport. Ikke bygget ennå.</p>
+      </div>
+      <a class="tile" href="#navn">
+        <span class="tag meta">Prototype</span>
+        <h3>Navnet mitt</h3>
+        <span class="addr">Opprinnelse og navnetall</span>
+        <p>Skriv inn navnet ditt og se hva det kommer av, og hvilke tall tradisjonen knytter til det. Deretter fødselsdagen din.</p>
+      </a>
+    </div>
+  </section>
+
+  <section id="navn" aria-labelledby="navn-h" class="namebox">
+    <h2 id="navn-h">Navnet mitt</h2>
+    <p>Skriv fornavn, mellomnavn og etternavn, og trykk Enter.</p>
+    <form id="name-form" autocomplete="off">
+      <label>Fornavn<input id="fn" name="fn" required></label>
+      <label>Mellomnavn<input id="mn" name="mn" placeholder="Valgfritt"></label>
+      <label>Etternavn<input id="ln" name="ln"></label>
+      <button type="submit">Vis navnet mitt</button>
+    </form>
+    <p class="muted">Navnet ditt sendes ikke noe sted. Alt regnes ut i nettleseren din, og vi søker aldri opp personer på nettet.</p>
+    <div id="name-out" aria-live="polite"></div>
+  </section>
+
+  <section id="fodt" aria-labelledby="fodt-h" class="namebox" hidden>
+    <h2 id="fodt-h">Når ble du født?</h2>
+    <p>Skriv dag, måned og år. Klokkeslett og fødested er valgfritt. Trykk Enter når du er ferdig.</p>
+    <form id="birth-form" autocomplete="off" novalidate>
+      <label>Dag<input id="bd" name="bd" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="1 til 31" required></label>
+      <label>Måned<select id="bm" name="bm" required>
+        <option value="">Velg måned</option>
+        <option value="1">Januar</option><option value="2">Februar</option><option value="3">Mars</option>
+        <option value="4">April</option><option value="5">Mai</option><option value="6">Juni</option>
+        <option value="7">Juli</option><option value="8">August</option><option value="9">September</option>
+        <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+      </select></label>
+      <label>År<input id="by" name="by" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="For eksempel 1965" required></label>
+      <label>Klokkeslett<input id="bt" name="bt" type="time" aria-describedby="bt-hint"></label>
+      <label>Fødested<input id="bp" name="bp" list="places" placeholder="Velg fra listen, f.eks. Tromsø"></label>
+      <datalist id="places"></datalist>
+      <button type="submit">Vis fødselsdagen min</button>
+      <details class="coords">
+        <summary>Fødestedet ditt er ikke i listen?</summary>
+        <p class="muted">Skriv inn koordinatene selv (desimalgrader, sør og vest med minus). Klokkeslettet regnes da som norsk tid.</p>
+        <div class="coord-row">
+          <label>Breddegrad<input id="blat" name="blat" inputmode="decimal" placeholder="f.eks. 69.77"></label>
+          <label>Lengdegrad<input id="blon" name="blon" inputmode="decimal" placeholder="f.eks. 21.03"></label>
+        </div>
+      </details>
+    </form>
+    <p class="muted" id="bt-hint">Fødselsdatoen din lagres ikke og sendes ikke noe sted. Alt regnes ut i nettleseren din.</p>
+    <p id="birth-err" class="berr" role="alert"></p>
+    <div id="birth-out" aria-live="polite"></div>
+  </section>
+
+  <section id="horo" aria-labelledby="horo-h" class="namebox" hidden>
+    <div class="card-head"><h2 id="horo-h">Dagens horoskop</h2><span class="tag meta">Metafysikk</span></div>
+    <p>Hvor planetene står i dag, sammenlignet med hvor de sto da du ble født. Regnet ut i nettleseren din, ingenting sendes ut.</p>
+    <div class="daypick">
+      <label>Se en annen dag<input id="hday" type="date"></label>
+      <button type="button" id="htoday">I dag</button>
+    </div>
+    <div id="horo-out" aria-live="polite"></div>
+  </section>
+
+  <footer>Medlemsportal · prototype v0.4 · 15. november 2026 · eksempeldata, ingen ekte persondata</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+<script>
+(function(){
+  /* Betydning og opprinnelse: bare navn med kontrollert kilde. Gjengitt med egne ord etter Store norske leksikon. */
+  var NAMES = {
+    "geir": {o:"Mannsnavn fra norrønt Geirr, som betyr «spyd».", u:"https://snl.no/Geir"},
+    "kari": {o:"Kvinnenavn, norsk form av Karin, med røtter i gresk Aikaterine. Betydningen er usikker, men har tidlig vært knyttet til gresk katharos, «ren».", u:"https://snl.no/Kari"},
+    "anne": {o:"Kvinnenavn, en form av Anna, knyttet til hebraisk channa, «nåde».", u:"https://snl.no/Anne"},
+    "hege": {o:"Kvinnenavn, dialektform av norrønt Helga, «den hellige».", u:"https://snl.no/Hege"},
+    "ola":  {o:"Mannsnavn, yngre form av Olav. Leksikonet oppgir ingen egen betydning.", u:"https://snl.no/Ola"}
+  };
+  /* Navnetall (tradisjon, metafysikk): pythagoreisk bokstavverdi. Æ regnes som A+E, Ø som O, Å som A. */
+  var NUMTXT = {
+    1:"Initiativ og selvstendighet", 2:"Samarbeid og lydhørhet", 3:"Uttrykk og glede",
+    4:"Struktur og utholdenhet", 5:"Frihet og forandring", 6:"Omsorg og ansvar",
+    7:"Refleksjon og innsikt", 8:"Handlekraft og resultater", 9:"Helhet og raushet",
+    11:"Intuisjon (mestertall i tradisjonen)", 22:"Byggmester (mestertall i tradisjonen)"
+  };
+  var lastExpr = null, lastHoro = null;
+  function norm(s){ return s.toLowerCase().replace(/æ/g,"ae").replace(/ø/g,"o").replace(/å/g,"a").normalize("NFD").replace(/[̀-ͯ]/g,""); }
+  function val(c){ var i = "abcdefghijklmnopqrstuvwxyz".indexOf(c); return i < 0 ? 0 : (i % 9) + 1; }
+  function reduce(n){ while(n > 9 && n !== 11 && n !== 22){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
+  function sum(s, pick){ var t = 0; norm(s).split("").forEach(function(c){ if(/[a-z]/.test(c) && pick(c)){ t += val(c); } }); return t; }
+  var vow = function(c){ return "aeiouy".indexOf(c) >= 0; };
+  function esc(s){ return s.replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function card(label, raw){
+    var parts = raw.trim().split(/[\s]+/).filter(Boolean);
+    return parts.map(function(p){
+      var key = p.toLowerCase(), hit = NAMES[key], body;
+      if(hit){ body = "<p>" + hit.o + "</p><p class=\"src\">Kilde: <a href=\"" + hit.u + "\" target=\"_blank\" rel=\"noopener\">Store norske leksikon</a></p>"; }
+      else if(label === "Etternavn"){ body = "<p>Mange norske etternavn kommer fra gårdsnavn eller stedsnavn. Opprinnelsen til akkurat dette navnet har vi ingen kilde for ennå.</p>"; }
+      else { body = "<p>Vi har ingen kontrollert kilde for dette navnet ennå. I den ekte versjonen hentes betydningen fra en navnedatabase, med kilde.</p>"; }
+      return "<article><span class=\"tag fact\">" + label + "</span><h4>" + esc(cap(p)) + "</h4>" + body + "</article>";
+    }).join("");
+  }
+
+  document.getElementById("name-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var fn = document.getElementById("fn").value, mn = document.getElementById("mn").value, ln = document.getElementById("ln").value;
+    var full = [fn, mn, ln].join(" ").trim().replace(/\s+/g, " ");
+    if(!full){ return; }
+    var letters = full.replace(/[^\p{L}]/gu, "");
+    var expr = reduce(sum(full, function(){ return true; }));
+    lastExpr = expr;
+    var soul = reduce(sum(full, vow));
+    var pers = reduce(sum(full, function(c){ return !vow(c); }));
+    var initials = full.split(/\s+/).map(function(w){ return w.charAt(0).toUpperCase(); }).join(".") + ".";
+    var html = "<h3>" + esc(full.split(/\s+/).map(cap).join(" ")) + "</h3>";
+    html += "<div class=\"nres\">" + card("Fornavn", fn) + card("Mellomnavn", mn) + card("Etternavn", ln) + "</div>";
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Navnetall</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    html += "<div class=\"nums\">";
+    html += "<div><span>Uttrykkstall</span><b>" + expr + "</b>" + NUMTXT[expr] + "</div>";
+    html += "<div><span>Sjeletall (vokaler)</span><b>" + soul + "</b>" + NUMTXT[soul] + "</div>";
+    html += "<div><span>Personlighetstall (konsonanter)</span><b>" + pers + "</b>" + NUMTXT[pers] + "</div>";
+    html += "</div><p class=\"muted\">Regnet med pythagoreisk metode, samme som «Dagens tall». Æ regnes som A og E, Ø som O og Å som A. Tallene er tradisjon og inspirasjon, ikke fakta, og gir ingen råd om helse, stemmegivning eller penger.</p></article>";
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Fakta om navnet</h3><span class=\"tag fact\">Fakta</span></div>";
+    html += "<p>Initialer: <b>" + esc(initials) + "</b> · Antall bokstaver: <b>" + letters.length + "</b> · Antall navn: <b>" + full.split(/\s+/).length + "</b></p></article>";
+    html += "<button type=\"button\" class=\"next-step\" id=\"to-birth\">Neste: når ble du født?</button>";
+    var out = document.getElementById("name-out");
+    out.innerHTML = html;
+    out.scrollIntoView({behavior:"smooth", block:"start"});
+    document.getElementById("to-birth").addEventListener("click", function(){
+      var sec = document.getElementById("fodt");
+      sec.hidden = false;
+      sec.scrollIntoView({behavior:"smooth", block:"start"});
+      document.getElementById("bd").focus({preventScroll:true});
+    });
+  });
+
+  /* Fødselsdato: alt regnes i nettleseren, ingenting lagres. */
+  var DAYS = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
+  var MONTHS = ["januar","februar","mars","april","mai","juni","juli","august","september","oktober","november","desember"];
+  /* Tropisk stjernetegn (vestlig tradisjon). Grensene kan flytte seg en dag fra år til år. */
+  var SIGNS = [
+    {n:"Steinbukken", g:"♑", e:"jord", from:[12,22], to:[1,19]},
+    {n:"Vannmannen", g:"♒", e:"luft", from:[1,20], to:[2,18]},
+    {n:"Fiskene", g:"♓", e:"vann", from:[2,19], to:[3,20]},
+    {n:"Væren", g:"♈", e:"ild", from:[3,21], to:[4,19]},
+    {n:"Tyren", g:"♉", e:"jord", from:[4,20], to:[5,20]},
+    {n:"Tvillingene", g:"♊", e:"luft", from:[5,21], to:[6,20]},
+    {n:"Krepsen", g:"♋", e:"vann", from:[6,21], to:[7,22]},
+    {n:"Løven", g:"♌", e:"ild", from:[7,23], to:[8,22]},
+    {n:"Jomfruen", g:"♍", e:"jord", from:[8,23], to:[9,22]},
+    {n:"Vekten", g:"♎", e:"luft", from:[9,23], to:[10,22]},
+    {n:"Skorpionen", g:"♏", e:"vann", from:[10,23], to:[11,21]},
+    {n:"Skytten", g:"♐", e:"ild", from:[11,22], to:[12,21]}
+  ];
+  function signOf(m, d){
+    var k = m * 100 + d;
+    for(var i = 0; i < SIGNS.length; i++){
+      var s = SIGNS[i], a = s.from[0] * 100 + s.from[1], b = s.to[0] * 100 + s.to[1];
+      if(a <= b ? (k >= a && k <= b) : (k >= a || k <= b)){ return s; }
+    }
+    return SIGNS[0];
+  }
+  function nearCusp(m, d){
+    return SIGNS.some(function(s){ return (s.from[0] === m && Math.abs(s.from[1] - d) <= 1) || (s.to[0] === m && Math.abs(s.to[1] - d) <= 1); });
+  }
+  function partOfDay(h){
+    if(h < 6){ return "natten"; } if(h < 10){ return "morgenen"; } if(h < 12){ return "formiddagen"; }
+    if(h < 18){ return "ettermiddagen"; } return "kvelden";
+  }
+
+  document.getElementById("birth-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var err = document.getElementById("birth-err"), out = document.getElementById("birth-out");
+    err.textContent = ""; out.innerHTML = "";
+    var d = parseInt(document.getElementById("bd").value, 10);
+    var m = parseInt(document.getElementById("bm").value, 10);
+    var y = parseInt(document.getElementById("by").value, 10);
+    var t = document.getElementById("bt").value;
+    var place = document.getElementById("bp").value.trim();
+    var born = new Date(y, m - 1, d);
+    var today = new Date(); today.setHours(0,0,0,0);
+    if(!d || !m || !y){ err.textContent = "Skriv inn dag, velg måned og skriv inn år."; return; }
+    if(y < 1900 || born.getFullYear() !== y || born.getMonth() !== m - 1 || born.getDate() !== d){ err.textContent = "Den datoen finnes ikke. Sjekk dag, måned og år."; return; }
+    if(born > today){ err.textContent = "Datoen ligger fram i tid. Sjekk året."; return; }
+
+    /* Alder i år, måneder og dager */
+    var ay = today.getFullYear() - y, am = today.getMonth() - (m - 1), ad = today.getDate() - d;
+    if(ad < 0){ am -= 1; ad += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+    if(am < 0){ ay -= 1; am += 12; }
+    var lived = Math.round((today - born) / 86400000);
+    var next = new Date(today.getFullYear(), m - 1, d);
+    if(next.getMonth() !== m - 1){ next = new Date(today.getFullYear(), 2, 1); } /* 29. februar i et vanlig år */
+    if(next < today){ next = new Date(today.getFullYear() + 1, m - 1, d); if(next.getMonth() !== m - 1){ next = new Date(today.getFullYear() + 1, 2, 1); } }
+    var toNext = Math.round((next - today) / 86400000);
+
+    var digits = String(d) + String(m) + String(y);
+    var life = reduce(digits.split("").reduce(function(a, b){ return a + Number(b); }, 0));
+    var sign = signOf(m, d);
+
+    var html = "<h3>Født " + DAYS[born.getDay()] + " " + d + ". " + MONTHS[m - 1] + " " + y + (t ? " klokka " + esc(t) : "") + "</h3>";
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Fakta om fødselsdagen</h3><span class=\"tag fact\">Fakta</span></div><div class=\"facts\">";
+    html += "<div><span>Ukedag du ble født</span><b>" + cap(DAYS[born.getDay()]) + "</b></div>";
+    html += "<div><span>Alder i dag</span><b>" + ay + " år</b>" + am + " måneder og " + ad + " dager</div>";
+    html += "<div><span>Dager levd</span><b>" + lived.toLocaleString("nb-NO") + "</b></div>";
+    html += "<div><span>Neste bursdag</span><b>" + (toNext === 0 ? "I dag!" : "Om " + toNext + " dager") + "</b></div>";
+    if(t){ html += "<div><span>Tid på døgnet</span><b>" + cap(partOfDay(parseInt(t.split(":")[0], 10))) + "</b></div>"; }
+    html += "</div></article>";
+
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Livstall</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    html += "<div class=\"nums\"><div><span>Livstall</span><b>" + life + "</b>" + NUMTXT[life] + "</div></div>";
+    html += "<p class=\"muted\">Regnet ved å legge sammen alle sifrene i datoen (" + esc(digits.split("").join(" + ")) + ") til ett siffer, der 11 og 22 står som mestertall. Tradisjon og inspirasjon, ikke fakta.</p></article>";
+
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Stjernetegn</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    html += "<div class=\"art\"><div class=\"glyph\" aria-hidden=\"true\">" + sign.g + "&#xFE0E;</div><div><p><b>" + sign.n + "</b>, et " + sign.e + "tegn i vestlig astrologi.</p>";
+    if(nearCusp(m, d)){ html += "<p class=\"muted\">Du er født rett ved overgangen mellom to tegn. Grensen flytter seg litt fra år til år, så den ekte versjonen må regne med nøyaktig tid og sted.</p>"; }
+    html += "</div></div>";
+    html += "<p class=\"muted\">Hele fødselshoroskopet ditt, med måne og ascendant, finner du under Dagens horoskop rett nedenfor.</p>";
+    html += "<p class=\"muted\">Astrologi er tradisjon og inspirasjon, ikke fakta, og gir ingen råd om helse, stemmegivning eller penger.</p></article>";
+
+    out.innerHTML = html;
+    out.scrollIntoView({behavior:"smooth", block:"start"});
+    renderHoro(d, m, y, t, place, life);
+  });
+
+  /* ---------- Dagens horoskop (metafysikk). Planetposisjoner fra astronomy-engine, regnet lokalt. ---------- */
+  var PLACES = [
+    {n:"Nordreisa (Storslett)", lat:69.77, lon:21.03, tz:"Europe/Oslo"},
+    {n:"Tromsø", lat:69.65, lon:18.96, tz:"Europe/Oslo"},
+    {n:"Alta", lat:69.97, lon:23.27, tz:"Europe/Oslo"},
+    {n:"Hammerfest", lat:70.66, lon:23.68, tz:"Europe/Oslo"},
+    {n:"Kirkenes", lat:69.73, lon:30.05, tz:"Europe/Oslo"},
+    {n:"Harstad", lat:68.80, lon:16.54, tz:"Europe/Oslo"},
+    {n:"Narvik", lat:68.44, lon:17.43, tz:"Europe/Oslo"},
+    {n:"Bodø", lat:67.28, lon:14.40, tz:"Europe/Oslo"},
+    {n:"Trondheim", lat:63.43, lon:10.40, tz:"Europe/Oslo"},
+    {n:"Bergen", lat:60.39, lon:5.32, tz:"Europe/Oslo"},
+    {n:"Oslo", lat:59.91, lon:10.75, tz:"Europe/Oslo"},
+    {n:"Stavanger", lat:58.97, lon:5.73, tz:"Europe/Oslo"},
+    {n:"Sandnes", lat:58.85, lon:5.74, tz:"Europe/Oslo"},
+    {n:"Arendal", lat:58.46, lon:8.77, tz:"Europe/Oslo"},
+    {n:"Kristiansand", lat:58.15, lon:7.99, tz:"Europe/Oslo"},
+    {n:"Maragogi, Brasil", lat:-9.01, lon:-35.22, tz:"America/Maceio"},
+    /* Flere steder (omtrentlige koordinater for sentrum, nok for ascendant) */
+    {n:"Skjervøy", lat:70.03, lon:20.97, tz:"Europe/Oslo"},
+    {n:"Kåfjord (Olderdalen)", lat:69.60, lon:20.53, tz:"Europe/Oslo"},
+    {n:"Lyngen (Lyngseidet)", lat:69.58, lon:20.22, tz:"Europe/Oslo"},
+    {n:"Kvænangen (Burfjord)", lat:69.94, lon:21.90, tz:"Europe/Oslo"},
+    {n:"Storfjord (Hatteng)", lat:69.27, lon:19.97, tz:"Europe/Oslo"},
+    {n:"Finnsnes", lat:69.23, lon:17.98, tz:"Europe/Oslo"},
+    {n:"Bardufoss", lat:69.06, lon:18.52, tz:"Europe/Oslo"},
+    {n:"Setermoen", lat:68.86, lon:18.35, tz:"Europe/Oslo"},
+    {n:"Sortland", lat:68.70, lon:15.41, tz:"Europe/Oslo"},
+    {n:"Svolvær", lat:68.23, lon:14.57, tz:"Europe/Oslo"},
+    {n:"Mo i Rana", lat:66.31, lon:14.14, tz:"Europe/Oslo"},
+    {n:"Mosjøen", lat:65.84, lon:13.19, tz:"Europe/Oslo"},
+    {n:"Vadsø", lat:70.07, lon:29.75, tz:"Europe/Oslo"},
+    {n:"Vardø", lat:70.37, lon:31.11, tz:"Europe/Oslo"},
+    {n:"Karasjok", lat:69.47, lon:25.51, tz:"Europe/Oslo"},
+    {n:"Kautokeino", lat:69.01, lon:23.04, tz:"Europe/Oslo"},
+    {n:"Longyearbyen", lat:78.22, lon:15.65, tz:"Arctic/Longyearbyen"},
+    {n:"Steinkjer", lat:64.01, lon:11.50, tz:"Europe/Oslo"},
+    {n:"Namsos", lat:64.47, lon:11.50, tz:"Europe/Oslo"},
+    {n:"Levanger", lat:63.75, lon:11.30, tz:"Europe/Oslo"},
+    {n:"Kristiansund", lat:63.11, lon:7.73, tz:"Europe/Oslo"},
+    {n:"Molde", lat:62.74, lon:7.16, tz:"Europe/Oslo"},
+    {n:"Ålesund", lat:62.47, lon:6.15, tz:"Europe/Oslo"},
+    {n:"Førde", lat:61.45, lon:5.86, tz:"Europe/Oslo"},
+    {n:"Florø", lat:61.60, lon:5.03, tz:"Europe/Oslo"},
+    {n:"Sogndal", lat:61.23, lon:7.10, tz:"Europe/Oslo"},
+    {n:"Voss", lat:60.63, lon:6.42, tz:"Europe/Oslo"},
+    {n:"Haugesund", lat:59.41, lon:5.27, tz:"Europe/Oslo"},
+    {n:"Stord (Leirvik)", lat:59.78, lon:5.50, tz:"Europe/Oslo"},
+    {n:"Egersund", lat:58.45, lon:6.00, tz:"Europe/Oslo"},
+    {n:"Bryne", lat:58.74, lon:5.65, tz:"Europe/Oslo"},
+    {n:"Flekkefjord", lat:58.30, lon:6.66, tz:"Europe/Oslo"},
+    {n:"Farsund", lat:58.10, lon:6.80, tz:"Europe/Oslo"},
+    {n:"Mandal", lat:58.03, lon:7.46, tz:"Europe/Oslo"},
+    {n:"Søgne", lat:58.09, lon:7.81, tz:"Europe/Oslo"},
+    {n:"Vennesla", lat:58.27, lon:7.97, tz:"Europe/Oslo"},
+    {n:"Lillesand", lat:58.25, lon:8.38, tz:"Europe/Oslo"},
+    {n:"Grimstad", lat:58.34, lon:8.59, tz:"Europe/Oslo"},
+    {n:"Tvedestrand", lat:58.62, lon:8.93, tz:"Europe/Oslo"},
+    {n:"Risør", lat:58.72, lon:9.23, tz:"Europe/Oslo"},
+    {n:"Evje", lat:58.59, lon:7.80, tz:"Europe/Oslo"},
+    {n:"Kragerø", lat:58.87, lon:9.41, tz:"Europe/Oslo"},
+    {n:"Porsgrunn", lat:59.14, lon:9.66, tz:"Europe/Oslo"},
+    {n:"Skien", lat:59.21, lon:9.61, tz:"Europe/Oslo"},
+    {n:"Larvik", lat:59.05, lon:10.03, tz:"Europe/Oslo"},
+    {n:"Sandefjord", lat:59.13, lon:10.22, tz:"Europe/Oslo"},
+    {n:"Tønsberg", lat:59.27, lon:10.41, tz:"Europe/Oslo"},
+    {n:"Horten", lat:59.42, lon:10.48, tz:"Europe/Oslo"},
+    {n:"Drammen", lat:59.74, lon:10.20, tz:"Europe/Oslo"},
+    {n:"Kongsberg", lat:59.67, lon:9.65, tz:"Europe/Oslo"},
+    {n:"Moss", lat:59.43, lon:10.66, tz:"Europe/Oslo"},
+    {n:"Fredrikstad", lat:59.22, lon:10.93, tz:"Europe/Oslo"},
+    {n:"Sarpsborg", lat:59.28, lon:11.11, tz:"Europe/Oslo"},
+    {n:"Halden", lat:59.12, lon:11.39, tz:"Europe/Oslo"},
+    {n:"Lillestrøm", lat:59.96, lon:11.05, tz:"Europe/Oslo"},
+    {n:"Asker", lat:59.83, lon:10.43, tz:"Europe/Oslo"},
+    {n:"Bærum (Sandvika)", lat:59.89, lon:10.52, tz:"Europe/Oslo"},
+    {n:"Hønefoss", lat:60.17, lon:10.26, tz:"Europe/Oslo"},
+    {n:"Hamar", lat:60.79, lon:11.07, tz:"Europe/Oslo"},
+    {n:"Gjøvik", lat:60.80, lon:10.69, tz:"Europe/Oslo"},
+    {n:"Lillehammer", lat:61.12, lon:10.47, tz:"Europe/Oslo"},
+    {n:"Elverum", lat:60.88, lon:11.56, tz:"Europe/Oslo"},
+    {n:"Kongsvinger", lat:60.19, lon:12.00, tz:"Europe/Oslo"},
+    {n:"Røros", lat:62.57, lon:11.38, tz:"Europe/Oslo"},
+    {n:"Maceió, Brasil", lat:-9.67, lon:-35.74, tz:"America/Maceio"},
+    {n:"Stockholm, Sverige", lat:59.33, lon:18.07, tz:"Europe/Stockholm"},
+    {n:"Göteborg, Sverige", lat:57.71, lon:11.97, tz:"Europe/Stockholm"},
+    {n:"København, Danmark", lat:55.68, lon:12.57, tz:"Europe/Copenhagen"},
+    {n:"Helsinki, Finland", lat:60.17, lon:24.94, tz:"Europe/Helsinki"}
+  ];
+  (function(){ var dl = document.getElementById("places"); PLACES.slice().sort(function(a,b){ return a.n.localeCompare(b.n, "nb"); }).forEach(function(p){ var o = document.createElement("option"); o.value = p.n; dl.appendChild(o); }); })();
+  /* Tilgivende søk: store/små bokstaver, æøå, ekstra ord som «S» eller «sentrum», og navn i parentes teller. */
+  function pkey(s){ return norm(s).replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
+  function findPlace(txt){
+    var k = pkey(txt); if(!k){ return null; }
+    var i, n, words, kw = k.split(" ");
+    for(i = 0; i < PLACES.length; i++){ if(pkey(PLACES[i].n) === k){ return PLACES[i]; } }
+    for(i = 0; i < PLACES.length; i++){ words = pkey(PLACES[i].n).split(" "); if(words.indexOf(k) >= 0){ return PLACES[i]; } }
+    for(i = 0; i < PLACES.length; i++){ words = pkey(PLACES[i].n).split(" "); if(kw.some(function(w){ return w.length >= 3 && words.indexOf(w) >= 0; })){ return PLACES[i]; } }
+    for(i = 0; i < PLACES.length; i++){ n = pkey(PLACES[i].n); if(k.length >= 3 && (n.indexOf(k) === 0 || k.indexOf(n.split(" ")[0]) === 0)){ return PLACES[i]; } }
+    return null;
+  }
+
+  var ZS = ["Væren","Tyren","Tvillingene","Krepsen","Løven","Jomfruen","Vekten","Skorpionen","Skytten","Steinbukken","Vannmannen","Fiskene"];
+  var ZG = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
+  var PL = [
+    {k:"Sun", n:"Sola", g:"☉", th:"kjernen din og livskraften"},
+    {k:"Moon", n:"Månen", g:"☽", th:"følelser og trygghet"},
+    {k:"Mercury", n:"Merkur", g:"☿", th:"tanker og samtaler"},
+    {k:"Venus", n:"Venus", g:"♀", th:"kjærlighet, vennskap og skjønnhet"},
+    {k:"Mars", n:"Mars", g:"♂", th:"vilje og handlekraft"},
+    {k:"Jupiter", n:"Jupiter", g:"♃", th:"vekst og tillit"},
+    {k:"Saturn", n:"Saturn", g:"♄", th:"ansvar og struktur"},
+    {k:"Uranus", n:"Uranus", g:"♅", th:"forandring og fornyelse"},
+    {k:"Neptune", n:"Neptun", g:"♆", th:"drømmer og intuisjon"},
+    {k:"Pluto", n:"Pluto", g:"♇", th:"dyp omforming"}
+  ];
+  var ASP = [
+    {a:0, n:"konjunksjon", rel:"står i konjunksjon med", txt:function(A,B){ return cap(A) + " og " + B + " smelter sammen."; }},
+    {a:60, n:"sekstil", rel:"står i sekstil til", txt:function(A,B){ return cap(A) + " gir en lett åpning for " + B + "."; }},
+    {a:90, n:"kvadrat", rel:"står i kvadrat til", txt:function(A,B){ return cap(A) + " gnisser mot " + B + ", og friksjonen kan bli til handling."; }},
+    {a:120, n:"trigon", rel:"står i trigon til", txt:function(A,B){ return cap(A) + " og " + B + " flyter lett sammen."; }},
+    {a:180, n:"opposisjon", rel:"står i opposisjon til", txt:function(A,B){ return cap(A) + " og " + B + " trekker hver sin vei og ber om balanse."; }}
+  ];
+  function norm360(x){ x %= 360; return x < 0 ? x + 360 : x; }
+  function fmtLon(l){ var s = Math.floor(l / 30), deg = l - s * 30, dd = Math.floor(deg), mm = Math.floor((deg - dd) * 60); return {s:s, txt:dd + "°" + (mm < 10 ? "0" : "") + mm + "′ " + ZS[s]}; }
+  function tzOffsetMs(ms, tz){
+    var p = {}; new Intl.DateTimeFormat("en-US", {timeZone:tz, hourCycle:"h23", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit"})
+      .formatToParts(new Date(ms)).forEach(function(x){ p[x.type] = x.value; });
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - ms;
+  }
+  function zonedToUtc(y, m, d, hh, mm, tz){
+    var local = Date.UTC(y, m - 1, d, hh, mm), g = local;
+    for(var i = 0; i < 3; i++){ g = local - tzOffsetMs(g, tz); }
+    return new Date(g);
+  }
+  function lonOf(k, date){
+    if(k === "Sun"){ return Astronomy.SunPosition(date).elon; }
+    if(k === "Moon"){ return Astronomy.EclipticGeoMoon(date).lon; }
+    return Astronomy.Ecliptic(Astronomy.GeoVector(k, date, true)).elon;
+  }
+  function positions(date){ var o = {}; PL.forEach(function(p){ o[p.k] = norm360(lonOf(p.k, date)); }); return o; }
+  /* Ascendant fra lokal stjernetid og ekliptikkens helning: atan2(cos θ, -(sin θ cos ε + tan φ sin ε)) */
+  function ascendant(date, lat, lon){
+    var t = Astronomy.MakeTime(date);
+    var th = norm360(Astronomy.SiderealTime(t) * 15 + lon) * Math.PI / 180;
+    var eps = (23.439291 - 0.0130042 * (t.tt / 36525)) * Math.PI / 180, ph = lat * Math.PI / 180;
+    var asc = norm360(Math.atan2(Math.cos(th), -(Math.sin(th) * Math.cos(eps) + Math.tan(ph) * Math.sin(eps))) * 180 / Math.PI);
+    /* Nord for polarsirkelen kan formelen gi motsatt punkt. Ascendanten skal ligge innen 180° etter MC. */
+    var mc = norm360(Math.atan2(Math.sin(th), Math.cos(th) * Math.cos(eps)) * 180 / Math.PI);
+    if(norm360(asc - mc) > 180){ asc = norm360(asc + 180); }
+    return asc;
+  }
+  function digitSum(n){ return String(n).split("").reduce(function(a, b){ return a + Number(b); }, 0); }
+
+  function wheel(nat, now, asc){
+    var c = 160, ref = asc == null ? 0 : asc, s = "";
+    function pt(l, r){ var a = (180 + (l - ref)) * Math.PI / 180; return [c + r * Math.cos(a), c - r * Math.sin(a)]; }
+    s += "<circle cx=\"160\" cy=\"160\" r=\"156\" fill=\"var(--surface)\" stroke=\"var(--line)\"/>";
+    s += "<circle cx=\"160\" cy=\"160\" r=\"128\" fill=\"none\" stroke=\"var(--line)\"/>";
+    s += "<circle cx=\"160\" cy=\"160\" r=\"98\" fill=\"none\" stroke=\"var(--line)\" stroke-dasharray=\"3 4\"/>";
+    s += "<circle cx=\"160\" cy=\"160\" r=\"66\" fill=\"var(--surface-2)\" stroke=\"var(--line)\"/>";
+    for(var i = 0; i < 12; i++){
+      var a1 = pt(i * 30, 128), a2 = pt(i * 30, 156), g = pt(i * 30 + 15, 142);
+      s += "<line x1=\"" + a1[0].toFixed(1) + "\" y1=\"" + a1[1].toFixed(1) + "\" x2=\"" + a2[0].toFixed(1) + "\" y2=\"" + a2[1].toFixed(1) + "\" stroke=\"var(--line)\"/>";
+      s += "<text x=\"" + g[0].toFixed(1) + "\" y=\"" + g[1].toFixed(1) + "\" font-size=\"15\" text-anchor=\"middle\" dominant-baseline=\"central\" style=\"fill:var(--muted)\">" + ZG[i] + "&#xFE0E;</text>";
+    }
+    if(asc != null){ var x1 = pt(asc, 66), x2 = pt(asc, 156), at = pt(asc, 46);
+      s += "<line x1=\"" + x1[0].toFixed(1) + "\" y1=\"" + x1[1].toFixed(1) + "\" x2=\"" + x2[0].toFixed(1) + "\" y2=\"" + x2[1].toFixed(1) + "\" stroke=\"var(--ink)\" stroke-width=\"1.5\"/>";
+      s += "<text x=\"" + at[0].toFixed(1) + "\" y=\"" + at[1].toFixed(1) + "\" font-size=\"12\" font-weight=\"700\" text-anchor=\"middle\" dominant-baseline=\"central\" style=\"fill:var(--ink);font-family:var(--body)\">AC</text>"; }
+    function ring(pos, r0, color, skip){
+      var list = PL.filter(function(p){ return !(skip && skip[p.k]); }).map(function(p){ return {g:p.g, l:pos[p.k]}; }).sort(function(a, b){ return a.l - b.l; });
+      var last = -99, step = 0;
+      list.forEach(function(p){
+        step = (p.l - last < 8) ? step + 1 : 0; last = p.l;
+        var q = pt(p.l, r0 - (step % 3) * 11), tick = pt(p.l, r0 + 9);
+        s += "<line x1=\"" + q[0].toFixed(1) + "\" y1=\"" + q[1].toFixed(1) + "\" x2=\"" + tick[0].toFixed(1) + "\" y2=\"" + tick[1].toFixed(1) + "\" stroke=\"" + color + "\" stroke-opacity=\".35\"/>";
+        s += "<text x=\"" + q[0].toFixed(1) + "\" y=\"" + q[1].toFixed(1) + "\" font-size=\"16\" text-anchor=\"middle\" dominant-baseline=\"central\" style=\"fill:" + color + "\">" + p.g + "&#xFE0E;</text>";
+      });
+    }
+    ring(now, 116, "var(--meta)");
+    ring(nat, 86, "var(--accent)", null);
+    return "<svg class=\"wheel\" viewBox=\"0 0 320 320\" role=\"img\" aria-label=\"Horoskophjul: dyrekretsen ytterst, dagens planeter i lilla ring, fødselsplanetene i grønn ring innenfor. Alle posisjonene står også i tabellen under.\">" + s + "</svg>";
+  }
+
+  /* ---------- Din dag i dag: en kort dagsguide (metafysikk, med noen astronomiske fakta) ---------- */
+  var ELEM = ["ild","jord","luft","vann"];
+  var ELTONE = {ild:"lyst til å komme i gang", jord:"sans for det praktiske og konkrete", luft:"lyst til å snakke, lære og møte folk", vann:"følelser og omtanke nær overflaten"};
+  var ELGOOD = {ild:"Å ta initiativ til noe du har tenkt på en stund", jord:"Praktiske gjøremål og rydding", luft:"Samtaler, læring og å møte folk", vann:"Ro, hvile og omsorg for deg selv og andre"};
+  var GOOD = {
+    Mercury:"Samtaler og avtaler", Venus:"Samarbeid, vennskap og det som er vakkert", Jupiter:"Planlegging på lang sikt og å si ja til noe nytt",
+    Mars:"Fysisk arbeid og å få ting gjort", Saturn:"Struktur, orden og ting som krever tålmodighet", Sun:"Å vise hvem du er og stå for det",
+    Moon:"Familie, hjem og omsorg", Uranus:"Å prøve en ny måte å gjøre ting på", Neptune:"Kreativt arbeid, musikk og drømmer", Pluto:"Å gå i dybden på noe som betyr mye for deg"
+  };
+  var CARE = {
+    Mercury:"Misforståelser i samtaler og meldinger. Les gjennom en ekstra gang før du sender.", Venus:"Å legge for mye vekt på hva andre synes.",
+    Mars:"Å presse på for fort. Ta pauser underveis.", Saturn:"Å kreve for mye av deg selv.", Jupiter:"Å love mer enn du rekker.",
+    Sun:"Å ta ting for personlig.", Moon:"Sterke følelser som går over igjen. Vent litt med store svar.", Uranus:"Brå endringer i planene.",
+    Neptune:"Å stole på noe som er uklart. Be om det skriftlig.", Pluto:"Dragkamp om hvem som bestemmer. Gi deg selv rom."
+  };
+  var PDGOOD = {1:"Å starte noe nytt", 2:"Samarbeid og å lytte", 3:"Kreativt arbeid og glede", 4:"Planlegging og orden", 5:"Å prøve noe nytt",
+    6:"Omsorg for familie og venner", 7:"Ro, refleksjon og hvile", 8:"Å følge opp oppgaver og avtaler", 9:"Å avslutte og rydde", 11:"Å lytte til intuisjonen", 22:"Å bygge noe som varer"};
+  var RULER = ["Sola","Månen","Mars","Merkur","Jupiter","Venus","Saturn"];
+  function moonPhaseName(a){
+    if(a < 10 || a >= 350){ return "Nymåne"; } if(a < 80){ return "Voksende månesigd"; } if(a < 100){ return "Første kvarter"; }
+    if(a < 170){ return "Voksende måne"; } if(a < 190){ return "Fullmåne"; } if(a < 260){ return "Avtagende måne"; }
+    if(a < 280){ return "Siste kvarter"; } return "Avtagende månesigd";
+  }
+  function mercuryRetro(date){
+    var a = lonOf("Mercury", date), b = lonOf("Mercury", new Date(date.getTime() + 86400000));
+    var dd = norm360(b - a); if(dd > 180){ dd -= 360; } return dd < 0;
+  }
+  function guide(now, isToday, cur, nat, hits, pd, life, d, m){
+    var ms = fmtLon(cur.Moon).s, el = ELEM[ms % 4];
+    var phaseAng = Astronomy.MoonPhase(now), illum = Math.round(Astronomy.Illumination("Moon", now).phase_fraction * 100);
+    var retro = mercuryRetro(now);
+    var soft = hits.filter(function(h){ return h.as.a === 60 || h.as.a === 120 || (h.as.a === 0 && ["Venus","Jupiter","Sun","Moon","Mercury"].indexOf(h.tp.k) >= 0); });
+    var hard = hits.filter(function(h){ return h.as.a === 90 || h.as.a === 180 || (h.as.a === 0 && ["Mars","Saturn","Uranus","Neptune","Pluto"].indexOf(h.tp.k) >= 0); });
+    var dayWord = isToday ? "i dag" : "denne dagen";
+
+    /* Dagens tone */
+    var tone = "Månen går " + dayWord + " gjennom " + ZS[ms] + ", et " + el + "tegn, og i tradisjonen gir det " + ELTONE[el] + ".";
+    if(hits.length){
+      var h = hits[0], np = h.tp.k === h.np.k ? "utgangspunktet ditt fra fødselen" : h.np.th;
+      var read = (soft.indexOf(h) >= 0) ? "en god støtte for " + np : (hard.indexOf(h) >= 0) ? "en dag for å ta det med ro rundt " + np : "at " + h.tp.th + " får ekstra oppmerksomhet";
+      tone += " Den tetteste forbindelsen er at " + h.tp.n + " " + h.as.rel + " " + h.np.n + ", som tradisjonen leser som " + read + ".";
+    }
+    tone += " Din personlige dag er " + pd + ": " + NUMTXT[pd].toLowerCase() + ".";
+
+    /* Godt for dagen */
+    var good = [];
+    function add(x){ if(x && good.indexOf(x) < 0 && good.length < 4){ good.push(x); } }
+    soft.slice(0, 2).forEach(function(h){
+      var g = GOOD[h.tp.k];
+      if(h.tp.k === "Mercury" && retro){ g = "Å gå gjennom og rette opp avtaler du allerede har"; }
+      add(g);
+    });
+    add(PDGOOD[pd]);
+    add(ELGOOD[el]);
+
+    /* Vær varsom med */
+    var care = [];
+    hard.forEach(function(h){ var c = CARE[h.tp.k]; if(c && care.indexOf(c) < 0 && care.length < 2){ care.push(c); } });
+    if(retro && care.length < 2){ care.push("Å skrive under på noe nytt uten å lese gjennom. Merkur går baklengs, og i tradisjonen er det tid for å se over."); }
+
+    /* Nyttig å vite */
+    var next = new Date(now.getFullYear(), m - 1, d); var base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if(next < base){ next = new Date(now.getFullYear() + 1, m - 1, d); }
+    var toNext = Math.round((next - base) / 86400000);
+    var wd = now.getDay();
+
+    var html = "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Din dag " + (isToday ? "i dag" : now.toLocaleDateString("nb-NO", {weekday:"long", day:"numeric", month:"long"})) + "</h3><span class=\"tag meta\">Metafysikk</span></div><div class=\"guide\">";
+    html += "<div><h4>Dagens tone</h4><p>" + tone + "</p></div>";
+    html += "<div><h4>Godt for " + dayWord + " (etter tradisjonen)</h4><ul>" + good.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul></div>";
+    html += "<div><h4>Vær varsom med</h4>" + (care.length ? "<ul>" + care.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul>" : "<p>Ingen tydelige spenninger " + dayWord + ". I tradisjonen regnes det som en jevn dag.</p>") + "</div>";
+    html += "<div><h4>Andre ting du kan ha glede av å vite</h4><ul>";
+    html += "<li><span class=\"tag fact\">Fakta</span> Månefase: <b>" + moonPhaseName(phaseAng) + "</b>, " + illum + " % av månen er opplyst.</li>";
+    html += "<li><span class=\"tag fact\">Fakta</span> Månen står i <b>" + ZS[ms] + "</b> (tropisk dyrekrets).</li>";
+    html += "<li><span class=\"tag fact\">Fakta</span> Merkur går " + (retro ? "<b>baklengs</b> sett fra jorda. I tradisjonen er det tid for å se over, rette opp og gå tilbake til ting." : "<b>forlengs</b> som vanlig.") + "</li>";
+    html += "<li>" + cap(DAYS[wd]) + " er i tradisjonen dagen til <b>" + RULER[wd] + "</b>.</li>";
+    if(lastExpr != null){ html += "<li>" + (lastExpr === pd ? "Din personlige dag har samme tall som navnet ditt (" + pd + "). I tradisjonen regnes det som en dag der navnet og dagen drar i samme retning." : "Navnet ditt har uttrykkstallet " + lastExpr + ", og din personlige dag er " + pd + ". I tradisjonen møtes «" + NUMTXT[lastExpr].toLowerCase() + "» og «" + NUMTXT[pd].toLowerCase() + "».") + "</li>"; }
+    html += "<li><span class=\"tag fact\">Fakta</span> " + (toNext === 0 ? "Det er bursdagen din!" : "Det er " + toNext + " dager til bursdagen din.") + "</li>";
+    html += "</ul></div>";
+    html += "<p class=\"muted\">Dette er tradisjon og inspirasjon. Viktige valg om penger, helse eller stemmegivning tar du selv, på et ekte grunnlag.</p>";
+    html += "</div></article>";
+    return html;
+  }
+  document.getElementById("hday").addEventListener("change", function(){ if(lastHoro){ renderHoro.apply(null, lastHoro.concat([this.value])); } });
+  document.getElementById("htoday").addEventListener("click", function(){ if(lastHoro){ renderHoro.apply(null, lastHoro.concat([null])); } });
+
+  function ymd(dt){ return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0"); }
+  function renderHoro(d, m, y, t, placeTxt, life, dayStr){
+    var sec = document.getElementById("horo"), out = document.getElementById("horo-out");
+    sec.hidden = false;
+    lastHoro = [d, m, y, t, placeTxt, life];
+    var realNow = new Date(), hdayEl = document.getElementById("hday");
+    var minD = new Date(realNow); minD.setDate(minD.getDate() - 30);
+    var maxD = new Date(realNow); maxD.setDate(maxD.getDate() + 30);
+    hdayEl.min = ymd(minD); hdayEl.max = ymd(maxD);
+    var isToday = !dayStr || dayStr === ymd(realNow);
+    var now = realNow;
+    if(!isToday){
+      var pp = dayStr.split("-").map(Number);
+      now = new Date(pp[0], pp[1] - 1, pp[2], 12, 0);
+      if(now < minD || now > maxD){ now = realNow; isToday = true; }
+    }
+    hdayEl.value = ymd(now);
+    if(typeof Astronomy === "undefined"){ out.innerHTML = "<p class=\"berr\">Klarte ikke å laste regnemotoren for planetene. Sjekk nettforbindelsen og prøv igjen.</p>"; return; }
+    var place = findPlace(placeTxt || ""), lat = parseFloat(String(document.getElementById("blat").value).replace(",", ".")), lon = parseFloat(String(document.getElementById("blon").value).replace(",", "."));
+    if(!isNaN(lat) && !isNaN(lon) && Math.abs(lat) <= 89 && Math.abs(lon) <= 180){ place = {n:"egne koordinater (" + lat + ", " + lon + ")", lat:lat, lon:lon, tz:"Europe/Oslo"}; }
+    var tz = place ? place.tz : "Europe/Oslo";
+    var hh = 12, mi = 0; if(t){ hh = parseInt(t.split(":")[0], 10); mi = parseInt(t.split(":")[1], 10); }
+    var bornUtc = zonedToUtc(y, m, d, hh, mi, tz);
+    var nat = positions(bornUtc), cur = positions(now);
+    var asc = (t && place) ? ascendant(bornUtc, place.lat, place.lon) : null;
+    var moonSure = !!t;
+
+    var html = "";
+    /* Notat om grunnlaget */
+    var basis = [];
+    basis.push(t ? "født klokka " + esc(t) + (place ? "" : " (regnet som norsk tid)") : "uten klokkeslett, regnet for klokka 12");
+    basis.push(place ? (place.lat && place.n.indexOf("egne") === 0 ? "med " : "i ") + esc(place.n) : (placeTxt ? "fant ikke «" + esc(placeTxt) + "» i listen" : "uten fødested"));
+    html += "<p class=\"muted\">Grunnlag: " + basis.join(", ") + ". " + (isToday ? "Dagens planeter" : "Planetene") + " er regnet for " + now.toLocaleString("nb-NO", {day:"numeric", month:"long", hour:"2-digit", minute:"2-digit"}) + ".</p>";
+
+    /* Dagens aspekter: dagens planeter mot fødselsplanetene */
+    var hits = [];
+    PL.forEach(function(tp){
+      var natList = PL.filter(function(np){ return np.k !== "Moon" || moonSure; }).map(function(np){ return {k:np.k, n:np.n + " i fødselshoroskopet ditt", th:np.th, l:nat[np.k]}; });
+      if(asc != null){ natList.push({k:"ASC", n:"ascendanten din", th:"måten du møter verden på", l:asc}); }
+      natList.forEach(function(np){
+        var diff = Math.abs(norm360(cur[tp.k] - np.l)); if(diff > 180){ diff = 360 - diff; }
+        var orbMax = tp.k === "Moon" ? 5 : 3;
+        ASP.forEach(function(as){ var orb = Math.abs(diff - as.a); if(orb <= orbMax){ hits.push({tp:tp, np:np, as:as, orb:orb, w:orb / orbMax}); } });
+      });
+    });
+    hits.sort(function(a, b){ return a.w - b.w; });
+    var td = now, tdD = td.getDate(), tdM = td.getMonth() + 1, tdY = td.getFullYear();
+    var uni = reduce(digitSum(tdD) + digitSum(tdM) + digitSum(tdY));
+    var py = reduce(digitSum(d) + digitSum(m) + digitSum(tdY)), pm = reduce(py + tdM), pd = reduce(pm + tdD);
+    html += guide(now, isToday, cur, nat, hits, pd, life, d, m);
+    /* De tre store */
+    var sun = fmtLon(nat.Sun), moon = fmtLon(nat.Moon);
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Dine tre store</h3><span class=\"tag meta\">Metafysikk</span></div><div class=\"big3\">";
+    html += "<div><span>Sol</span><b>" + ZS[sun.s] + "</b>" + sun.txt + "</div>";
+    html += "<div><span>Måne</span><b>" + (moonSure ? ZS[moon.s] : "Usikker") + "</b>" + (moonSure ? moon.txt : "Månen flytter seg rundt 13° i døgnet, så den trenger klokkeslett") + "</div>";
+    html += "<div><span>Ascendant</span><b>" + (asc != null ? ZS[fmtLon(asc).s] : "Ukjent") + "</b>" + (asc != null ? fmtLon(asc).txt : (!t ? "Trenger klokkeslettet du ble født" : (placeTxt && !place ? "Fant ikke «" + esc(placeTxt) + "». Velg et sted fra lista under Fødested, eller skriv inn koordinater" : "Trenger fødested"))) + "</div>";
+    html += "</div></article>";
+
+    /* Hjul og tabell */
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Hjulet ditt i dag</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    html += wheel(nat, cur, asc);
+    html += "<div class=\"legend\"><span style=\"--c:var(--accent)\">Da du ble født (innerst)</span><span style=\"--c:var(--meta)\">I dag (ytterst)</span>" + (asc != null ? "<span style=\"--c:var(--ink)\">AC = ascendant, til venstre</span>" : "") + "</div>";
+    html += "<div class=\"tablebox\"><table class=\"ptable\"><thead><tr><th scope=\"col\">Planet</th><th scope=\"col\">Da du ble født</th><th scope=\"col\">I dag</th></tr></thead><tbody>";
+    PL.forEach(function(p){
+      var a = (p.k === "Moon" && !moonSure) ? "Usikker" : fmtLon(nat[p.k]).txt;
+      html += "<tr><td>" + p.g + "&#xFE0E; " + p.n + "</td><td>" + a + "</td><td>" + fmtLon(cur[p.k]).txt + "</td></tr>";
+    });
+    if(asc != null){ html += "<tr><td>AC Ascendant</td><td>" + fmtLon(asc).txt + "</td><td></td></tr>"; }
+    html += "</tbody></table></div></article>";
+
+    var top = hits.slice(0, 5);
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Det som preger dagen din</h3><span class=\"tag meta\">Metafysikk</span></div>";
+    if(top.length){
+      html += "<ul class=\"asp\">" + top.map(function(h){
+        return "<li><b>" + h.tp.n + " i dag " + h.as.rel + " " + h.np.n + "</b><br><span class=\"muted\">" + cap(h.as.n) + ", " + h.orb.toFixed(1).replace(".", ",") + "° fra eksakt</span><p>I tradisjonen: " + h.as.txt(h.tp.th, h.tp.k === h.np.k ? "utgangspunktet ditt fra fødselen" : h.np.th) + "</p></li>";
+      }).join("") + "</ul>";
+      html += "<p class=\"muted\">Viser de " + top.length + " tetteste av " + hits.length + " forbindelser i dag. Jo nærmere eksakt, jo sterkere regnes den i tradisjonen.</p>";
+    } else {
+      html += "<p>I dag danner ingen av planetene tette forbindelser til fødselshoroskopet ditt. I tradisjonen regnes det som en rolig dag.</p>";
+    }
+    html += "</article>";
+
+    /* Dagens tall mot dine tall */
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Dagens tall og dine tall</h3><span class=\"tag meta\">Metafysikk</span></div><div class=\"nums\">";
+    html += "<div><span>Dagens tall for alle</span><b>" + uni + "</b>" + NUMTXT[uni] + "</div>";
+    html += "<div><span>Din personlige dag</span><b>" + pd + "</b>" + NUMTXT[pd] + "</div>";
+    html += "<div><span>Ditt personlige år " + tdY + "</span><b>" + py + "</b>" + NUMTXT[py] + "</div>";
+    html += "<div><span>Ditt livstall</span><b>" + life + "</b>" + NUMTXT[life] + "</div>";
+    html += "</div><p>" + (pd === life ? "Din personlige dag har samme tall som livstallet ditt. I tradisjonen regnes det som en dag der du er ekstra i takt med deg selv." : "I tradisjonen farger din personlige dag (" + pd + ") hvordan livstallet ditt (" + life + ") kommer til uttrykk i dag: " + NUMTXT[pd].toLowerCase() + " møter " + NUMTXT[life].toLowerCase() + ".") + "</p>";
+    html += "<p class=\"muted\">Personlig år = fødselsdag + fødselsmåned + årstallet, personlig måned = år + måned, personlig dag = måned + dag, alt lagt sammen til ett siffer (11 og 22 står som mestertall).</p></article>";
+
+    html += "<p class=\"muted\" style=\"margin-top:10px\">Astrologi og tallmystikk er tradisjon og inspirasjon, ikke fakta, og gir ingen råd om helse, stemmegivning eller penger. Planetposisjonene er regnet astronomisk med tropisk dyrekrets.</p>";
+
+    /* Kommende moduler */
+    html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Mer i medlemsportalen etter hvert</h3><span class=\"tag\">Kommer</span></div>";
+    html += "<p>Dette er moduler vi jobber med. Når de er klare, finner du dem her i portalen.</p><div class=\"tiles\">";
+    html += "<div class=\"tile soon\" aria-disabled=\"true\"><span class=\"tag\">Kommer</span><h3>Uka og måneden din</h3><p>Planetene og tallene dine for de neste dagene, og månefasene sett fra der du bor.</p></div>";
+    html += "<div class=\"tile soon\" aria-disabled=\"true\"><span class=\"tag\">Kommer</span><h3>Året ditt</h3><p>Ditt personlige år i tall og planeter, med de viktigste datoene.</p></div>";
+    html += "<div class=\"tile soon\" aria-disabled=\"true\"><span class=\"tag\">Kommer</span><h3>Interessene dine i VoteApp</h3><p>Saker og fellesskap som passer det du bryr deg om, koblet til Min dag.</p></div>";
+    html += "</div></article>";
+
+    out.innerHTML = html;
+  }
+})();
+</script>
+</body>
+</html>
