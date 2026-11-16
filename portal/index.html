@@ -152,6 +152,8 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 .nres{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:18px}
 .nres article{padding:16px;border-radius:16px;background:var(--card,#fff);border:1px solid rgba(0,0,0,.08)}
 .nres h4{margin:0 0 6px;font-family:var(--display);font-size:22px}
+.nres dt{font-weight:700}
+.nres dd{margin:0 0 10px}
 .nres .src{font-size:13px;opacity:.8}
 .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
 .nums div{padding:12px;border-radius:14px;background:rgba(124,92,196,.08)}
@@ -269,22 +271,22 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
       <a class="tile" href="#navn">
         <span class="tag meta">Prototype</span>
         <h3>Navnet mitt</h3>
-        <span class="addr">Opprinnelse og navnetall</span>
-        <p>Skriv inn navnet ditt og se hva det kommer av, og hvilke tall tradisjonen knytter til det. Deretter fødselsdagen din.</p>
+        <span class="addr">Betydning, navnedag og navnetall</span>
+        <p>Se hva kildene sier om opphavet til navnet ditt, og hvilke tall tradisjonen knytter til det.</p>
       </a>
     </div>
   </section>
 
   <section id="navn" aria-labelledby="navn-h" class="namebox" hidden>
     <h2 id="navn-h">Navnet mitt</h2>
-    <p>Skriv fornavn, mellomnavn og etternavn, og trykk Enter.</p>
+    <p>Skriv fornavnet ditt. Du kan også legge til mellomnavn og etternavn for å få navnetall for hele navnet.</p>
     <form id="name-form" autocomplete="off">
       <label>Fornavn<input id="fn" name="fn" required></label>
       <label>Mellomnavn<input id="mn" name="mn" placeholder="Valgfritt"></label>
-      <label>Etternavn<input id="ln" name="ln"></label>
+      <label>Etternavn<input id="ln" name="ln" placeholder="Valgfritt"></label>
       <button type="submit">Vis navnet mitt</button>
     </form>
-    <p class="muted">Alt regnes ut i nettleseren din, og vi søker aldri opp personer på nettet. Navnet lagres på kontoen din bare hvis du har sagt ja til det under Min konto.</p>
+    <p class="muted">Oppslag og beregninger skjer i nettleseren din. Vi søker aldri opp personer på nettet. Navnet lagres på kontoen din bare hvis du har sagt ja til det under Min konto.</p>
     <div id="name-out" aria-live="polite"></div>
   </section>
 
@@ -335,14 +337,15 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
 <script>
 (function(){
-  /* Betydning og opprinnelse: bare navn med kontrollert kilde. Gjengitt med egne ord etter Store norske leksikon. */
-  var NAMES = {
-    "geir": {o:"Mannsnavn fra norrønt Geirr, som betyr «spyd».", u:"https://snl.no/Geir"},
-    "kari": {o:"Kvinnenavn, norsk form av Karin, med røtter i gresk Aikaterine. Betydningen er usikker, men har tidlig vært knyttet til gresk katharos, «ren».", u:"https://snl.no/Kari"},
-    "anne": {o:"Kvinnenavn, en form av Anna, knyttet til hebraisk channa, «nåde».", u:"https://snl.no/Anne"},
-    "hege": {o:"Kvinnenavn, dialektform av norrønt Helga, «den hellige».", u:"https://snl.no/Hege"},
-    "ola":  {o:"Mannsnavn, yngre form av Olav. Leksikonet oppgir ingen egen betydning.", u:"https://snl.no/Ola"}
-  };
+  /* Oppslag på eksakt navneform. Navnedag må være dokumentert for denne skrivemåten. */
+  var NAMES = new Map([
+    ["geir", {o:"Norrønt Geirr.", m:"«Spyd».", v:"Geirr.", d:"30. mai", u:"Geir_-_mannsnamn"}],
+    ["geirr", {o:"Norrønt Geirr. Den siste r-en er en gammel bøyningsending.", m:"«Spyd».", v:"Geir.", u:"Geirr_-_mannsnamn"}],
+    ["kari", {o:"Som norsk kvinnenavn er Kari en form av Karin og går tilbake til gresk Aikaterine.", m:"Usikker. Navnet ble tidlig knyttet til gresk katharos, «ren».", v:"Carin, Karen, Karin og Karn.", d:"25. november", u:"Kari_-_kvinnenamn", extra:"Kari finnes også som finsk mannsnavn, blant annet som kortform av Oskari og Sakari.", extraSource:"Kari_-_mannsnamn"}],
+    ["anne", {o:"En form av Anna, med opphav i hebraisk channa.", m:"«Nåde».", v:"Ane og Ann.", d:"26. juli", u:"Anne_-_kvinnenamn"}],
+    ["hege", {o:"Dialektform av det norrøne navnet Helga.", m:"«Den hellige».", v:"Helga, Helje, Hella og Hæge.", d:"30. september", u:"Hege_-_kvinnenamn"}],
+    ["ola", {o:"En yngre form av Olav. Olav går tilbake til norrønt Ólafr.", m:"Ledd i det norrøne navnet viser til en forfar og en arving eller etterkommer.", v:"Beslektede former: Olav, Olaf, Ole og Oluf.", d:"29. juli", u:"Ola_-_mannsnamn", relatedSource:"Olav_-_mannsnamn"}]
+  ]);
   /* Navnetall (tradisjon, metafysikk): pythagoreisk bokstavverdi. Æ regnes som A+E, Ø som O, Å som A. */
   var NUMTXT = {
     1:"Initiativ og selvstendighet", 2:"Samarbeid og lydhørhet", 3:"Uttrykk og glede",
@@ -359,14 +362,34 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
   function esc(s){ return s.replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
   function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
 
+  function nameSource(slug, title){
+    return '<a href="https://snl.no/' + slug + '" target="_blank" rel="noopener">' + title + '</a>';
+  }
+
   function card(label, raw){
-    var parts = raw.trim().split(/[\s]+/).filter(Boolean);
+    var parts = raw.trim().split(/\s+/).filter(Boolean);
     return parts.map(function(p){
-      var key = p.toLowerCase(), hit = NAMES[key], body;
-      if(hit){ body = "<p>" + hit.o + "</p><p class=\"src\">Kilde: <a href=\"" + hit.u + "\" target=\"_blank\" rel=\"noopener\">Store norske leksikon</a></p>"; }
-      else if(label === "Etternavn"){ body = "<p>Mange norske etternavn kommer fra gårdsnavn eller stedsnavn. Opprinnelsen til akkurat dette navnet har vi ingen kilde for ennå.</p>"; }
-      else { body = "<p>Vi har ingen kontrollert kilde for dette navnet ennå. I den ekte versjonen hentes betydningen fra en navnedatabase, med kilde.</p>"; }
-      return "<article><span class=\"tag fact\">" + label + "</span><h4>" + esc(cap(p)) + "</h4>" + body + "</article>";
+      var hit = label === "Fornavn" ? NAMES.get(p.normalize("NFC").toLowerCase()) : null;
+      var body;
+      if(hit){
+        body = "<dl><dt>Opprinnelse</dt><dd>" + hit.o + "</dd>"
+          + "<dt>Betydning</dt><dd>" + hit.m + "</dd>"
+          + "<dt>Dokumenterte varianter og navneformer</dt><dd>" + hit.v + "</dd>"
+          + "<dt>Norsk navnedag</dt><dd>" + (hit.d || "Ikke bekreftet for denne skrivemåten.") + "</dd></dl>";
+        var sources = nameSource(hit.u, "Store norske leksikon: " + cap(p.toLowerCase()));
+        if(hit.relatedSource) sources += " · " + nameSource(hit.relatedSource, "Olav");
+        if(hit.extra){
+          body += "<p>" + hit.extra + "</p>";
+          sources += " · " + nameSource(hit.extraSource, "Kari (mannsnavn)");
+        }
+        body += '<p class="src">Kilder: ' + sources + "</p>";
+      } else {
+        body = label === "Fornavn"
+          ? "<p>Ingen kontrollert kilde for denne skrivemåten i testversjonen.</p>"
+          : "<p>Testversjonen har ingen kildeoppslag for " + label.toLowerCase() + ".</p>";
+      }
+      var status = hit ? '<span class="tag fact">Kildebelagt</span>' : '<span class="tag">Ikke dekket</span>';
+      return '<article><p class="src">' + label + ' · ' + status + '</p><h4>' + esc(cap(p)) + "</h4>" + body + "</article>";
     }).join("");
   }
 
@@ -382,7 +405,9 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     var pers = reduce(sum(full, function(c){ return !vow(c); }));
     var initials = full.split(/\s+/).map(function(w){ return w.charAt(0).toUpperCase(); }).join(".") + ".";
     var html = "<h3>" + esc(full.split(/\s+/).map(cap).join(" ")) + "</h3>";
-    html += "<div class=\"nres\">" + card("Fornavn", fn) + card("Mellomnavn", mn) + card("Etternavn", ln) + "</div>";
+    html += '<section aria-labelledby="name-origin"><h3 id="name-origin">Navnets opprinnelse og betydning</h3>';
+    html += '<p class="muted">Testversjonen har kilder for ' + NAMES.size + ' enkeltstående fornavn. Fornavn med mellomrom vises hver for seg. Oppslaget forteller om navnet og kan ikke fastslå slektstilhørighet.</p>';
+    html += "<div class=\"nres\">" + card("Fornavn", fn) + card("Mellomnavn", mn) + card("Etternavn", ln) + "</div></section>";
     html += "<article class=\"card\" style=\"margin-top:14px\"><div class=\"card-head\"><h3>Navnetall</h3><span class=\"tag meta\">Metafysikk</span></div>";
     html += "<div class=\"nums\">";
     html += "<div><span>Uttrykkstall</span><b>" + expr + "</b>" + NUMTXT[expr] + "</div>";
