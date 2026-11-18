@@ -221,6 +221,10 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 .w-lbl{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:12px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.25);width:auto!important;height:auto!important}
 .w-lbl.warm b{color:#b4441a}.w-lbl.cold b{color:#1f5f9e}
 .w-credit{margin-top:12px}
+.w-hits{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.w-hits button{font:inherit;text-align:left;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.w-hits button small{display:block;color:var(--muted);font-size:13px}
+.w-hits button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .w-credit a,#norge a{color:var(--accent)}
 @media (prefers-color-scheme: dark){.w-lbl.warm b{color:#ffab80}.w-lbl.cold b{color:#9cc8f0}}
 @media (prefers-color-scheme: dark){
@@ -331,7 +335,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
       <datalist id="places"></datalist>
       <button type="submit">Vis fødselsdagen min</button>
       <details class="coords">
-        <summary>Fødestedet ditt er ikke i listen?</summary>
+        <summary>Født utenfor Norge, og stedet er ikke i listen?</summary>
         <p class="muted">Skriv inn koordinatene selv (desimalgrader, sør og vest med minus). Klokkeslettet regnes da som norsk tid.</p>
         <div class="coord-row">
           <label>Breddegrad<input id="blat" name="blat" inputmode="decimal" placeholder="f.eks. 69.77"></label>
@@ -356,7 +360,13 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 
   <section id="vaer" aria-labelledby="vaer-h" class="namebox" hidden>
     <div class="card-head"><h2 id="vaer-h">Været</h2><span class="tag fact">Fakta</span></div>
-    <p>Varsel for Storslett i Nordreisa. Trykk hvor som helst på kartet, eller på et stedsnavn, for å se varselet der.</p>
+    <p>Varsel for Storslett i Nordreisa. Søk etter bygda eller byen din, eller trykk hvor som helst på kartet.</p>
+    <form id="w-search" class="daypick" role="search" autocomplete="off">
+      <label>Finn et sted i Norge<input id="w-q" type="search" placeholder="F.eks. Rotsundelv eller Bergen" aria-describedby="w-q-hint"></label>
+      <button type="submit">Søk</button>
+    </form>
+    <p id="w-q-hint" class="muted">Stedsnavn fra Kartverket. Utenfor Norge: trykk på kartet.</p>
+    <ul id="w-hits" class="w-hits" aria-live="polite"></ul>
     <div class="daypick">
       <button type="button" id="w-home">Tilbake til Storslett</button>
       <button type="button" id="w-locate">Der jeg er nå</button>
@@ -661,6 +671,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
   function pkey(s){ return norm(s).replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
   function findPlace(txt){
     var k = pkey(txt); if(!k){ return null; }
+    if(window.Stedsok){ var ks = window.Stedsok.known(txt); if(ks){ return ks; } }
     var i, n, words, kw = k.split(" ");
     for(i = 0; i < PLACES.length; i++){ if(pkey(PLACES[i].n) === k){ return PLACES[i]; } }
     for(i = 0; i < PLACES.length; i++){ words = pkey(PLACES[i].n).split(" "); if(words.indexOf(k) >= 0){ return PLACES[i]; } }
@@ -945,6 +956,7 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 <script src="supabase-public.js"></script>
 <script src="medlem.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="stedsok.js"></script>
 <script src="vaer.js"></script>
 <script src="norge.js"></script>
 </body>

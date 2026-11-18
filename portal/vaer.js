@@ -145,6 +145,31 @@
     }, function(){ status("Fikk ikke posisjonen (avslått eller ikke tilgjengelig).", true); }, {timeout:10000});
   });
 
+  /* Søk etter sted i Norge (Kartverket, se stedsok.js). */
+  $("w-search").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var q = $("w-q").value, hits = $("w-hits");
+    hits.innerHTML = "";
+    if(!window.Stedsok || q.trim().length < 2){ status("Skriv minst to bokstaver.", true); return; }
+    status("Søker ...");
+    window.Stedsok.search(q).then(function(list){
+      if(!list.length){ status("Fant ikke noe bebodd sted som heter «" + q.trim() + "». Sjekk stavemåten, eller trykk på kartet.", true); return; }
+      status(list.length === 1 ? "" : "Velg stedet du mener:");
+      list.forEach(function(p){
+        var li = document.createElement("li"), b = document.createElement("button");
+        b.type = "button"; b.innerHTML = esc(p.navn) + "<small>" + esc(p.type + (p.kommune && p.kommune !== p.navn ? ", " + p.kommune : "")) + "</small>";
+        b.addEventListener("click", function(){
+          hits.innerHTML = "";
+          if(!map){ start(); }
+          if(map){ map.setView([p.lat, p.lon], 10); }
+          loadPoint(p.lat, p.lon, p.label);
+        });
+        li.appendChild(b); hits.appendChild(li);
+      });
+      if(list.length === 1){ hits.querySelector("button").click(); }
+    }).catch(function(e){ status("Søket virket ikke akkurat nå: " + e.message + ".", true); });
+  });
+
   /* Seksjonen åpnes fra flisen eller med #vaer i adressen. Kartet lages først når det synes, ellers får Leaflet feil størrelse. */
   function openIfHash(){
     if(location.hash === "#vaer"){ $("vaer").hidden = false; start(); }
