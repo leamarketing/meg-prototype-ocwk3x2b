@@ -92,8 +92,12 @@
     $("w-out").innerHTML = html;
   }
 
+  /* Sist valgte sted huskes i denne nettleseren, så været åpner der neste gang. */
+  var LAST = "me_vaer_sted";
+  function lastPlace(){ try { var p = JSON.parse(localStorage.getItem(LAST) || "null"); return p && isFinite(p.lat) && isFinite(p.lon) ? p : null; } catch(e){ return null; } }
   function loadPoint(lat, lon, name){
     var my = ++reqId;
+    try { localStorage.setItem(LAST, JSON.stringify({lat:lat, lon:lon, name:name})); } catch(e){}
     status("Henter varsel ...");
     if(pin){ pin.setLatLng([lat, lon]); }
     getForecast(lat, lon).then(function(d){
@@ -122,7 +126,7 @@
 
   function start(){
     if(map){ map.invalidateSize(); return; }
-    if(!window.L){ status("Kartet kunne ikke lastes. Varselet for Storslett vises likevel.", true); loadPoint(HOME.lat, HOME.lon, HOME.name); return; }
+    if(!window.L){ var l0 = lastPlace() || HOME; status("Kartet kunne ikke lastes. Varselet vises likevel.", true); loadPoint(l0.lat, l0.lon, l0.name); return; }
     map = L.map("w-map", {zoomControl:true, scrollWheelZoom:false}).setView([HOME.lat, HOME.lon], 7);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom:18, attribution:"&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> | Vær: <a href=\"https://www.met.no/\">MET Norway</a>"
@@ -130,7 +134,9 @@
     pin = L.marker([HOME.lat, HOME.lon], {keyboard:true, title:"Valgt sted"}).addTo(map);
     var labels = L.layerGroup().addTo(map);
     map.on("click", function(e){ loadPoint(e.latlng.lat, e.latlng.lng, "Valgt punkt"); });
-    loadPoint(HOME.lat, HOME.lon, HOME.name);
+    var lp = lastPlace();
+    if(lp){ map.setView([lp.lat, lp.lon], 9); loadPoint(lp.lat, lp.lon, lp.name || "Valgt punkt"); }
+    else { loadPoint(HOME.lat, HOME.lon, HOME.name); }
     loadLabels(labels);
   }
 
