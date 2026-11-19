@@ -18,6 +18,22 @@
     thanks.innerHTML = "<h3>Takk for betalingen!</h3><p>Velkommen som medlem i me.voteapp.</p>";
     try { var saved = localStorage.getItem("me_checkout_email"); if(saved){ $("lemail").value = saved; } } catch(e){}
   }
+  /* Hvilken side kom den nye besøkende fra? Lagres i nettleseren ved første besøk, og på kontoen når de logger inn.
+     Egne tall, ingen sporing fra andre. ?k=kode i lenken gir kampanjekoden. */
+  var CONSENT_VERSION = "v1-2026-11-19";
+  (function firstTouch(){
+    try {
+      if(localStorage.getItem("me_source")){ return; }
+      var k = (location.search.match(/[?&]k=([A-Za-z0-9_-]{1,40})/) || [])[1], src;
+      if(k){ src = "kode:" + k; }
+      else if(document.referrer){
+        var ref = new URL(document.referrer);
+        src = ref.host === location.host ? "side:" + ref.pathname : "ekstern:" + ref.hostname;
+      } else { src = "direkte"; }
+      src += " > " + location.pathname + (location.hash || "");
+      localStorage.setItem("me_source", src.slice(0, 80));
+    } catch(e){}
+  })();
   function rememberEmail(){ try { localStorage.setItem("me_checkout_email", me.email); } catch(e){} }
   function say(t, err){ msg.textContent = t || ""; msg.className = "acct-msg" + (err ? " err" : ""); }
   function esc(s){ return String(s || "").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
@@ -58,7 +74,39 @@
     }
     html += "<label class=\"consent\"><input type=\"checkbox\" id=\"consent\"" + (row.consent_at ? " checked" : "") + "> <span>Lagre navn og fødselsdata på kontoen min, så jeg slipper å skrive dem inn igjen. Dataene ligger i EU, deles ikke med andre og holdes adskilt fra stemmesvar.</span></label>";
     html += "<div class=\"acct-actions\"><button type=\"button\" class=\"linkbtn\" id=\"logout\">Logg ut</button><button type=\"button\" class=\"linkbtn\" id=\"delete-me\">Slett kontoen min og alle data</button></div>";
+    var optin = "<fieldset class=\"optin\"><legend>Meldinger fra Min dag</legend>";
+    optin += "<p class=\"muted\">Frivillig. Du kan slutte når du vil, med én lenke nederst i hver e-post.</p>";
+    optin += "<label class=\"consent\"><input type=\"checkbox\" id=\"optin-email\"" + (row.email_opt_in_at ? " checked" : "") + "> <span>Send meg tips og nytt fra Min dag på e-post, høyst noen ganger i måneden.</span></label>";
+    optin += "<label class=\"consent\"><input type=\"checkbox\" id=\"optin-sms\"" + (row.sms_opt_in_at ? " checked" : "") + "> <span>Send meg korte meldinger på SMS. SMS er ikke startet ennå, vi sender først når det er klart.</span></label>";
+    optin += "<div id=\"phone-row\" class=\"phone-row\" hidden><label for=\"optin-phone\">Mobilnummer</label> <input type=\"tel\" id=\"optin-phone\" autocomplete=\"tel\" inputmode=\"tel\" placeholder=\"+47 ...\" value=\"" + esc(row.phone) + "\"> <button type=\"button\" id=\"optin-phone-save\">Lagre nummer</button></div>";
+    optin += "<p class=\"muted\">E-postadressen og nummeret brukes bare av Min dag, deles ikke med andre og kobles aldri til stemmesvar på voteapp.eu.</p></fieldset>";
+    html = html.replace("<div class=\"acct-actions\">", optin + "<div class=\"acct-actions\">");
     out.innerHTML = html;
+    if(row.sms_opt_in_at){ $("phone-row").hidden = false; }
+    $("optin-email").addEventListener("change", function(e){
+      var on = e.target.checked;
+      sb.rpc("set_marketing_consent", {p_kind:"email", p_on:on, p_page:location.pathname, p_version:CONSENT_VERSION}).then(function(r){
+        if(r.error || (r.data && r.data.ok === false)){ say("Kunne ikke lagre valget. Prøv igjen.", true); e.target.checked = !on; return; }
+        row.email_opt_in_at = on ? new Date().toISOString() : null;
+        say(on ? "Takk! Du får e-post fra Min dag. Du kan melde deg av når du vil." : "Du får ikke lenger e-post med tips og nytt.");
+      });
+    });
+    function saveSms(on){
+      var cb = $("optin-sms");
+      sb.rpc("set_marketing_consent", {p_kind:"sms", p_on:on, p_page:location.pathname, p_version:CONSENT_VERSION, p_phone:$("optin-phone").value}).then(function(r){
+        if(r.error){ say("Kunne ikke lagre valget. Prøv igjen.", true); cb.checked = !on; return; }
+        if(r.data && r.data.ok === false){ say("Skriv et gyldig mobilnummer, 8 til 15 sifre.", true); cb.checked = !!row.sms_opt_in_at; return; }
+        row.sms_opt_in_at = on ? new Date().toISOString() : null;
+        say(on ? "Nummeret er lagret. Vi sender først når SMS er startet." : "Nummeret er slettet. Du får ingen SMS.");
+      });
+    }
+    $("optin-sms").addEventListener("change", function(e){
+      if(e.target.checked){
+        $("phone-row").hidden = false;
+        if($("optin-phone").value.trim()){ saveSms(true); } else { e.target.checked = false; say("Skriv mobilnummeret og trykk Lagre nummer."); $("optin-phone").focus(); }
+      } else { $("phone-row").hidden = true; saveSms(false); }
+    });
+    $("optin-phone-save").addEventListener("click", function(){ $("optin-sms").checked = true; saveSms(true); });
 
     if(thanks){
       if(st === "active"){
@@ -176,6 +224,9 @@
       if(r.error){ say("Kunne ikke hente kontoen: " + r.error.message, true); return; }
       if(!r.data){ say("Kontoen er ikke klar ennå. Last siden på nytt om litt.", true); return; }
       var first = !row; row = r.data;
+      if(first && !row.signup_source){
+        try { var src = localStorage.getItem("me_source"); if(src){ sb.rpc("set_signup_source", {p_source: src}).then(function(){}); } } catch(e){}
+      }
       renderLoggedIn();
       if(first && isOpen(row)){ restore(); }
     });
