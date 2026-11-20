@@ -187,6 +187,21 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 .langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
 .langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .tag.planned{display:inline-block;margin-left:4px;vertical-align:1px}
+/* Sangene mine */
+.songrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.songrow[hidden]{display:none}
+.songrow select,.til select,.til input[type=text],.til textarea{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0;max-width:100%}
+.til{display:flex;flex-direction:column;gap:10px}
+.til label{font-weight:600;font-size:14px}
+.til textarea{width:100%;min-height:96px;resize:vertical;box-sizing:border-box}
+.til .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
+.til .pair > div{display:flex;flex-direction:column;gap:4px}
+.lyrics{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:10px;background:var(--surface-2)}
+.lyrics[hidden]{display:none}
+.lyrics h4{font-family:var(--display);font-size:17px;margin:0}
+.lyr-h{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.lyr{font-family:var(--display);font-size:17px;line-height:1.5}
+button:disabled{opacity:.5;cursor:not-allowed}
 </style>
 
 <div class="wrap">
@@ -220,6 +235,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     <a href="#helse">Kropp og balanse</a>
     <a href="#interesser">Interesser og fellesskap</a>
     <a href="#livet">Livet mitt</a>
+    <a href="#sang">Sangene mine</a>
     <a href="#personvern">Mine data</a>
   </nav>
 
@@ -444,6 +460,62 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     </div>
   </section>
 
+  <!-- SANGENE MINE -->
+  <section class="view" id="view-sang" aria-labelledby="h-sang" hidden>
+    <div class="grid">
+      <article class="card wide">
+        <div class="card-head"><h2 id="h-sang">Morgensang og kveldssang</h2><span class="tag hyp">Demo</span></div>
+        <p>Vil du ha en egen sang til morgenen eller kvelden? Den lages ut fra navnet ditt, horoskopet og dagens tall. Alt er av til du slår det på selv.</p>
+        <div class="chips">
+          <label class="chip" for="sang-morgen"><input type="checkbox" id="sang-morgen"> Morgensang</label>
+          <label class="chip" for="sang-kveld"><input type="checkbox" id="sang-kveld"> Kveldssang</label>
+        </div>
+        <p class="muted" id="sang-status" aria-live="polite"></p>
+        <fieldset id="sang-bruk" class="chips" style="border:0;padding:0;margin:0">
+          <legend class="muted" style="padding:0;margin-bottom:6px">Hva sangen kan bygge på (du velger)</legend>
+          <label class="chip"><input type="checkbox" value="navn" checked> Navnet mitt</label>
+          <label class="chip"><input type="checkbox" value="sol" checked> Soltegn</label>
+          <label class="chip"><input type="checkbox" value="maane" checked> Månetegn</label>
+          <label class="chip"><input type="checkbox" value="tall" checked> Dagens tall</label>
+          <label class="chip"><input type="checkbox" value="fase" checked> Månefasen</label>
+        </fieldset>
+        <p class="muted" id="sang-person"></p>
+        <div class="songrow"><label for="sang-stemme">Stemme</label><select id="sang-stemme"><option value="kvinne">Kvinnestemme</option><option value="mann">Mannsstemme</option></select><span class="muted">Brukes når den sungne versjonen kommer.</span></div>
+        <div class="songrow" id="rad-morgen" hidden><label for="sang-morgen-type">Morgensang som</label><select id="sang-morgen-type"><option value="vuggevise">Rolig vuggevise</option><option value="morgensang" selected>Glad morgensang</option><option value="ballade">Ballade</option><option value="vise">Vise</option><option value="country">Country</option><option value="pop">Pop</option></select><button type="button" class="primary" id="lag-morgen" disabled>Lag morgensang</button></div>
+        <div class="lyrics" id="ut-morgen" aria-live="polite" hidden></div>
+        <div class="songrow" id="rad-kveld" hidden><label for="sang-kveld-type">Kveldssang som</label><select id="sang-kveld-type"><option value="vuggevise" selected>Rolig vuggevise</option><option value="morgensang">Glad morgensang</option><option value="ballade">Ballade</option><option value="vise">Vise</option><option value="country">Country</option><option value="pop">Pop</option></select><button type="button" class="primary" id="lag-kveld" disabled>Lag kveldssang</button></div>
+        <div class="lyrics" id="ut-kveld" aria-live="polite" hidden></div>
+        <p class="muted">Horoskop, månetegn og tall er tradisjon og inspirasjon, ikke fakta, og sangene gir ingen råd om helse. En sang lages bare når du trykker på knappen.</p>
+      </article>
+      <article class="card wide">
+        <div class="card-head"><h3>Sang til noen</h3><span class="tag hyp">Demo</span></div>
+        <p>Skriv noen ord om en du er glad i, eller det du vil si til dem. Vi gjør ordene om til en sangtekst som passer sangtypen du velger.</p>
+        <form class="til" id="til-form">
+          <div class="pair">
+            <div><label for="til-mottaker">Sangen er til</label><select id="til-mottaker"><option value="kjæreste">Kjæreste</option><option value="ektefelle">Ektefelle</option><option value="datter">Datter</option><option value="sønn">Sønn</option><option value="mor">Mor</option><option value="far">Far</option><option value="barnebarn">Barnebarn</option><option value="venn">Venn</option><option value="kollega">Kollega</option><option value="annen">Annen</option></select></div>
+            <div><label for="til-navn">Fornavnet deres (valgfritt)</label><input type="text" id="til-navn" maxlength="40" autocomplete="off"></div>
+            <div><label for="til-type">Sangtype og melodi</label><select id="til-type"><option value="vuggevise">Rolig vuggevise</option><option value="morgensang">Glad morgensang</option><option value="ballade">Ballade</option><option value="vise" selected>Vise</option><option value="country">Country</option><option value="pop">Pop</option></select></div>
+          </div>
+          <label for="til-tekst">Det du vil si</label>
+          <textarea id="til-tekst" maxlength="400" placeholder="For eksempel: Takk for alle turene i fjæra. Du lærte meg å fiske. Du får meg alltid til å le."></textarea>
+          <div class="row"><button type="submit" class="primary">Lag sang</button><span class="muted">Opptil 400 tegn.</span></div>
+          <p class="muted" id="til-msg" aria-live="polite"></p>
+        </form>
+        <div class="lyrics" id="ut-til" aria-live="polite" hidden></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Slik blir det senere</h3><span class="tag hyp">Kommer senere</span></div>
+        <p>Den sungne versjonen skal lages med CloneVoice. Det er ikke koblet til ennå, så i dag får du bare tekstutkastet. Pris er ikke satt.</p>
+        <p class="muted">Ingen KI brukes i denne prototypen. Teksten lages av enkle maler på enheten din, og ingenting sendes ut.</p>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Dine sangvalg</h3><span class="tag fact">Bare på denne enheten</span></div>
+        <p class="muted">Valgene og teksten du skriver lagres bare i nettleseren på denne enheten. De er helt atskilt fra stemmene dine og sakene i VoteApp, og er med når du laster ned eller sletter under Mine data.</p>
+        <div class="row"><button type="button" id="sang-glem">Slett sangvalgene mine</button></div>
+      </article>
+    </div>
+  </section>
+
   <!-- PERSONVERN -->
   <section class="view" id="view-personvern" aria-labelledby="h-pv" hidden>
     <div class="grid">
@@ -458,6 +530,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
             <tr><td>Målinger og helsenotater</td><td>Matforslag</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" aria-label="Målinger og helsenotater" checked> På</label></td></tr>
             <tr><td>Matforråd og middager</td><td>Handleliste</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" aria-label="Matforråd og middager" checked> På</label></td></tr>
             <tr><td>Interesser</td><td>Varsler om saker</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" aria-label="Interesser" checked> På</label></td></tr>
+            <tr><td>Sangvalg og tekst til sanger</td><td>Utkast til morgensang, kveldssang og sang til noen</td><td>Bare deg, lagres bare på enheten</td><td><a href="#sang">Velg under Sangene mine</a></td></tr>
             <tr><td>Synlighet i grupper</td><td>Fellesskap</td><td>Gruppene du velger</td><td><label class="chip"><input type="checkbox" aria-label="Synlighet i grupper"> Av</label></td></tr>
           </tbody>
         </table></div>
@@ -494,6 +567,8 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 <script src="/lib/astronomy.browser.min.js?v=2026-11-20"></script>
 <script src="/lib/himmel.js?v=2026-11-20"></script>
 <script src="/lib/uka.js?v=2026-11-20b"></script>
+<!-- Relativ sti, så forhåndsvisningen på raw.githack også finner skriptet. -->
+<script src="lib/sang.js?v=2026-11-20"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
 <script src="/lib/meg-konto.js?v=2026-11-20"></script>
@@ -1350,13 +1425,18 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     });
     msg.addEventListener("click", function(e){
       var b = e.target; if(!b || b.tagName !== "BUTTON" || !b.classList.contains("primary")){ return; }
-      try{ var del = []; for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k === "meg-dager" || k.indexOf("meg-otd-") === 0){ del.push(k); } } del.forEach(function(k){ localStorage.removeItem(k); }); }catch(x){}
+      try{ var del = []; for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k === "meg-dager" || k === "meg-sang" || k.indexOf("meg-otd-") === 0){ del.push(k); } } del.forEach(function(k){ localStorage.removeItem(k); }); }catch(x){}
       days = []; renderTimeline();
     });
   })();
 
+  /* ---- Sangene mine (lib/sang.js): morgensang, kveldssang og sang til noen. Demo: bare tekstutkast, ingen lyd. ---- */
+  if(window.Sang){
+    try{ window.Sang.start({navn: NAVN, egen: EGEN, sol: birth ? birth.sol.tegn : null, maane: birth && birth.maane.sikker ? birth.maane.tegn : null, tall: pDay, fase: phase || null}); }catch(e){}
+  } else if($("sang-person")){ $("sang-person").textContent = "Sangdelen kunne ikke lastes. Prøv å laste siden på nytt."; }
+
   /* ---- hash routing ---- */
-  var views = ["dag","plan","mat","helse","interesser","livet","personvern"];
+  var views = ["dag","plan","mat","helse","interesser","livet","sang","personvern"];
   function route(){
     var v = (location.hash || "#dag").slice(1); if(views.indexOf(v) === -1){ v = "dag"; }
     views.forEach(function(x){ $("view-" + x).hidden = x !== v; });
