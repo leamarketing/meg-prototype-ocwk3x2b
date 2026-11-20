@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>meg.voteapp.eu</title>
+<title>Meu dia · me.voteapp.eu (protótipo)</title>
+<meta name="description" content="Protótipo do Meu dia: resumo do dia, planejamento, jantar e lista de compras, interesses e comunidade ligados a temas do VoteApp. Dados de exemplo, nenhum dado pessoal real.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
@@ -126,11 +127,12 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 .langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
 .langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
 .langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tag.planned{display:inline-block;margin-left:4px;vertical-align:1px}
 </style>
 
 <div class="wrap">
   <div class="langbar"><label for="lang-select"><span aria-hidden="true">&#127760;</span> Idioma</label><select id="lang-select"><option value="nb">Norsk</option><option value="en">English</option><option value="pt" selected>Português</option><option value="es">Español</option><option value="zh">中文</option><option value="se">Davvisámegiella (utkast)</option><option value="fkv">Kväänin kieli (utkast)</option></select></div>
-  <div class="demo" role="note"><b>Protótipo</b><span>Tudo aqui são dados de exemplo da pessoa de teste “Kari”. Nenhum dado pessoal real é guardado ou enviado. Feito para testar as ideias do meg.voteapp.eu antes de qualquer desenvolvimento.</span></div>
+  <div class="demo" role="note"><b>Protótipo</b><span>Tudo aqui são dados de exemplo da pessoa de teste “Kari”. Nenhum dado pessoal real é guardado ou enviado. Feito para testar as ideias do me.voteapp.eu antes de qualquer desenvolvimento.</span></div>
 
   <header class="sky" id="sky">
     <canvas id="skycanvas" aria-hidden="true"></canvas>
@@ -152,7 +154,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   </header>
   <canvas id="confetti" aria-hidden="true"></canvas>
 
-  <nav class="tabs" aria-label="Seções do meg.voteapp.eu">
+  <nav class="tabs" aria-label="Seções do me.voteapp.eu">
     <a href="#dag">Meu dia</a>
     <a href="#plan">O que vou fazer hoje?</a>
     <a href="#mat">Jantar e lista de compras</a>
@@ -273,7 +275,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 
   <!-- HELSE -->
   <section class="view" id="view-helse" aria-labelledby="h-helse" hidden>
-    <div class="note"><b>Importante:</b> O meg.voteapp.eu não faz diagnóstico. Aqui você vê alimentos naturalmente ricos naquilo que você mesmo escolheu acompanhar. Fale com um médico ou outro profissional de saúde se suspeitar de alguma carência.</div>
+    <div class="note"><b>Importante:</b> O me.voteapp.eu não faz diagnóstico. Aqui você vê alimentos naturalmente ricos naquilo que você mesmo escolheu acompanhar. Fale com um médico ou outro profissional de saúde se suspeitar de alguma carência.</div>
     <div class="grid">
       <article class="card">
         <div class="card-head"><h2 id="h-helse">Minhas medições</h2><span class="tag fact">Inseridas por você</span></div>
@@ -327,29 +329,29 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
         <div class="tablebox"><table>
           <thead><tr><th>O quê</th><th>Por quê</th><th>Quem vê</th><th>Ligado</th></tr></thead>
           <tbody>
-            <tr><td>Data de nascimento e nome</td><td>Número do dia e horóscopo</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
-            <tr><td>Humor e gratidão</td><td>Seu próprio diário</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
-            <tr><td>Medições e notas de saúde</td><td>Sugestões de alimentos</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
-            <tr><td>Despensa e jantares</td><td>Lista de compras</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
-            <tr><td>Interesses</td><td>Avisos sobre pautas</td><td>Só você</td><td><label class="chip"><input type="checkbox" checked> Ligado</label></td></tr>
-            <tr><td>Visibilidade em grupos</td><td>Comunidade</td><td>Os grupos que você escolher</td><td><label class="chip"><input type="checkbox"> Desligado</label></td></tr>
+            <tr><td>Data de nascimento e nome</td><td>Número do dia e horóscopo</td><td>Só você</td><td><label class="chip"><input type="checkbox" aria-label="Data de nascimento e nome" checked> Ligado</label></td></tr>
+            <tr><td>Humor e gratidão</td><td>Seu próprio diário</td><td>Só você</td><td><label class="chip"><input type="checkbox" aria-label="Humor e gratidão" checked> Ligado</label></td></tr>
+            <tr><td>Medições e notas de saúde</td><td>Sugestões de alimentos</td><td>Só você</td><td><label class="chip"><input type="checkbox" aria-label="Medições e notas de saúde" checked> Ligado</label></td></tr>
+            <tr><td>Despensa e jantares</td><td>Lista de compras</td><td>Só você</td><td><label class="chip"><input type="checkbox" aria-label="Despensa e jantares" checked> Ligado</label></td></tr>
+            <tr><td>Interesses</td><td>Avisos sobre pautas</td><td>Só você</td><td><label class="chip"><input type="checkbox" aria-label="Interesses" checked> Ligado</label></td></tr>
+            <tr><td>Visibilidade em grupos</td><td>Comunidade</td><td>Os grupos que você escolher</td><td><label class="chip"><input type="checkbox" aria-label="Visibilidade em grupos"> Desligado</label></td></tr>
           </tbody>
         </table></div>
         <ul class="plain">
-          <li><b>Seus votos ficam totalmente separados.</b> Nada do meg.voteapp.eu é usado para perfil político, anúncios ou ponderação de votos.</li>
-          <li><b>Armazenado na UE</b>, criptografado. Informações de saúde exigem o seu próprio consentimento.</li>
-          <li><b>Somente adultos</b> (18 anos ou mais) na primeira versão.</li>
+          <li><b>Seus votos ficam totalmente separados.</b> Nada do me.voteapp.eu é usado para perfil político, anúncios ou ponderação de votos.</li>
+          <li><b>Armazenado na UE</b>, criptografado. Informações de saúde exigem o seu próprio consentimento. <span class="tag hyp planned">Previsto na versão real</span></li>
+          <li><b>Somente adultos</b> (18 anos ou mais) na primeira versão. <span class="tag hyp planned">Previsto na versão real</span></li>
         </ul>
         <div class="row">
           <button type="button" id="export-btn">Baixar meus dados</button>
-          <button type="button" id="delete-btn">Apagar tudo no meg.voteapp.eu</button>
+          <button type="button" id="delete-btn">Apagar tudo no me.voteapp.eu</button>
         </div>
         <div id="pv-msg" aria-live="polite"></div>
       </article>
     </div>
   </section>
 
-  <footer>meg.voteapp.eu · protótipo v0.3 · 13 de novembro de 2026 · dados de exemplo, nenhum dado pessoal real</footer>
+  <footer>me.voteapp.eu · protótipo v0.3 · 13 de novembro de 2026 · dados de exemplo, nenhum dado pessoal real</footer>
 </div>
 
 <style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
@@ -666,7 +668,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   var shopText = "";
   function renderShop(){
     var need = {};
-    dishes.forEach(function(dsh){ if(chosen.indexOf(dsh.id) > -1){ dsh.ing.forEach(function(g){ if(have.indexOf(g) === -1){ (need[g] = need[g] || []).push(dsh.name.split(" ")[0] + " " + (dsh.name.split(" ")[1]||"")); } }); } });
+    dishes.forEach(function(dsh){ if(chosen.indexOf(dsh.id) > -1){ dsh.ing.forEach(function(g){ if(have.indexOf(g) === -1){ (need[g] = need[g] || []).push(dsh.name); } }); } });
     var ul = $("shop"); ul.textContent = ""; var keys = Object.keys(need).sort(function(a,b){ return a.localeCompare(b, "pt"); });
     if(!keys.length){ ul.appendChild(el("li", null, "Você tem tudo de que precisa. Nada de compras hoje!")); shopText = ""; return; }
     keys.forEach(function(k){ var li = el("li"); li.appendChild(el("span", null, k)); li.appendChild(el("span", {"class":"muted"}, need[k].join(", "))); ul.appendChild(li); });
@@ -763,7 +765,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   $("export-btn").addEventListener("click", function(){ $("pv-msg").textContent = ""; var p = el("p", {"class":"note"}, "Na versão real, você recebe um arquivo com tudo o que inseriu. Este protótipo só guarda dados de exemplo no seu navegador."); $("pv-msg").appendChild(p); });
   $("delete-btn").addEventListener("click", function(){
     var box = $("pv-msg"); box.textContent = "";
-    var c = el("div", {"class":"confirm"}); c.appendChild(el("b", null, "Apagar tudo o que você inseriu no meg.voteapp.eu?"));
+    var c = el("div", {"class":"confirm"}); c.appendChild(el("b", null, "Apagar tudo o que você inseriu no me.voteapp.eu?"));
     c.appendChild(el("span", null, "Sua conta do VoteApp e seus votos não são afetados. No protótipo, apenas os dados de exemplo são redefinidos."));
     var row = el("div", {"class":"row"}), yes = el("button", {type:"button", "class":"primary"}, "Sim, apagar"), no = el("button", {type:"button"}, "Cancelar");
     yes.addEventListener("click", function(){ ["todos","chosen","have","following","interests","joined"].forEach(function(k){ try{ localStorage.removeItem("meg-pt-"+k); }catch(e){} }); box.textContent = ""; box.appendChild(el("p", {"class":"note"}, "Apagado. Recarregue a página para recomeçar com os dados de exemplo.")); });

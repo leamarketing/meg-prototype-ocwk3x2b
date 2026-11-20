@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>meg.voteapp.eu</title>
+<title>Minun päivä · me.voteapp.eu (prototyyppi, utkast)</title>
+<meta name="description" content="Minun päivä, Päivälinen ja ostoslista, Kiinostukset ja yhtheisö. Prototyyppi, esimerkkitietoja.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
@@ -126,11 +127,15 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 .langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
 .langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
 .langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tag.planned{display:inline-block;margin-left:4px;vertical-align:1px}
+.draftbar{background:#8a1f11;color:#fff;border-radius:var(--r);padding:10px 14px;font-size:15px;line-height:1.4}
+.draftbar b{font-weight:800}
 </style>
 
 <div class="wrap">
+  <div class="draftbar" role="note" lang="nb"><b>Utkast, ikke språkvasket.</b> Oversettelsen er maskinlaget og ikke lest av noen som kan språket ennå. <span lang="en">Draft, not proofread.</span></div>
   <div class="langbar"><label for="lang-select"><span aria-hidden="true">&#127760;</span> Kieli</label><select id="lang-select"><option value="nb">Norsk</option><option value="en">English</option><option value="pt">Português</option><option value="es">Español</option><option value="zh">中文</option><option value="se">Davvisámegiella (utkast)</option><option value="fkv" selected>Kväänin kieli (utkast)</option></select></div>
-  <div class="demo" role="note"><b>Prototyyppi</b><span>Kaikki tässä oon esimerkkitietoja testihenkilöstä «Kari». Oikkeita henkilötietoja ei talteta eikä lähätetä. Tehty kokkeilemhaan meg.voteapp.eu:n ajatuksia ennen ko mithään kehitethään. (Utkast, maskinoversatt, ikke korrekturlest ennå.)</span></div>
+  <div class="demo" role="note"><b>Prototyyppi</b><span>Kaikki tässä oon esimerkkitietoja testihenkilöstä «Kari». Oikkeita henkilötietoja ei talteta eikä lähätetä. Tehty kokkeilemhaan me.voteapp.eu:n ajatuksia ennen ko mithään kehitethään. (Utkast, maskinoversatt, ikke korrekturlest ennå.)</span></div>
 
   <header class="sky" id="sky">
     <canvas id="skycanvas" aria-hidden="true"></canvas>
@@ -152,7 +157,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   </header>
   <canvas id="confetti" aria-hidden="true"></canvas>
 
-  <nav class="tabs" aria-label="meg.voteapp.eu:n osat">
+  <nav class="tabs" aria-label="me.voteapp.eu:n osat">
     <a href="#dag">Minun päivä</a>
     <a href="#plan">Mitä mie teen tänään?</a>
     <a href="#mat">Päivälinen ja ostoslista</a>
@@ -273,7 +278,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 
   <!-- HELSE -->
   <section class="view" id="view-helse" aria-labelledby="h-helse" hidden>
-    <div class="note"><b>Tärkeä:</b> meg.voteapp.eu ei tee diagnoosia. Tässä näet ruokia joissa oon luonnostansa paljon sitä mitä sie itte olet valinu seurata. Puhu lääkärin eli muun terveysalan ihmisen kansa jos mietit onko sulla puutosta.</div>
+    <div class="note"><b>Tärkeä:</b> me.voteapp.eu ei tee diagnoosia. Tässä näet ruokia joissa oon luonnostansa paljon sitä mitä sie itte olet valinu seurata. Puhu lääkärin eli muun terveysalan ihmisen kansa jos mietit onko sulla puutosta.</div>
     <div class="grid">
       <article class="card">
         <div class="card-head"><h2 id="h-helse">Minun mittaukset</h2><span class="tag fact">Sie olet lisänny</span></div>
@@ -327,29 +332,29 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
         <div class="tablebox"><table>
           <thead><tr><th>Mikä</th><th>Miksi</th><th>Kuka näkkee</th><th>Päälä/pois</th></tr></thead>
           <tbody>
-            <tr><td>Syntymäpäivä ja nimi</td><td>Päivän numero ja horoskooppi</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" checked> Päälä</label></td></tr>
-            <tr><td>Mieli ja kiitolisuus</td><td>Sinun oma päiväkirja</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" checked> Päälä</label></td></tr>
-            <tr><td>Mittaukset ja terveysmuistiinpanot</td><td>Ruokaehotukset</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" checked> Päälä</label></td></tr>
-            <tr><td>Ruokavarasto ja päivälisett</td><td>Ostoslista</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" checked> Päälä</label></td></tr>
-            <tr><td>Kiinostukset</td><td>Ilmotukset assioista</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" checked> Päälä</label></td></tr>
-            <tr><td>Näkyvyys ryhmissä</td><td>Yhtheisö</td><td>Ryhmät jotka sie valihet</td><td><label class="chip"><input type="checkbox"> Pois</label></td></tr>
+            <tr><td>Syntymäpäivä ja nimi</td><td>Päivän numero ja horoskooppi</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" aria-label="Syntymäpäivä ja nimi" checked> Päälä</label></td></tr>
+            <tr><td>Mieli ja kiitolisuus</td><td>Sinun oma päiväkirja</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" aria-label="Mieli ja kiitolisuus" checked> Päälä</label></td></tr>
+            <tr><td>Mittaukset ja terveysmuistiinpanot</td><td>Ruokaehotukset</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" aria-label="Mittaukset ja terveysmuistiinpanot" checked> Päälä</label></td></tr>
+            <tr><td>Ruokavarasto ja päivälisett</td><td>Ostoslista</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" aria-label="Ruokavarasto ja päivälisett" checked> Päälä</label></td></tr>
+            <tr><td>Kiinostukset</td><td>Ilmotukset assioista</td><td>Vain sie</td><td><label class="chip"><input type="checkbox" aria-label="Kiinostukset" checked> Päälä</label></td></tr>
+            <tr><td>Näkyvyys ryhmissä</td><td>Yhtheisö</td><td>Ryhmät jotka sie valihet</td><td><label class="chip"><input type="checkbox" aria-label="Näkyvyys ryhmissä"> Pois</label></td></tr>
           </tbody>
         </table></div>
         <ul class="plain">
-          <li><b>Sinun äänet oon kokonhaan erilhään.</b> Mithään meg.voteapp.eu:sta ei käytetä poliittisheen profilointhiin, mainoksiin eikä äänten painottamisheen.</li>
-          <li><b>Talletettu EU:hun</b>, salattu. Terveystiedot vaatiit sinun oman suostumuksen.</li>
-          <li><b>Vain aikuisille</b> (18 vuotta ja vanhemmat) ensimäisessä versiossa.</li>
+          <li><b>Sinun äänet oon kokonhaan erilhään.</b> Mithään me.voteapp.eu:sta ei käytetä poliittisheen profilointhiin, mainoksiin eikä äänten painottamisheen.</li>
+          <li><b>Talletettu EU:hun</b>, salattu. Terveystiedot vaatiit sinun oman suostumuksen. <span class="tag hyp planned">Planlagt i ekte versjon</span></li>
+          <li><b>Vain aikuisille</b> (18 vuotta ja vanhemmat) ensimäisessä versiossa. <span class="tag hyp planned">Planlagt i ekte versjon</span></li>
         </ul>
         <div class="row">
           <button type="button" id="export-btn">Lattaa minun tiedot</button>
-          <button type="button" id="delete-btn">Poista kaikki meg.voteapp.eu:sta</button>
+          <button type="button" id="delete-btn">Poista kaikki me.voteapp.eu:sta</button>
         </div>
         <div id="pv-msg" aria-live="polite"></div>
       </article>
     </div>
   </section>
 
-  <footer>meg.voteapp.eu · prototyyppi v0.3 · 13. marraskuuta 2026 · esimerkkitietoja, ei oikkeita henkilötietoja</footer>
+  <footer>me.voteapp.eu · prototyyppi v0.3 · 13. marraskuuta 2026 · esimerkkitietoja, ei oikkeita henkilötietoja</footer>
 </div>
 
 <style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
@@ -666,7 +671,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   var shopText = "";
   function renderShop(){
     var need = {};
-    dishes.forEach(function(dsh){ if(chosen.indexOf(dsh.id) > -1){ dsh.ing.forEach(function(g){ if(have.indexOf(g) === -1){ (need[g] = need[g] || []).push(dsh.name.split(" ")[0] + " " + (dsh.name.split(" ")[1]||"")); } }); } });
+    dishes.forEach(function(dsh){ if(chosen.indexOf(dsh.id) > -1){ dsh.ing.forEach(function(g){ if(have.indexOf(g) === -1){ (need[g] = need[g] || []).push(dsh.name); } }); } });
     var ul = $("shop"); ul.textContent = ""; var keys = Object.keys(need).sort(function(a,b){ return a.localeCompare(b, "fi"); });
     if(!keys.length){ ul.appendChild(el("li", null, "Sulla oon kaikki mitä tarvittet. Ei ostosreissua tänään!")); shopText = ""; return; }
     keys.forEach(function(k){ var li = el("li"); li.appendChild(el("span", null, k)); li.appendChild(el("span", {"class":"muted"}, need[k].join(", "))); ul.appendChild(li); });
@@ -763,7 +768,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   $("export-btn").addEventListener("click", function(){ $("pv-msg").textContent = ""; var p = el("p", {"class":"note"}, "Oikkeassa versiossa saat tieoston jossa oon kaikki mitä olet lisänny. Tämä prototyyppi tallentaa vain esimerkkitietoja sinun selaimheen."); $("pv-msg").appendChild(p); });
   $("delete-btn").addEventListener("click", function(){
     var box = $("pv-msg"); box.textContent = "";
-    var c = el("div", {"class":"confirm"}); c.appendChild(el("b", null, "Poistetaanko kaikki mitä olet lisänny meg.voteapp.eu:hun?"));
+    var c = el("div", {"class":"confirm"}); c.appendChild(el("b", null, "Poistetaanko kaikki mitä olet lisänny me.voteapp.eu:hun?"));
     c.appendChild(el("span", null, "Sinun VoteApp-tili ja äänet ei muutu. Prototyypissä vain esimerkkitieot nollathaan."));
     var row = el("div", {"class":"row"}), yes = el("button", {type:"button", "class":"primary"}, "Kyllä, poista"), no = el("button", {type:"button"}, "Peru");
     yes.addEventListener("click", function(){ ["todos","chosen","have","following","interests","joined"].forEach(function(k){ try{ localStorage.removeItem("meg-fkv-"+k); }catch(e){} }); box.textContent = ""; box.appendChild(el("p", {"class":"note"}, "Poistettu. Lattaa sivu uuesti alkaaksesi taas esimerkkitietojen kansa.")); });

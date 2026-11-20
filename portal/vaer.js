@@ -1,9 +1,12 @@
 /* Været i Min dag: kart (Leaflet + OpenStreetMap) og varsel fra MET Norway (api.met.no, Locationforecast 2.0).
    MET-data er gratis også kommersielt (CC BY 4.0, krever kreditering). Nettleseren kan ikke sette egen User-Agent,
-   så MET kjenner siden igjen på Origin. Før betalt lansering: legg en liten mellomtjeneste foran (se moduler/vaer_rapport). */
+   så varselet hentes via mellomtjenesten met-vaer (supabase/functions/met-vaer), som setter User-Agent og buffrer.
+   Direkte kall til MET brukes bare som reserve hvis mellomtjenesten ikke svarer. */
 (function(){
   "use strict";
   var API = "https://api.met.no/weatherapi/locationforecast/2.0/compact";
+  var PROXY = ((window.ME_SUPABASE && window.ME_SUPABASE.url) || "https://xprcbxubejpazmdbpsmy.supabase.co") + "/functions/v1/met-vaer";
+  var SS = "me_vaer_v1:", KEEP = 30 * 60000;
   var HOME = {lat:69.77, lon:21.03, name:"Storslett, Nordreisa"};
   var PLACES = [
     {name:"Storslett", lat:69.77, lon:21.03}, {name:"Skjervøy", lat:70.03, lon:20.98},
@@ -25,6 +28,8 @@
   var cache = {}, map = null, pin = null, reqId = 0;
 
   function r4(x){ return Math.round(x * 10000) / 10000; }
+  /* 3 desimaler (ca. 100 m): innenfor MET sitt krav (maks 4) og gir flere treff i bufferen. */
+  function r3(x){ return Math.round(x * 1000) / 1000; }
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
   function symText(code){
     if(!code){ return "Ukjent"; }
@@ -37,14 +42,29 @@
   function fmtN(x){ return x == null ? "–" : (Math.round(x * 10) / 10).toString().replace(".", ",") ; }
   function status(t, err){ var s = $("w-status"); s.textContent = t || ""; s.className = "muted" + (err ? " berr" : ""); }
 
-  /* Henter varsel og husker det til tiden MET oppgir i Expires (MET ber om at vi ikke spør oftere). */
-  function getForecast(lat, lon){
-    var key = r4(lat) + "," + r4(lon), hit = cache[key];
-    if(hit && hit.until > Date.now()){ return Promise.resolve(hit.data); }
-    return fetch(API + "?lat=" + r4(lat) + "&lon=" + r4(lon)).then(function(r){
+  /* Henter varsel via mellomtjenesten vår (Supabase-funksjonen met-vaer), som sender riktig User-Agent til MET og
+     buffrer svaret. Virker den ikke, spør vi MET direkte som før. Svaret huskes i minnet og i sessionStorage
+     i minst 30 minutter (lenger hvis MET sin Expires sier det), så samme sted hentes bare én gang per visning. */
+  function fetchJson(url){
+    return fetch(url).then(function(r){
       if(!r.ok){ throw new Error("MET svarte " + r.status); }
-      var exp = Date.parse(r.headers.get("Expires") || "") || (Date.now() + 30 * 60000);
-      return r.json().then(function(d){ cache[key] = {until:exp, data:d}; return d; });
+      var exp = Date.parse(r.headers.get("Expires") || "") || 0;
+      return r.json().then(function(d){
+        if(!d || !d.properties || !d.properties.timeseries){ throw new Error("uventet svar"); }
+        return {exp:exp, data:d};
+      });
+    });
+  }
+  function getForecast(lat, lon){
+    var la = r3(lat), lo = r3(lon), key = la + "," + lo, hit = cache[key];
+    if(!hit){ try { hit = JSON.parse(sessionStorage.getItem(SS + key) || "null"); } catch(e){ hit = null; } }
+    if(hit && hit.until > Date.now()){ cache[key] = hit; return Promise.resolve(hit.data); }
+    var q = "?lat=" + la + "&lon=" + lo;
+    return fetchJson(PROXY + q).catch(function(){ return fetchJson(API + q); }).then(function(res){
+      var rec = {until:Math.max(res.exp, Date.now() + KEEP), data:res.data};
+      cache[key] = rec;
+      try { sessionStorage.setItem(SS + key, JSON.stringify(rec)); } catch(e){ /* full eller avslått: minnet holder */ }
+      return res.data;
     });
   }
 
