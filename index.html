@@ -114,6 +114,17 @@ th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 .tablebox{overflow-x:auto}
 .confirm{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--sun);background:var(--soft-sun)}
 footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
+/* Dagens himmel og «Hva betyr dagen i dag for meg?» */
+.sky-facts{display:flex;flex-direction:column;gap:4px;margin:0;padding:0;list-style:none}
+.trad{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.trad .tag{flex:0 0 auto}
+.trad p{flex:1 1 200px;min-width:0}
+.skyline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:var(--fact-bg);color:var(--ink)}
+.skyline a{color:inherit}
+.meaning{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.meaning li{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.meaning li .tag{flex:0 0 auto}
+.meaning li span.t{flex:1 1 220px;min-width:0}
 /* v0.2 visuals */
 .sky{min-height:300px}
 .sky-inner{padding-bottom:64px}
@@ -139,17 +150,6 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 .langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
 .langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
 .langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-/* Dagens himmel og «Hva betyr dagen i dag for meg?» */
-.sky-facts{display:flex;flex-direction:column;gap:4px;margin:0;padding:0;list-style:none}
-.trad{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
-.trad .tag{flex:0 0 auto}
-.trad p{flex:1 1 200px;min-width:0}
-.skyline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:var(--fact-bg);color:var(--ink)}
-.skyline a{color:inherit}
-.meaning{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
-.meaning li{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
-.meaning li .tag{flex:0 0 auto}
-.meaning li span.t{flex:1 1 220px;min-width:0}
 </style>
 
 <div class="wrap">
@@ -582,10 +582,17 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
       });
       /* the fjord: a soft band of light at the bottom */
       var fj = ctx.createLinearGradient(0, h*0.93, 0, h); fj.addColorStop(0, "rgba(255,255,255,0)"); fj.addColorStop(1, mode === "day" ? "rgba(200,225,240,0.35)" : "rgba(120,200,180,0.12)"); ctx.fillStyle = fj; ctx.fillRect(0, h*0.93, w, h*0.07);
-      if(!reduce){ requestAnimationFrame(draw); }
+      if(live()){ raf = requestAnimationFrame(draw); } else { raf = 0; }
     }
-    size(); window.addEventListener("resize", function(){ size(); if(reduce){ draw(performance.now()); } });
-    requestAnimationFrame(draw);
+    /* Strøm: løkken går bare når bevegelse er tillatt, fanen er synlig og himmelen er på skjermen.
+       Ellers tegnes ett stillbilde. Ingen setInterval. */
+    var raf = 0, onScreen = true;
+    function live(){ return !reduce && !document.hidden && onScreen; }
+    function kick(){ if(live()){ if(!raf){ raf = requestAnimationFrame(draw); } } else if(raf){ cancelAnimationFrame(raf); raf = 0; } }
+    size(); window.addEventListener("resize", function(){ size(); if(!raf){ draw(performance.now()); } }, {passive:true});
+    document.addEventListener("visibilitychange", kick);
+    if("IntersectionObserver" in window){ new IntersectionObserver(function(en){ onScreen = en[0].isIntersecting; kick(); }).observe($("sky")); }
+    raf = requestAnimationFrame(draw);
   })();
 
   /* ---- number medallion: one dot per unit of today's number ---- */
