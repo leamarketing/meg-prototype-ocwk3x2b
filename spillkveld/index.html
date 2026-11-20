@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Familiens spillkveld: prototype for Min dag</title>
+<meta name="description" content="Klikkbar prototype (konsept) av Familiens spillkveld i Min dag: finn en kveld, stem rådgivende på spill og last ned kalenderfil. Eksempeldata.">
+<meta name="color-scheme" content="light dark">
+<style>
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e8efee; --ink:#14232b; --muted:#4d5d64; --line:#c4d1d0;
+  --accent:#17715a; --accent-ink:#ffffff; --soft-accent:#d8efe7; --sun:#a65f00; --soft-sun:#f7e8cf;
+  --warn-bg:#fdf1e4; --warn-ink:#6e400b; --ja:#17715a; --kanskje:#8a5a00; --nei:#a3302a;
+  --body:"Segoe UI", system-ui, -apple-system, Roboto, sans-serif; --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#a6b8be; --line:#344952;
+  --accent:#43c39b; --accent-ink:#06231a; --soft-accent:#173a31; --sun:#f0a94a; --soft-sun:#3a2c16;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; --ja:#5fd3ad; --kanskje:#f0c060; --nei:#ff8f86; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#a6b8be; --line:#344952;
+  --accent:#43c39b; --accent-ink:#06231a; --soft-accent:#173a31; --sun:#f0a94a; --soft-sun:#3a2c16;
+  --warn-bg:#3a2a16; --warn-ink:#f3c98a; --ja:#5fd3ad; --kanskje:#f0c060; --nei:#ff8f86; color-scheme:dark }
+:root[data-theme="light"]{color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;overflow-wrap:anywhere}
+.hopp{position:absolute;left:-9999px;top:0;background:var(--accent);color:var(--accent-ink);padding:10px 14px;border-radius:0 0 10px 0;z-index:10}
+.hopp:focus{left:0}
+.skjult{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{max-width:860px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px}
+.banner{background:var(--warn-bg);color:var(--warn-ink);border:1px solid currentColor;border-radius:var(--r);padding:10px 14px;font-size:15px}
+.banner b{font-size:16px}
+header.topp{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-start}
+h1,h2,h3{line-height:1.2;margin:0}
+h1{font-size:clamp(26px,6vw,36px)}
+h2{font-size:22px}
+h3{font-size:18px}
+p{margin:0}
+section{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+section > h2{scroll-margin-top:12px}
+.muted{color:var(--muted);font-size:15px}
+.liste{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.medlem{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:10px}
+.hake{display:flex;gap:10px;align-items:center;cursor:pointer;min-height:44px}
+.hake input{width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto}
+.kort{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.kort.valgt{border:2px solid var(--accent)}
+.kort-topp{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:flex-start}
+.merke{display:inline-block;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--soft-sun);color:var(--ink);border:1px solid var(--sun)}
+.valgt-merke{background:var(--soft-accent);border-color:var(--accent)}
+.rad{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.felt{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 220px}
+.felt.kort{flex:0 1 auto;background:none;border:0;padding:0}
+label{font-weight:600}
+input[type=text],input[type=date],input[type=time],select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--muted);border-radius:10px;padding:9px 10px;min-height:44px;max-width:100%}
+button{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--muted);background:var(--surface-2);color:var(--ink);padding:9px 14px;min-height:44px;cursor:pointer}
+button.liten{min-height:36px;padding:4px 10px;font-size:15px}
+button.hoved{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);align-self:flex-start}
+button:disabled{opacity:.6;cursor:not-allowed}
+button[aria-pressed="true"]{background:var(--soft-accent);border:2px solid var(--accent)}
+.svar{flex:1 1 90px}
+.svar[aria-pressed="true"].svar-ja{border-color:var(--ja)}
+.svar[aria-pressed="true"].svar-kanskje{border-color:var(--kanskje);background:var(--soft-sun)}
+.svar[aria-pressed="true"].svar-nei{border-color:var(--nei);background:var(--surface-2);text-decoration:underline}
+.svar span{display:inline-block;width:1.1em;text-align:center}
+.telling b{color:var(--ink)}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.valg:focus-within{outline:3px solid var(--sun);outline-offset:2px}
+details summary{cursor:pointer;font-weight:600;min-height:32px;padding:4px 0}
+details ul{margin:6px 0 0;padding-left:20px}
+fieldset{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
+legend{font-weight:700;padding:0 6px}
+.valg{display:flex;gap:10px;align-items:center;min-height:44px;cursor:pointer;font-weight:600}
+.valg input{width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto}
+.resultat li{display:flex;flex-direction:column;gap:4px}
+.res-topp{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.stolpe{height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.stolpe span{display:block;height:100%;background:var(--accent)}
+.detaljer{font-weight:600}
+.mangler{display:inline-block;background:var(--warn-bg);color:var(--warn-ink);border:1px dashed currentColor;border-radius:6px;padding:0 6px;font-size:14px}
+.planlagt{background:var(--surface-2);border-left:4px solid var(--sun);padding:8px 12px;border-radius:0 10px 10px 0;font-size:15px}
+.oppsummering{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0}
+.oppsummering dt{font-weight:700}
+.oppsummering dd{margin:0;min-width:0}
+ul.vanlig{margin:0;padding-left:20px}
+.kolonne{display:flex;flex-direction:column;gap:16px}
+footer{font-size:14px;color:var(--muted);text-align:center}
+@media (max-width:420px){.oppsummering{grid-template-columns:1fr}.oppsummering dd{margin-bottom:6px}}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<a class="hopp" href="#hoved">Hopp til innholdet</a>
+<div class="wrap">
+  <p class="banner" role="note"><b>Prototype, konsept.</b> Ingenting her er bygget i Min dag ennå. Familien under er oppdiktet <b>eksempeldata</b>. Pris er ikke satt.</p>
+
+  <header class="topp">
+    <div>
+      <h1>Familiens spillkveld</h1>
+      <p class="muted">Min dag, me.voteapp.eu. Finn en kveld som passer, stem rådgivende på spill, og legg kvelden i kalenderen.</p>
+    </div>
+    <button type="button" id="tema" data-handling="tema" aria-pressed="false">Mørk modus</button>
+  </header>
+
+  <main id="hoved" class="kolonne">
+    <section aria-labelledby="t-hvem">
+      <h2 id="t-hvem" tabindex="-1">1. Hvem kommer</h2>
+      <div id="innhold-hvem"></div>
+    </section>
+
+    <section aria-labelledby="t-kvelden">
+      <h2 id="t-kvelden" tabindex="-1">2. Finn kvelden</h2>
+      <div id="innhold-kvelden"></div>
+    </section>
+
+    <section aria-labelledby="t-forslag">
+      <h2 id="t-forslag" tabindex="-1">3. Spillforslag tilpasset hvem som kommer</h2>
+      <div id="innhold-forslag"></div>
+    </section>
+
+    <section aria-labelledby="t-stemming">
+      <h2 id="t-stemming" tabindex="-1">4. Stem på spill (rådgivende)</h2>
+      <div id="innhold-stemming"></div>
+    </section>
+
+    <section aria-labelledby="t-bekreft">
+      <h2 id="t-bekreft" tabindex="-1">5. Bekreft og legg i kalenderen</h2>
+      <div id="innhold-bekreft"></div>
+    </section>
+
+    <section aria-labelledby="t-paminnelse">
+      <h2 id="t-paminnelse">6. Påminnelse</h2>
+      <p class="planlagt"><b>Planlagt i ekte versjon:</b> påminnelse dagen før og en time før, i appen og på e-post, med lenke til videosamtalen og spillet hvis noen er på avstand.</p>
+      <p>Prototypen sender ingenting: ingen e-post, ingen SMS, ingen varsler. Varslene i kalenderfilen fra steg 5 vises bare av din egen kalender.</p>
+    </section>
+
+    <section aria-labelledby="t-ikke">
+      <h2 id="t-ikke">Ikke med i prototypen ennå</h2>
+      <ul class="vanlig">
+        <li>Ekte familiekrets med innlogging og invitasjonslenke.</li>
+        <li>"Slik spiller dere"-kort med regler på én skjerm.</li>
+        <li>Middag og handleliste for kvelden fra Min dag.</li>
+        <li>Etterpå: hvem vant, stjerne på spillet og privat familiealbum.</li>
+        <li>Spillbibliotek med 20-30 kildesjekkede spill. Feltene med DATA MANGLER er ikke fylt ut ennå.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="t-data">
+      <h2 id="t-data">Dine data</h2>
+      <p>Alt du trykker på her lagres bare i denne nettleseren på denne enheten. Ingenting sendes til oss eller til noen andre tjenester, og siden bruker ingen sporing.</p>
+      <button type="button" data-handling="slett">Slett alt</button>
+    </section>
+  </main>
+
+  <div id="melding" class="skjult" role="status" aria-live="polite"></div>
+  <footer>Prototype 20.11.2026. Flyten er inspirert av hvordan Luma gjør invitasjon og påmelding. Ingen data går til Luma eller andre.</footer>
+</div>
+<script src="logikk.js?v=2026-11-20"></script>
+<script src="app.js?v=2026-11-20"></script>
+</body>
+</html>
