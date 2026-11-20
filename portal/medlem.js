@@ -226,10 +226,20 @@
   $("login-link").addEventListener("click", function(){
     var email = $("lemail").value.trim();
     if(!email || !$("lemail").checkValidity()){ say("Skriv e-postadressen din først.", true); $("lemail").focus(); return; }
+    var btn = $("login-link");
+    if(btn.disabled){ return; }
+    btn.disabled = true;
     say("Sender lenke...");
     sb.auth.signInWithOtp({email: email, options: {emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true}}).then(function(r){
-      if(r.error){ say("Kunne ikke sende lenken: " + r.error.message, true); return; }
-      say("Lenken er sendt til " + email + ". Sjekk innboksen, og søppelposten hvis den ikke kommer.");
+      /* Supabase tillater én lenke i minuttet per e-post. Knappen holdes av i 60 sekunder, så den ikke trykkes flere ganger. */
+      setTimeout(function(){ btn.disabled = false; }, r.error ? 5000 : 60000);
+      if(r.error){
+        if(r.status === 429 || /rate|seconds|security purposes/i.test(r.error.message || "")){
+          say("En lenke er nettopp sendt til " + email + ". Sjekk innboksen og søppelposten. Vil du ha en ny, vent ett minutt.", true); return;
+        }
+        say("Kunne ikke sende lenken: " + r.error.message, true); return;
+      }
+      say("Lenken er sendt til " + email + ". Sjekk innboksen, og søppelposten hvis den ikke kommer. Du kan be om en ny om ett minutt.");
     });
   });
 
