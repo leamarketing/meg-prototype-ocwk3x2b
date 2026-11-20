@@ -191,7 +191,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 
 <div class="wrap">
   <div class="langbar"><label for="lang-select"><span aria-hidden="true">&#127760;</span> Språk</label><select id="lang-select"><option value="nb" selected>Norsk</option><option value="en">English</option><option value="pt">Português</option><option value="es">Español</option><option value="zh">中文</option><option value="se">Davvisámegiella (utkast)</option><option value="fkv">Kväänin kieli (utkast)</option></select></div>
-  <div class="demo" role="note"><b>Prototype</b><span>Alt her er eksempeldata for testpersonen «Kari». Ingen ekte persondata lagres eller sendes. Bygget for å prøve ideene i me.voteapp.eu før noe utvikles.</span></div>
+  <div class="demo" role="note"><b>Prototype</b><span id="demo-text">Alt her er eksempeldata for testpersonen «Kari». Ingen ekte persondata lagres eller sendes. Bygget for å prøve ideene i me.voteapp.eu før noe utvikles.</span></div>
 
   <header class="sky" id="sky">
     <canvas id="skycanvas" aria-hidden="true"></canvas>
@@ -237,12 +237,12 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
         <div class="art"><svg class="medal" id="medal" viewBox="0 0 120 120" role="img" aria-label="Dagens tall"></svg><div><p class="sr" id="pday">–</p><p id="pday-text">–</p></div></div>
         <ul class="sky-facts" id="numbers"></ul>
         <p class="muted" id="pday-calc">–</p>
-        <p class="muted">Pytagoreisk numerologi er tradisjon og inspirasjon, ikke fakta. Det finnes ingen felles standard, så regelen over står skrevet her og brukes overalt i Min dag. Fødselsdato 14.03.1968 er eksempel.</p>
+        <p class="muted">Pytagoreisk numerologi er tradisjon og inspirasjon, ikke fakta. Det finnes ingen felles standard, så regelen over står skrevet her og brukes overalt i Min dag. <span id="birth-note">Fødselsdato 14.03.1968 er eksempel.</span></p>
       </article>
       <article class="card">
         <div class="card-head"><h3>Horoskop: <span id="sun-sign">Fisk</span></h3><span class="tag meta">Tradisjon</span></div>
         <div class="art"><div class="glyph" aria-hidden="true" id="sun-glyph">&#9811;&#65038;</div><p>Venus står vennlig til deg i dag. Si ja til en samtale du har utsatt, og legg merke til hvem som gir deg energi.</p></div>
-        <p class="muted" id="birth-signs">Soltegn ut fra fødselsdato 14.03.1968 (eksempel).</p>
+        <p class="muted" id="birth-signs">Soltegn ut fra fødselsdatoen.</p>
         <p class="muted">Eksempeltekst. Tolkningen er tradisjon og inspirasjon, og gir ingen råd om helse, stemmegivning eller penger.</p>
       </article>
       <article class="card">
@@ -494,6 +494,9 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 <script src="/lib/astronomy.browser.min.js?v=2026-11-20"></script>
 <script src="/lib/himmel.js?v=2026-11-20"></script>
 <script src="/lib/uka.js?v=2026-11-20b"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script defer src="/portal/supabase-public.js"></script>
+<script src="/lib/meg-konto.js?v=2026-11-20"></script>
 <script>
 (function(){
   "use strict";
@@ -503,15 +506,29 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   function $(id){ return document.getElementById(id); }
   function el(tag, attrs, text){ var e=document.createElement(tag); if(attrs){ for(var a in attrs){ e.setAttribute(a, attrs[a]); } } if(text!=null){ e.textContent=text; } return e; }
 
+  /* ---- Innlogget i Medlemsportalen? Da brukes navnet og fødselsdatoen derfra (lib/meg-konto.js). Ellers eksempelpersonen Kari. ---- */
+  var PROF = (window.MegKonto && window.MegKonto.profil) || null;
+  var NAVN = (PROF && PROF.fornavn) || "Kari";
+  var EGEN = !!(PROF && PROF.aar && PROF.mnd && PROF.dag);
+  var FY = EGEN ? PROF.aar : 1968, FM = EGEN ? PROF.mnd : 3, FD = EGEN ? PROF.dag : 14;
+  function p2(n){ return (n < 10 ? "0" : "") + n; }
+  var FDATO = p2(FD) + "." + p2(FM) + "." + FY, EKS = EGEN ? "" : " (eksempel)";
+  if(PROF){
+    $("demo-text").textContent = "Du er logget inn" + (PROF.navn ? " som " + PROF.navn : "") + ". Navnet og fødselsdatoen dine hentes fra Medlemsportalen. Resten av siden er fortsatt eksempeldata.";
+  } else {
+    $("demo-text").appendChild(document.createTextNode(" Logg inn i Medlemsportalen for å se din egen dag."));
+  }
+  $("birth-note").textContent = EGEN ? "Fødselsdatoen " + FDATO + " er hentet fra kontoen din." : "Fødselsdato 14.03.1968 er eksempel.";
+
   /* ---- date and greeting ---- */
   var oslo = { timeZone:"Europe/Oslo" };
   $("today-label").textContent = now.toLocaleDateString("nb-NO", Object.assign({weekday:"long", day:"numeric", month:"long", year:"numeric"}, oslo));
   var hour = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo)));
-  $("greeting").textContent = (hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld") + ", Kari";
+  $("greeting").textContent = (hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld") + ", " + NAVN;
 
   /* ---- numerology: example birth date 14.03.1968 ---- */
   function reduceNum(n){ while(n > 9 && n !== 11 && n !== 22){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
-  var bDay = 14, bMonth = 3;
+  var bDay = FD, bMonth = FM;
   var y = Number(now.toLocaleString("en-GB", Object.assign({year:"numeric"}, oslo)));
   var m = Number(now.toLocaleString("en-GB", Object.assign({month:"numeric"}, oslo)));
   var d = Number(now.toLocaleString("en-GB", Object.assign({day:"numeric"}, oslo)));
@@ -563,10 +580,10 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   var birth = null;
   if(H){
     try{
-      birth = H.fodsel(1968, 3, 14);
+      birth = H.fodsel(FY, FM, FD);
       $("sun-sign").textContent = birth.sol.tegn;
       $("sun-glyph").textContent = birth.sol.symbol + "︎";
-      $("birth-signs").textContent = "Ut fra fødselsdato 14.03.1968 (eksempel): soltegn " + birth.sol.tekst + ", månetegn " + birth.maane.tekst + ". Uten fødselstid sjekkes hele døgnet.";
+      $("birth-signs").textContent = "Ut fra fødselsdato " + FDATO + EKS + ": soltegn " + birth.sol.tekst + ", månetegn " + birth.maane.tekst + ". Uten fødselstid sjekkes hele døgnet.";
     }catch(e){ birth = null; }
   }
 
@@ -982,7 +999,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
       var o = H.fodsel(ola.fodt[0], ola.fodt[1], ola.fodt[2]);
       var c = el("div", {"class":"case"});
       var h = el("div", {"class":"card-head"}); h.appendChild(el("b", null, "Himmelen deres")); h.appendChild(el("span", {"class":"tag meta"}, "Tradisjon")); c.appendChild(h);
-      c.appendChild(el("span", null, "Kari: sol i " + birth.sol.tekst + ", måne i " + birth.maane.tekst + "."));
+      c.appendChild(el("span", null, NAVN + ": sol i " + birth.sol.tekst + ", måne i " + birth.maane.tekst + "."));
       c.appendChild(el("span", null, "Ola: sol i " + o.sol.tekst + ", måne i " + o.maane.tekst + "."));
       c.appendChild(el("span", null, elementText(birth.sol.tegnNr, o.sol.tegnNr)));
       c.appendChild(el("span", {"class":"muted"}, "Tegnene er regnet ut fra fødselsdatoene (eksempel). Tolkningen er tradisjon og inspirasjon, ikke fakta, og sier ingenting om hvordan det går med dere."));
@@ -1031,7 +1048,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   function komma(x, n){ return x.toFixed(n).replace(".", ","); }
   function stedNavn(s){ return s.type === "posisjon" ? "posisjonen din (" + komma(s.lat, 2) + "° N, " + komma(s.lon, 2) + "° Ø)" : s.navn; }
   var astro = !!(U && U.stedsdag);
-  var natalSol = astro ? U.fodselsSol(1968, 3, 14) : null;
+  var natalSol = astro ? U.fodselsSol(FY, FM, FD) : null;
   var cache = {};
   var MERKE = {5:"Bursdag til Ola", 6:"Julemarked i Storslett"};
   function fase(md){ return H ? H.fasenavn(md.prosent, md.voksende) : (md.voksende ? "Voksende" : "Minkende"); }
@@ -1075,7 +1092,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     if(!astro){ box.appendChild(el("p", {"class":"muted"}, "Måneden kunne ikke regnes ut, fordi beregningsbiblioteket ikke ble lastet.")); return; }
     var fra = U.maanedStart(now), til = U.nesteMaaned(now), p = U.deler(now);
     var liste = hendelserCache("mnd", fra, til), per = perDag(liste);
-    box.appendChild(el("p", {"class":"muted"}, "Hele " + U.MND[p.month - 1] + " " + p.year + ": månefaser, når månen bytter tegn, planeter som begynner eller slutter å gå baklengs, og vinkler til sola ved fødselen til Kari (eksempel). Norsk tid."));
+    box.appendChild(el("p", {"class":"muted"}, "Hele " + U.MND[p.month - 1] + " " + p.year + ": månefaser, når månen bytter tegn, planeter som begynner eller slutter å gå baklengs, og vinkler til sola ved fødselen til " + NAVN + EKS + ". Norsk tid."));
     var ul = el("ul", {"class":"daylist"}), idag = U.nokkel(now);
     Object.keys(per).sort().forEach(function(k){
       var hs = per[k], li = el("li", k === idag ? {"class":"today"} : null), t = U.datoTekst(hs[0].dato);
@@ -1214,7 +1231,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   /* ---- Livet mitt: egne store dager, himmel per dato og verdenshendelser (Wikipedia, CC BY-SA) ---- */
   var MND = ["januar","februar","mars","april","mai","juni","juli","august","september","oktober","november","desember"];
   var exampleDays = [
-    {d:"1968-03-14", k:"Fødsel", t:"Kari blir født (eksempel)"},
+    {d:FY + "-" + p2(FM) + "-" + p2(FD), k:"Fødsel", t:NAVN + " blir født" + EKS},
     {d:"1994-06-18", k:"Bryllup", t:"Bryllup i Nordreisa kirke (eksempel)"},
     {d:"2005-08-01", k:"Flytting", t:"Flyttet til Storslett (eksempel)"}
   ];
