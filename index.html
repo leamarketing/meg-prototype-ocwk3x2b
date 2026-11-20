@@ -67,6 +67,7 @@ nav.tabs a[aria-current="page"]{background:var(--accent);border-color:var(--acce
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--sun);outline-offset:2px}
 /* grid of cards */
 .view{display:flex;flex-direction:column;gap:16px}
+.view[hidden]{display:none}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .card.wide{grid-column:1/-1}
@@ -113,6 +114,17 @@ th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 .tablebox{overflow-x:auto}
 .confirm{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--sun);background:var(--soft-sun)}
 footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
+/* Dagens himmel og «Hva betyr dagen i dag for meg?» */
+.sky-facts{display:flex;flex-direction:column;gap:4px;margin:0;padding:0;list-style:none}
+.trad{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.trad .tag{flex:0 0 auto}
+.trad p{flex:1 1 200px;min-width:0}
+.skyline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:var(--fact-bg);color:var(--ink)}
+.skyline a{color:inherit}
+.meaning{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.meaning li{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.meaning li .tag{flex:0 0 auto}
+.meaning li span.t{flex:1 1 220px;min-width:0}
 /* v0.2 visuals */
 .sky{min-height:300px}
 .sky-inner{padding-bottom:64px}
@@ -177,20 +189,27 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   <section class="view" id="view-dag" aria-labelledby="h-dag">
     <h2 id="h-dag" class="sr">Min dag</h2>
     <div class="grid">
+      <article class="card wide" id="meaning-card">
+        <div class="card-head"><h3>Hva betyr dagen i dag for meg?</h3><span class="tag hyp">Prototype</span></div>
+        <ul class="meaning" id="meaning"></ul>
+        <p class="muted">Svaret er satt sammen av det som står på denne siden: dagens himmel, merkedagene, planen og interessene til eksempelpersonen Kari. Ingen KI er brukt, ingenting sendes ut, og det gis ingen råd om helse.</p>
+      </article>
       <article class="card">
         <div class="card-head"><h3>Dagens tall</h3><span class="tag meta">Metafysikk</span></div>
         <div class="art"><svg class="medal" id="medal" viewBox="0 0 120 120" role="img" aria-label="Dagens tall"></svg><div><p class="sr" id="pday">–</p><p id="pday-text">–</p></div></div>
         <p class="muted" id="pday-calc">–</p>
       </article>
       <article class="card">
-        <div class="card-head"><h3>Horoskop: Fisk</h3><span class="tag meta">Metafysikk</span></div>
-        <div class="art"><div class="glyph" aria-hidden="true">&#9811;&#65038;</div><p>Venus står vennlig til deg i dag. Si ja til en samtale du har utsatt, og legg merke til hvem som gir deg energi.</p></div>
+        <div class="card-head"><h3>Horoskop: <span id="sun-sign">Fisk</span></h3><span class="tag meta">Tradisjon</span></div>
+        <div class="art"><div class="glyph" aria-hidden="true" id="sun-glyph">&#9811;&#65038;</div><p>Venus står vennlig til deg i dag. Si ja til en samtale du har utsatt, og legg merke til hvem som gir deg energi.</p></div>
+        <p class="muted" id="birth-signs">Soltegn ut fra fødselsdato 14.03.1968 (eksempel).</p>
         <p class="muted">Eksempeltekst. Tolkningen er tradisjon og inspirasjon, og gir ingen råd om helse, stemmegivning eller penger.</p>
       </article>
       <article class="card">
-        <div class="card-head"><h3>Månefase</h3><span class="tag fact">Fakta</span></div>
-        <div class="art"><svg class="moonsvg" id="moonsvg" viewBox="0 0 100 100" role="img" aria-label="Månen i dag"></svg><p id="moon-long">–</p></div>
-        <p class="muted" id="moon-tradition">–</p>
+        <div class="card-head"><h3>Dagens himmel</h3><span class="tag fact">Fakta</span></div>
+        <div class="art"><svg class="moonsvg" id="moonsvg" viewBox="0 0 100 100" role="img" aria-label="Månen i dag"></svg><ul class="sky-facts" id="sky-facts"><li>–</li></ul></div>
+        <p class="muted" id="sky-method">Regnet ut i nettleseren din med Astronomy Engine (MIT-lisens). Ingenting sendes ut. Tegnene følger den tropiske dyrekretsen, 30 grader per tegn. Baklengs betyr at planeten ser ut til å gå bakover sett fra jorda.</p>
+        <div class="trad"><span class="tag meta">Tradisjon</span><p id="moon-tradition">–</p></div>
       </article>
       <article class="card smile sunny">
         <div class="card-head"><h3>Dagens smil</h3><span class="tag hyp">Gøy</span></div>
@@ -236,6 +255,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     <div class="grid">
       <article class="card wide">
         <div class="card-head"><h2 id="h-plan">Hva gjør jeg i dag?</h2><span class="tag fact">Din plan</span></div>
+        <p class="skyline"><span class="tag fact">Fakta</span><span><b>Dagens himmel:</b> <span id="plan-sky">–</span>. <a href="#dag">Se mer under Min dag</a></span></p>
         <ul class="plain todo" id="todo"></ul>
         <form class="add" id="todo-form">
           <label class="sr" for="todo-time">Tid</label>
@@ -365,6 +385,8 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 </div>
 
 <style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+<script src="/lib/astronomy.browser.min.js?v=2026-11-20"></script>
+<script src="/lib/himmel.js?v=2026-11-20"></script>
 <script>
 (function(){
   "use strict";
@@ -394,15 +416,44 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   $("pday-calc").textContent = "Personlig dag regnet fra fødselsdato 14.03 (eksempel): personlig år " + pYear + " + måned " + m + " + dag " + d + " = " + pDay + ". Pythagoreisk metode.";
   $("day-msg").textContent = "Dagens tall er " + pDay + ". " + (meanings[pDay] || "");
 
-  /* ---- moon phase (synodic month from a known new moon 6 Jan 2000 18:14 UTC) ---- */
-  var syn = 29.530588853;
-  var age = ((now.getTime() - Date.UTC(2000,0,6,18,14)) / 86400000) % syn; if(age < 0){ age += syn; }
-  var illum = Math.round((1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100);
-  var phase = age < 1.85 ? "Nymåne" : age < 5.54 ? "Voksende månesigd" : age < 9.23 ? "Første kvarter" : age < 12.92 ? "Voksende måne" : age < 16.61 ? "Fullmåne" : age < 20.30 ? "Minkende måne" : age < 23.99 ? "Siste kvarter" : age < 27.68 ? "Minkende månesigd" : "Nymåne";
-  var waxing = age < syn / 2;
+  /* ---- Dagens himmel: Astronomy Engine via lib/himmel.js. Reserve uten biblioteket: enkel månesyklus. ---- */
+  var syn = 29.530588853, H = window.Himmel || null, sky = null, age, illum, phase, waxing;
+  if(H){ try{ sky = H.himmel(now); }catch(e){ sky = null; } }
+  if(sky){
+    age = sky.maane.alder; illum = sky.maane.prosent; phase = sky.maane.navn; waxing = sky.maane.voksende;
+  } else {
+    age = ((now.getTime() - Date.UTC(2000,0,6,18,14)) / 86400000) % syn; if(age < 0){ age += syn; }
+    waxing = age < syn / 2;
+    var illumRaw = (1 - Math.cos(2 * Math.PI * age / syn)) / 2 * 100; illum = Math.round(illumRaw);
+    phase = illumRaw < 3 ? "Nymåne" : illumRaw > 97 ? "Fullmåne" : (illumRaw >= 45 && illumRaw <= 55) ? (waxing ? "Første kvarter" : "Siste kvarter") : illumRaw < 45 ? (waxing ? "Voksende månesigd" : "Minkende månesigd") : (waxing ? "Voksende måne" : "Minkende måne");
+  }
   $("moon").textContent = phase + ", " + illum + " %";
-  $("moon-long").textContent = phase + ". Omtrent " + illum + " % av månen er opplyst, og den er " + Math.round(age) + " dager gammel i denne syklusen.";
-  $("moon-tradition").textContent = "Tradisjon (metafysikk): " + (waxing ? "voksende måne regnes som god tid for å starte og bygge opp." : "minkende måne regnes som god tid for å rydde og avslutte.");
+  (function(){
+    var ul = $("sky-facts"); ul.textContent = "";
+    ul.appendChild(el("li", null, phase + ". " + illum + " % av månen er opplyst, " + Math.round(age) + " dager inn i syklusen."));
+    if(sky){
+      ul.appendChild(el("li", null, "Månen står i " + sky.maane.tegn + ". Sola står i " + sky.sol.tegn + "."));
+      ul.appendChild(el("li", null, sky.baklengs.length ? "Går baklengs i dag: " + H.liste(sky.baklengs) + "." : "Ingen planeter går baklengs i dag."));
+      $("moon-tradition").textContent = H.tolkning(sky);
+      $("plan-sky").textContent = H.kortLinje(sky);
+    } else {
+      ul.appendChild(el("li", {"class":"muted"}, "Månetegn og planeter kunne ikke regnes ut, fordi beregningsbiblioteket ikke ble lastet."));
+      $("sky-method").textContent = "Enkel beregning ut fra en kjent nymåne. Kan avvike noen timer.";
+      $("moon-tradition").textContent = waxing ? "Voksende måne regnes som en tid for å starte og bygge opp." : "Minkende måne regnes som en tid for å rydde og avslutte.";
+      $("plan-sky").textContent = phase + " " + illum + " %";
+    }
+  })();
+
+  /* ---- sol- og månetegn fra fødselsdatoen (eksempel 14.03.1968), i stedet for fast «Fisk» ---- */
+  var birth = null;
+  if(H){
+    try{
+      birth = H.fodsel(1968, 3, 14);
+      $("sun-sign").textContent = birth.sol.tegn;
+      $("sun-glyph").textContent = birth.sol.symbol + "︎";
+      $("birth-signs").textContent = "Ut fra fødselsdato 14.03.1968 (eksempel): soltegn " + birth.sol.tekst + ", månetegn " + birth.maane.tekst + ". Uten fødselstid sjekkes hele døgnet.";
+    }catch(e){ birth = null; }
+  }
 
   /* ---- sun for Storslett (69.77 N, 21.03 E): standard declination, equation of time and hour angle ---- */
   var SUN = (function(){
@@ -531,10 +582,17 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
       });
       /* the fjord: a soft band of light at the bottom */
       var fj = ctx.createLinearGradient(0, h*0.93, 0, h); fj.addColorStop(0, "rgba(255,255,255,0)"); fj.addColorStop(1, mode === "day" ? "rgba(200,225,240,0.35)" : "rgba(120,200,180,0.12)"); ctx.fillStyle = fj; ctx.fillRect(0, h*0.93, w, h*0.07);
-      if(!reduce){ requestAnimationFrame(draw); }
+      if(live()){ raf = requestAnimationFrame(draw); } else { raf = 0; }
     }
-    size(); window.addEventListener("resize", function(){ size(); if(reduce){ draw(performance.now()); } });
-    requestAnimationFrame(draw);
+    /* Strøm: løkken går bare når bevegelse er tillatt, fanen er synlig og himmelen er på skjermen.
+       Ellers tegnes ett stillbilde. Ingen setInterval. */
+    var raf = 0, onScreen = true;
+    function live(){ return !reduce && !document.hidden && onScreen; }
+    function kick(){ if(live()){ if(!raf){ raf = requestAnimationFrame(draw); } } else if(raf){ cancelAnimationFrame(raf); raf = 0; } }
+    size(); window.addEventListener("resize", function(){ size(); if(!raf){ draw(performance.now()); } }, {passive:true});
+    document.addEventListener("visibilitychange", kick);
+    if("IntersectionObserver" in window){ new IntersectionObserver(function(en){ onScreen = en[0].isIntersecting; kick(); }).observe($("sky")); }
+    raf = requestAnimationFrame(draw);
   })();
 
   /* ---- number medallion: one dot per unit of today's number ---- */
@@ -771,6 +829,25 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   }
   renderInterests(); renderCases(); renderGroups();
 
+  /* ---- «Hva betyr dagen i dag for meg?»: ferdigskrevne linjer bygget av det som står på siden. Ingen KI. ---- */
+  function renderMeaning(){
+    var ul = $("meaning"); if(!ul){ return; } ul.textContent = "";
+    function line(cls, tag, text){ var li = el("li"); li.appendChild(el("span", {"class":"tag " + cls}, tag)); li.appendChild(el("span", {"class":"t"}, text)); ul.appendChild(li); }
+    if(sky){
+      line("fact", "Fakta", "Himmelen i dag: " + H.kortLinje(sky) + ".");
+      line("meta", "Tradisjon", "Månen i " + sky.maane.tegn + " forbindes med " + H.TEGN_TRAD[sky.maane.tegnNr] + "." + (birth ? " Du er født med sola i " + birth.sol.tegn + "." : ""));
+    } else {
+      line("fact", "Fakta", "Månen i dag: " + phase + ", " + illum + " % opplyst.");
+    }
+    line("meta", "Metafysikk", "Dagens tall er " + pDay + ". " + (meanings[pDay] || ""));
+    line("fact", "Kalender", "Fredag har Ola bursdag, og lørdag er det julemarked i Storslett (eksempel).");
+    var open = todos.filter(function(x){ return !x.done; });
+    line("fact", "Din plan", open.length ? open.length + " ting igjen i planen. Neste: " + open[0].t + " " + open[0].x + "." : "Alt i planen er gjort. Resten av dagen er din.");
+    var c = cases.filter(function(x){ return mine.indexOf(x.i) > -1 && x.s === "Åpen for svar"; })[0];
+    if(c){ line("fact", "VoteApp", "En sak innen «" + c.i + "» er åpen for svar: " + c.t + " (eksempel)"); }
+  }
+  renderMeaning();
+
   /* ---- privacy actions (demo, nothing leaves the page) ---- */
   $("export-btn").addEventListener("click", function(){ $("pv-msg").textContent = ""; var p = el("p", {"class":"note"}, "I ekte versjon får du en fil med alt du har lagt inn. Denne prototypen lagrer bare eksempeldata i nettleseren din."); $("pv-msg").appendChild(p); });
   $("delete-btn").addEventListener("click", function(){
@@ -788,6 +865,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   function route(){
     var v = (location.hash || "#dag").slice(1); if(views.indexOf(v) === -1){ v = "dag"; }
     views.forEach(function(x){ $("view-" + x).hidden = x !== v; });
+    if(v === "dag"){ renderMeaning(); }
     $("view-" + v).querySelectorAll(".card").forEach(function(cd, i){ cd.style.setProperty("--i", i); cd.style.animation = "none"; void cd.offsetWidth; cd.style.animation = ""; });
     document.querySelectorAll("nav.tabs a").forEach(function(a){ if(a.getAttribute("href") === "#" + v){ a.setAttribute("aria-current","page"); } else { a.removeAttribute("aria-current"); } });
   }
