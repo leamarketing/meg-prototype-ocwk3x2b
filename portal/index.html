@@ -194,6 +194,10 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 .big3 b{display:block;font-family:var(--display);font-size:22px}
 .acct form{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .acct-msg{font-weight:600;min-height:1em;margin:8px 0 0}
+.namebox button.secondary{background:transparent;color:#1f7a5c;border:2px solid #1f7a5c}
+.pw-box{margin:12px 0;padding:14px 16px;border-radius:14px;border:1px solid rgba(0,0,0,.18)}
+.pw-box h3{margin:0 0 6px;font-family:var(--display)}
+.pw-box form{margin-top:8px}
 .acct-msg.err{color:#a3261b}
 .trial{padding:14px 16px;border-radius:14px;background:rgba(31,122,92,.10);margin:10px 0}
 .trial b{font-family:var(--display)}
@@ -233,6 +237,8 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
   .trial{background:rgba(31,122,92,.18)!important}
   .acct-msg.err{color:#ff8a7a}
   .namebox input{background:#1d2226;color:#f2f2f2;border-color:rgba(255,255,255,.3)}
+  .namebox button.secondary{color:#7fd6b4;border-color:#7fd6b4}
+  .pw-box{border-color:rgba(255,255,255,.25)}
 }
 </style>
 
@@ -249,9 +255,11 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
     <div id="acct-out">
       <form id="login-form" autocomplete="on">
         <label>E-postadressen din<input id="lemail" name="email" type="email" required autocomplete="email" placeholder="navn@eksempel.no"></label>
-        <button type="submit">Send meg en innloggingslenke</button>
+        <label>Passord<input id="lpass" name="password" type="password" autocomplete="current-password" minlength="8"></label>
+        <button type="submit" id="login-pass">Logg inn</button>
+        <button type="button" id="login-link" class="secondary">Send meg en innloggingslenke</button>
       </form>
-      <p class="muted">Du får en lenke på e-post. Trykk på den, så er du logget inn. Ingen passord å huske. Ny her? Da starter prøvetiden på 7 dager når du logger inn første gang.</p>
+      <p class="muted">Har du laget passord: skriv e-post og passord og trykk «Logg inn». Første gang, eller har du glemt passordet: skriv e-posten og trykk «Send meg en innloggingslenke». Inne på kontoen kan du lage et passord. Ny her? Da starter prøvetiden på 7 dager når du logger inn første gang.</p>
     </div>
     <p id="acct-msg" class="acct-msg" role="status" aria-live="polite"></p>
   </section>
