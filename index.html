@@ -378,7 +378,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
           <input type="text" id="day-title" placeholder="Kort tekst, for eksempel «Flyttet til Storslett»" maxlength="80">
           <button class="primary" type="submit">Legg til</button>
         </form>
-        <p class="muted" id="day-msg" aria-live="polite"></p>
+        <p class="muted" id="livet-msg" aria-live="polite"></p>
       </article>
       <article class="card wide">
         <div class="card-head"><h3>Livets tidslinje</h3><span class="tag fact">Dine dager</span></div>
@@ -959,7 +959,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
         var show = box.hidden; box.hidden = !show; open.setAttribute("aria-expanded", show ? "true" : "false"); open.textContent = show ? "Lukk" : "Åpne dagen";
         if(show && !box.childNodes.length){ fillDay(box, it); }
       });
-      del.addEventListener("click", function(){ days.splice(days.indexOf(it), 1); saveDays(); renderTimeline(); $("day-msg").textContent = "Dagen er fjernet."; });
+      del.addEventListener("click", function(){ days.splice(days.indexOf(it), 1); saveDays(); renderTimeline(); $("livet-msg").textContent = "Dagen er fjernet."; });
       ol.appendChild(li);
     });
   }
@@ -1000,9 +1000,9 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   var MND_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   $("day-form").addEventListener("submit", function(e){
     e.preventDefault();
-    var d = $("day-date").value; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ $("day-msg").textContent = "Velg en dato."; return; }
+    var d = $("day-date").value; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ $("livet-msg").textContent = "Velg en dato."; return; }
     days.push({d:d, k:$("day-kind").value, t:$("day-title").value.trim()}); saveDays(); renderTimeline();
-    $("day-title").value = ""; $("day-msg").textContent = "Lagt til " + dateText(d) + ". Lagret bare på denne enheten.";
+    $("day-title").value = ""; $("livet-msg").textContent = "Lagt til " + dateText(d) + ". Lagret bare på denne enheten.";
   });
   renderTimeline();
 
