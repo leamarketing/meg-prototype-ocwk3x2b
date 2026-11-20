@@ -113,6 +113,16 @@ th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-a
 th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .tablebox{overflow-x:auto}
 .confirm{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--sun);background:var(--soft-sun)}
+/* Livet mitt */
+ol.timeline{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.tl-year{font-family:var(--display);font-weight:800;color:var(--accent);margin-left:-6px}
+.tl-item{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:10px;background:var(--surface-2);min-width:0}
+.tl-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.tl-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 180px}
+.tl-detail{display:flex;flex-direction:column;gap:8px}
+.tl-detail .case{background:var(--surface)}
+.tl-list li{overflow-wrap:anywhere}
+.tl-detail a{color:var(--fact)}
 footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 /* Dagens himmel og «Hva betyr dagen i dag for meg?» */
 .sky-facts{display:flex;flex-direction:column;gap:4px;margin:0;padding:0;list-style:none}
@@ -182,6 +192,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     <a href="#mat">Middag og handleliste</a>
     <a href="#helse">Kropp og balanse</a>
     <a href="#interesser">Interesser og fellesskap</a>
+    <a href="#livet">Livet mitt</a>
     <a href="#personvern">Mine data</a>
   </nav>
 
@@ -273,6 +284,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
           <li><b>Lørdag:</b> Julemarked i Storslett (eksempel)</li>
         </ul>
         <p class="muted">Senere kan én kalender kobles til med lesetilgang. Appen endrer aldri kalenderen din selv.</p>
+        <div class="row"><a class="btn" href="#livet">Dine store dager i Livet mitt</a></div>
       </article>
       <article class="card">
         <div class="card-head"><h3>Bevegelse i dag</h3><span class="tag fact">Forslag</span></div>
@@ -347,6 +359,35 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
         <div class="card-head"><h3>Fellesskap med samme interesser</h3><span class="tag hyp">Prøves ut</span></div>
         <div class="grid" id="groups" style="gap:12px"></div>
         <p class="muted">Du velger selv om du vil være synlig i en gruppe. Det du gjør her, kobles aldri til hvordan du stemmer.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- LIVET MITT -->
+  <section class="view" id="view-livet" aria-labelledby="h-livet" hidden>
+    <div class="grid">
+      <article class="card wide">
+        <div class="card-head"><h2 id="h-livet">Dine store dager</h2><span class="tag fact">Bare på denne enheten</span></div>
+        <p class="muted">Legg inn dager som betyr noe for deg. For hver dag ser du hvordan himmelen sto, og hva som skjedde i verden den datoen. Dagene lagres bare i nettleseren på denne enheten, og er med når du laster ned eller sletter under Mine data.</p>
+        <form class="add" id="day-form">
+          <label class="sr" for="day-date">Dato</label>
+          <input type="date" id="day-date" required min="1900-01-01" max="2100-12-31">
+          <label class="sr" for="day-kind">Type dag</label>
+          <select id="day-kind"><option>Fødsel</option><option>Bryllup</option><option>Flytting</option><option>Første jobb</option><option>Barn født</option><option>Annet</option></select>
+          <label class="sr" for="day-title">Hva skjedde</label>
+          <input type="text" id="day-title" placeholder="Kort tekst, for eksempel «Flyttet til Storslett»" maxlength="80">
+          <button class="primary" type="submit">Legg til</button>
+        </form>
+        <p class="muted" id="day-msg" aria-live="polite"></p>
+      </article>
+      <article class="card wide">
+        <div class="card-head"><h3>Livets tidslinje</h3><span class="tag fact">Dine dager</span></div>
+        <ol class="timeline" id="timeline"></ol>
+      </article>
+      <article class="card">
+        <div class="card-head"><h3>Mønstre over år</h3><span class="tag hyp">Kommer senere</span></div>
+        <p>Senere kan Min dag peke på mønstre mellom dagene dine, merket som tradisjon og som forslag. Dette er ikke bygget. Det krever en avklaring om hvilken KI som skal brukes, hva den koster og hvor den kjører.</p>
+        <p class="muted">Ingen KI brukes i denne prototypen, og ingenting sendes ut.</p>
       </article>
     </div>
   </section>
@@ -860,8 +901,135 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     row.appendChild(yes); row.appendChild(no); c.appendChild(row); box.appendChild(c);
   });
 
+  /* ---- Livet mitt: egne store dager, himmel per dato og verdenshendelser (Wikipedia, CC BY-SA) ---- */
+  var MND = ["januar","februar","mars","april","mai","juni","juli","august","september","oktober","november","desember"];
+  var exampleDays = [
+    {d:"1968-03-14", k:"Fødsel", t:"Kari blir født (eksempel)"},
+    {d:"1994-06-18", k:"Bryllup", t:"Bryllup i Nordreisa kirke (eksempel)"},
+    {d:"2005-08-01", k:"Flytting", t:"Flyttet til Storslett (eksempel)"}
+  ];
+  var days = store("dager") || exampleDays.slice();
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  function parts(iso){ var p = iso.split("-"); return {y:+p[0], m:+p[1], d:+p[2]}; }
+  function dateText(iso){ var p = parts(iso); return p.d + ". " + MND[p.m - 1] + " " + p.y; }
+  function skyFor(iso, kind){
+    if(!H){ return null; }
+    try{
+      var p = parts(iso), noon = new Date(Date.UTC(p.y, p.m - 1, p.d, 11, 0));
+      var mn = H.maane(noon), signs = H.fodsel(p.y, p.m, p.d);
+      var fix = function(t){ return kind === "Fødsel" ? t : t.replace("fødselstiden", "klokkeslettet"); };
+      return {fase: mn.navn, pst: mn.prosent, maane: fix(signs.maane.tekst), sol: fix(signs.sol.tekst), baklengs: H.baklengs(noon), trad: H.TEGN_TRAD[mn.tegnNr], maaneTegn: mn.tegn};
+    }catch(e){ return null; }
+  }
+  /* Wikimedia «On this day» finnes ikke på norsk (svarer 404 «not yet supported», sjekket 20.11.2026).
+     Vi bruker den engelske feeden og lenker til den norske datosiden. Hentes først når en dag åpnes, og lagres. */
+  function events(m, d){
+    var key = "otd-" + pad(m) + pad(d), cached = store(key);
+    if(cached){ return Promise.resolve(cached); }
+    if(!window.fetch){ return Promise.reject(new Error("fetch mangler")); }
+    return fetch("https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/" + pad(m) + "/" + pad(d), {headers:{"Api-User-Agent":"me.voteapp.eu prototype"}})
+      .then(function(r){ if(!r.ok){ throw new Error("HTTP " + r.status); } return r.json(); })
+      .then(function(j){
+        var list = (j.events || []).map(function(e){ var pg = (e.pages || [])[0]; return {y:e.year, t:e.text, u: pg && pg.content_urls && pg.content_urls.desktop ? pg.content_urls.desktop.page : ""}; });
+        store(key, list); return list;
+      });
+  }
+  function saveDays(){ store("dager", days); }
+  function renderTimeline(){
+    var ol = $("timeline"); ol.textContent = "";
+    days.sort(function(a, b){ return a.d < b.d ? -1 : 1; });
+    if(!days.length){ ol.appendChild(el("li", {"class":"muted"}, "Ingen dager lagt inn ennå.")); return; }
+    var birth = days.filter(function(x){ return x.k === "Fødsel"; })[0], lastYear = null;
+    days.forEach(function(it){
+      var p = parts(it.d);
+      if(p.y !== lastYear){ ol.appendChild(el("li", {"class":"tl-year", "aria-hidden":"true"}, String(p.y))); lastYear = p.y; }
+      var li = el("li", {"class":"tl-item"}), head = el("div", {"class":"tl-head"});
+      var txt = el("div", {"class":"tl-text"});
+      txt.appendChild(el("b", null, it.t || it.k));
+      var sub = dateText(it.d) + " · " + it.k;
+      if(birth && birth !== it && it.d > birth.d){ var b = parts(birth.d), age = p.y - b.y - ((p.m < b.m || (p.m === b.m && p.d < b.d)) ? 1 : 0); sub += " · " + age + " år"; }
+      txt.appendChild(el("span", {"class":"muted"}, sub));
+      head.appendChild(txt);
+      var open = el("button", {type:"button", "aria-expanded":"false"}, "Åpne dagen");
+      var del = el("button", {type:"button", "aria-label":"Fjern " + (it.t || it.k)}, "Fjern");
+      var btns = el("div", {"class":"row"}); btns.appendChild(open); btns.appendChild(del); head.appendChild(btns);
+      li.appendChild(head);
+      var box = el("div", {"class":"tl-detail"}); box.hidden = true; li.appendChild(box);
+      open.addEventListener("click", function(){
+        var show = box.hidden; box.hidden = !show; open.setAttribute("aria-expanded", show ? "true" : "false"); open.textContent = show ? "Lukk" : "Åpne dagen";
+        if(show && !box.childNodes.length){ fillDay(box, it); }
+      });
+      del.addEventListener("click", function(){ days.splice(days.indexOf(it), 1); saveDays(); renderTimeline(); $("day-msg").textContent = "Dagen er fjernet."; });
+      ol.appendChild(li);
+    });
+  }
+  function fillDay(box, it){
+    var p = parts(it.d), s = skyFor(it.d, it.k);
+    var sk = el("div", {"class":"case"});
+    var h = el("div", {"class":"card-head"}); h.appendChild(el("b", null, "Himmelen den dagen")); h.appendChild(el("span", {"class":"tag fact"}, "Fakta")); sk.appendChild(h);
+    if(s){
+      sk.appendChild(el("span", null, s.fase + ", " + s.pst + " % opplyst (kl. 12 norsk tid). Sola i " + s.sol + ", månen i " + s.maane + "."));
+      sk.appendChild(el("span", null, s.baklengs.length ? "Gikk baklengs: " + H.liste(s.baklengs) + "." : "Ingen planeter gikk baklengs."));
+      var tr = el("div", {"class":"trad"}); tr.appendChild(el("span", {"class":"tag meta"}, "Tradisjon")); tr.appendChild(el("p", null, "Månen i " + s.maaneTegn + " forbindes med " + s.trad + ".")); sk.appendChild(tr);
+    } else { sk.appendChild(el("span", {"class":"muted"}, "Himmelen kunne ikke regnes ut, fordi beregningsbiblioteket ikke ble lastet.")); }
+    box.appendChild(sk);
+    var ev = el("div", {"class":"case"});
+    var eh = el("div", {"class":"card-head"}); eh.appendChild(el("b", null, "I verden " + p.d + ". " + MND[p.m - 1])); eh.appendChild(el("span", {"class":"tag fact"}, "Wikipedia")); ev.appendChild(eh);
+    var body = el("div", {"class":"tl-events"}, "Henter hendelser …"); ev.appendChild(body);
+    var credit = el("p", {"class":"muted"});
+    credit.appendChild(document.createTextNode("Kilde: "));
+    credit.appendChild(el("a", {href:"https://en.wikipedia.org/wiki/" + MND_EN[p.m - 1] + "_" + p.d, target:"_blank", rel:"noopener"}, "Wikipedia"));
+    credit.appendChild(document.createTextNode(", "));
+    credit.appendChild(el("a", {href:"https://creativecommons.org/licenses/by-sa/4.0/deed.no", target:"_blank", rel:"noopener"}, "CC BY-SA"));
+    credit.appendChild(document.createTextNode(". Hendelsene er på engelsk, fordi Wikimedia ikke har denne tjenesten på norsk ennå. Se også "));
+    credit.appendChild(el("a", {href:"https://no.wikipedia.org/wiki/" + p.d + "._" + MND[p.m - 1], target:"_blank", rel:"noopener"}, p.d + ". " + MND[p.m - 1] + " på norsk Wikipedia"));
+    credit.appendChild(document.createTextNode("."));
+    ev.appendChild(credit);
+    box.appendChild(ev);
+    events(p.m, p.d).then(function(list){
+      body.textContent = "";
+      var same = list.filter(function(e){ return e.y === p.y; }), shown = same.length ? same : list.slice().sort(function(a, b){ return Math.abs(a.y - p.y) - Math.abs(b.y - p.y); }).slice(0, 5).sort(function(a, b){ return a.y - b.y; });
+      body.appendChild(el("p", {"class":"muted"}, same.length ? "Samme dag, samme år:" : "Ingen hendelse fra " + p.y + " er oppført for denne datoen. Fra samme dato i årene nærmest:"));
+      var ul = el("ul", {"class":"plain tl-list"});
+      shown.slice(0, 5).forEach(function(e){ var li = el("li"); li.appendChild(el("b", null, e.y + ": ")); if(e.u){ li.appendChild(el("a", {href:e.u, target:"_blank", rel:"noopener", lang:"en"}, e.t)); } else { li.appendChild(el("span", {lang:"en"}, e.t)); } ul.appendChild(li); });
+      body.appendChild(ul);
+    }, function(){
+      body.textContent = "Hendelsene kunne ikke hentes nå. Uten nett vises bare himmelen.";
+    });
+  }
+  var MND_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  $("day-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var d = $("day-date").value; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ $("day-msg").textContent = "Velg en dato."; return; }
+    days.push({d:d, k:$("day-kind").value, t:$("day-title").value.trim()}); saveDays(); renderTimeline();
+    $("day-title").value = ""; $("day-msg").textContent = "Lagt til " + dateText(d) + ". Lagret bare på denne enheten.";
+  });
+  renderTimeline();
+
+  /* Mine data: «Last ned mine data» gir nå en ekte fil med alt prototypen har lagret på enheten, også dagene.
+     «Slett alt» fjerner også dagene og de lagrede hendelsene. Lagt til som egne lyttere. */
+  (function(){
+    var msg = $("pv-msg");
+    var info = el("p", {"class":"muted"}, "Dine store dager i Livet mitt lagres bare på denne enheten. De er med når du laster ned, og blir borte når du sletter.");
+    msg.parentNode.insertBefore(info, msg);
+    $("export-btn").addEventListener("click", function(){
+      var data = {laget: new Date().toISOString(), kilde: "me.voteapp.eu prototype, lagret i nettleseren", data: {}};
+      try{ for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k.indexOf("meg-") === 0 && k.indexOf("meg-otd-") !== 0){ data.data[k.slice(4)] = JSON.parse(localStorage.getItem(k)); } } }catch(e){}
+      if(!data.data.dager){ data.data.dager = days; }
+      var url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:"application/json"}));
+      var a = el("a", {href:url, download:"min-dag-mine-data.json"}, "min-dag-mine-data.json");
+      msg.textContent = ""; var p = el("p", {"class":"note"}, "Filen er laget på enheten din: "); p.appendChild(a); p.appendChild(document.createTextNode(". Ingenting er sendt noe sted.")); msg.appendChild(p);
+      a.click(); setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+    });
+    msg.addEventListener("click", function(e){
+      var b = e.target; if(!b || b.tagName !== "BUTTON" || !b.classList.contains("primary")){ return; }
+      try{ var del = []; for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k === "meg-dager" || k.indexOf("meg-otd-") === 0){ del.push(k); } } del.forEach(function(k){ localStorage.removeItem(k); }); }catch(x){}
+      days = []; renderTimeline();
+    });
+  })();
+
   /* ---- hash routing ---- */
-  var views = ["dag","plan","mat","helse","interesser","personvern"];
+  var views = ["dag","plan","mat","helse","interesser","livet","personvern"];
   function route(){
     var v = (location.hash || "#dag").slice(1); if(views.indexOf(v) === -1){ v = "dag"; }
     views.forEach(function(x){ $("view-" + x).hidden = x !== v; });
