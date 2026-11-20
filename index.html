@@ -147,6 +147,24 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 @keyframes rise{from{transform:translateY(10px);opacity:.6}to{transform:none;opacity:1}}
 .view:not([hidden]) .card{animation:rise .55s ease both;animation-delay:calc(var(--i,0) * 55ms)}
 @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}.view .card{animation:none!important}}
+/* Uka og måneden din */
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:6px 12px;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.panel[hidden]{display:none}
+.panel{display:flex;flex-direction:column;gap:10px;min-width:0}
+.local{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;background:var(--surface-2);font-size:14px}
+.daylist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.daylist > li{padding:10px 12px;border-radius:10px;background:var(--surface-2);display:flex;flex-direction:column;gap:4px;min-width:0;font-size:14px}
+.daylist > li.today{outline:2px solid var(--accent);outline-offset:-2px}
+.ev{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.ev .tag{flex:0 0 auto}
+.ev span.t{flex:1 1 170px;min-width:0}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:8px}
+.strip .d{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;font-size:13px;min-width:0;overflow-wrap:anywhere}
+.strip .d b{font-size:14px}
+.strip .d.today{border-color:var(--accent);background:var(--soft-accent)}
+.strip .d .mk{color:var(--sun);font-weight:700}
 .langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
 .langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
 .langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -195,9 +213,11 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
         <p class="muted">Svaret er satt sammen av det som står på denne siden: dagens himmel, merkedagene, planen og interessene til eksempelpersonen Kari. Ingen KI er brukt, ingenting sendes ut, og det gis ingen råd om helse.</p>
       </article>
       <article class="card">
-        <div class="card-head"><h3>Dagens tall</h3><span class="tag meta">Metafysikk</span></div>
+        <div class="card-head"><h3>Tallene dine</h3><span class="tag meta">Tradisjon</span></div>
         <div class="art"><svg class="medal" id="medal" viewBox="0 0 120 120" role="img" aria-label="Dagens tall"></svg><div><p class="sr" id="pday">–</p><p id="pday-text">–</p></div></div>
+        <ul class="sky-facts" id="numbers"></ul>
         <p class="muted" id="pday-calc">–</p>
+        <p class="muted">Pytagoreisk numerologi er tradisjon og inspirasjon, ikke fakta. Det finnes ingen felles standard, så regelen over står skrevet her og brukes overalt i Min dag. Fødselsdato 14.03.1968 er eksempel.</p>
       </article>
       <article class="card">
         <div class="card-head"><h3>Horoskop: <span id="sun-sign">Fisk</span></h3><span class="tag meta">Tradisjon</span></div>
@@ -207,9 +227,15 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
       </article>
       <article class="card">
         <div class="card-head"><h3>Dagens himmel</h3><span class="tag fact">Fakta</span></div>
+        <div class="seg" role="group" aria-label="Vis himmelen for" id="sky-seg"><button type="button" data-span="dag" aria-pressed="true" aria-controls="sky-dag">I dag</button><button type="button" data-span="uke" aria-pressed="false" aria-controls="sky-uke">Uka</button><button type="button" data-span="mnd" aria-pressed="false" aria-controls="sky-mnd">Måneden</button></div>
+        <div class="panel" id="sky-dag">
         <div class="art"><svg class="moonsvg" id="moonsvg" viewBox="0 0 100 100" role="img" aria-label="Månen i dag"></svg><ul class="sky-facts" id="sky-facts"><li>–</li></ul></div>
+        <div class="local" id="sky-local"><b>Sett fra <span id="local-name">Storslett</span></b><ul class="sky-facts" id="local-facts"><li>–</li></ul><p class="muted">Månefasen er den samme overalt på jorda. Det som endrer seg med stedet, er klokkeslettene og om månen er synlig. <a href="#personvern">Bytt sted under Mine data</a>.</p></div>
         <p class="muted" id="sky-method">Regnet ut i nettleseren din med Astronomy Engine (MIT-lisens). Ingenting sendes ut. Tegnene følger den tropiske dyrekretsen, 30 grader per tegn. Baklengs betyr at planeten ser ut til å gå bakover sett fra jorda.</p>
         <div class="trad"><span class="tag meta">Tradisjon</span><p id="moon-tradition">–</p></div>
+        </div>
+        <div class="panel" id="sky-uke" hidden></div>
+        <div class="panel" id="sky-mnd" hidden></div>
       </article>
       <article class="card smile sunny">
         <div class="card-head"><h3>Dagens smil</h3><span class="tag hyp">Gøy</span></div>
@@ -265,6 +291,16 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
           <button class="primary" type="submit">Legg til</button>
         </form>
         <p class="muted" id="todo-count">–</p>
+      </article>
+      <article class="card wide" id="week-card">
+        <div class="card-head"><h3>Uka di</h3><span class="tag fact">Himmel og kalender</span></div>
+        <div class="strip" id="week-strip"></div>
+        <p class="muted">Himmelen er beregnet på enheten for <span id="strip-place">Storslett</span>. Merkedagene er eksempler. En stjerne (★) betyr en vinkel til sola ved fødselen: selve vinkelen er fakta, tolkningen er tradisjon.</p>
+        <div class="row"><button type="button" id="week-ask" aria-expanded="false" aria-controls="week-answer">Hvordan ser uka mi ut?</button></div>
+        <div id="week-answer" hidden>
+          <ul class="meaning" id="week-lines"></ul>
+          <p class="muted">Ferdigskrevet svar bygget av det som står på siden: himmelen, merkedagene, middagene og tallene til eksempelpersonen Kari. Ingen KI er brukt, ingenting sendes ut, og det gis ingen råd om helse.</p>
+        </div>
       </article>
       <article class="card">
         <div class="card-head"><h3>Merkedager</h3><span class="tag fact">Kalender</span></div>
@@ -359,7 +395,8 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
         <div class="tablebox"><table>
           <thead><tr><th>Hva</th><th>Hvorfor</th><th>Hvem ser det</th><th>Del av</th></tr></thead>
           <tbody>
-            <tr><td>Fødselsdato og navn</td><td>Dagens tall og horoskop</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
+            <tr><td>Fødselsdato og navn</td><td>Tallene dine og horoskop</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
+            <tr><td>Sted (by eller posisjon)</td><td>Måneopp, månened og sola der du bor</td><td>Bare deg, lagres bare på enheten</td><td><a href="#personvern" id="sted-link">Velg nedenfor</a></td></tr>
             <tr><td>Humør og takknemlighet</td><td>Din egen dagbok</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
             <tr><td>Målinger og helsenotater</td><td>Matforslag</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
             <tr><td>Matforråd og middager</td><td>Handleliste</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" checked> På</label></td></tr>
@@ -378,6 +415,18 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
         </div>
         <div id="pv-msg" aria-live="polite"></div>
       </article>
+      <article class="card wide" id="sted-card">
+        <div class="card-head"><h3>Stedet ditt</h3><span class="tag fact">Bare på enheten</span></div>
+        <p>Brukes til måneopp, månened og sola under «Dagens himmel». Byen er standard.</p>
+        <div class="chips" role="radiogroup" aria-label="Velg type sted">
+          <label class="chip" for="st-by"><input type="radio" name="stedtype" value="by" id="st-by" checked> By</label>
+          <label class="chip" for="st-pos"><input type="radio" name="stedtype" value="posisjon" id="st-pos"> Nøyaktig posisjon</label>
+        </div>
+        <div class="row" id="sted-by"><label for="by-select">By</label><select id="by-select"></select></div>
+        <div class="row" id="sted-pos" hidden><button type="button" id="pos-btn">Hent posisjonen min én gang</button></div>
+        <p class="muted" id="sted-status" aria-live="polite"></p>
+        <p class="muted">Stedet lagres bare i nettleseren på denne enheten og sendes aldri ut. Posisjonen hentes bare når du trykker på knappen, én gang, og aldri i bakgrunnen. Den lagres avrundet til om lag 100 meter. Klokkeslettene vises i norsk tid. «Last ned mine data» og «Slett alt» tar med stedet.</p>
+      </article>
     </div>
   </section>
 
@@ -387,6 +436,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 <style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
 <script src="/lib/astronomy.browser.min.js?v=2026-11-20"></script>
 <script src="/lib/himmel.js?v=2026-11-20"></script>
+<script src="/lib/uka.js?v=2026-11-20b"></script>
 <script>
 (function(){
   "use strict";
@@ -403,17 +453,25 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   $("greeting").textContent = (hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld") + ", Kari";
 
   /* ---- numerology: example birth date 14.03.1968 ---- */
-  function reduceNum(n){ while(n > 9 && n !== 11 && n !== 22 && n !== 33){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
+  function reduceNum(n){ while(n > 9 && n !== 11 && n !== 22){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
   var bDay = 14, bMonth = 3;
   var y = Number(now.toLocaleString("en-GB", Object.assign({year:"numeric"}, oslo)));
   var m = Number(now.toLocaleString("en-GB", Object.assign({month:"numeric"}, oslo)));
   var d = Number(now.toLocaleString("en-GB", Object.assign({day:"numeric"}, oslo)));
-  var pYear = reduceNum(reduceNum(bDay) + reduceNum(bMonth) + reduceNum(y));
-  var pDay = reduceNum(pYear + reduceNum(m) + reduceNum(d));
+  /* Samme regel som Medlemsportalen (portal/norge.js): alle sifrene legges sammen, 11 og 22 beholdes, 33 regnes ned. */
+  var U = window.Uka || null, tall = U ? U.tallene(bDay, bMonth, y, m, d) : null;
+  var pYear = tall ? tall.aar.tall : reduceNum(reduceNum(bDay) + reduceNum(bMonth) + reduceNum(y));
+  var pMonth = tall ? tall.maaned.tall : reduceNum(pYear + reduceNum(m));
+  var pDay = tall ? tall.dag.tall : reduceNum(pMonth + reduceNum(d));
   var meanings = {1:"Start noe nytt. Dagen liker modige første steg.",2:"Samarbeid og lytting. Del oppgaven med noen.",3:"Uttrykk deg. Skriv, syng eller fortell en historie.",4:"Bygg grunnmur. Rydd, planlegg og fullfør.",5:"Forandring og eventyr. Prøv en ny vei hjem.",6:"Omsorg. Ring noen du er glad i.",7:"Ro og innsikt. Ta en stille stund alene.",8:"Handlekraft. Ta tak i det som gir resultater.",9:"Avslutning og raushet. Gi noe videre.",11:"Mestertall: intuisjon. Lytt til magefølelsen.",22:"Mestertall: byggeren. Store planer kan få føtter.",33:"Mestertall: omsorg i stort format."};
   $("pday").textContent = pDay;
   $("pday-text").textContent = meanings[pDay] || "";
-  $("pday-calc").textContent = "Personlig dag regnet fra fødselsdato 14.03 (eksempel): personlig år " + pYear + " + måned " + m + " + dag " + d + " = " + pDay + ". Pythagoreisk metode.";
+  (function(){
+    var ul = $("numbers"); ul.textContent = "";
+    function rad(navn, t){ var li = el("li"); li.appendChild(el("b", null, navn + ": " + t.tall + ". ")); li.appendChild(el("span", {"class":"muted"}, t.utregning + ".")); ul.appendChild(li); }
+    if(tall){ rad("Personlig dag", tall.dag); rad("Personlig måned", tall.maaned); rad("Personlig år", tall.aar); $("pday-calc").textContent = tall.regel; }
+    else { ul.appendChild(el("li", null, "Personlig dag " + pDay + ", måned " + pMonth + ", år " + pYear + ".")); $("pday-calc").textContent = "Regel: alle sifrene legges sammen og regnes ned til ett siffer. 11 og 22 beholdes."; }
+  })();
   $("day-msg").textContent = "Dagens tall er " + pDay + ". " + (meanings[pDay] || "");
 
   /* ---- Dagens himmel: Astronomy Engine via lib/himmel.js. Reserve uten biblioteket: enkel månesyklus. ---- */
@@ -839,7 +897,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     } else {
       line("fact", "Fakta", "Månen i dag: " + phase + ", " + illum + " % opplyst.");
     }
-    line("meta", "Metafysikk", "Dagens tall er " + pDay + ". " + (meanings[pDay] || ""));
+    line("meta", "Tradisjon", "Dagens tall er " + pDay + ". " + (meanings[pDay] || ""));
     line("fact", "Kalender", "Fredag har Ola bursdag, og lørdag er det julemarked i Storslett (eksempel).");
     var open = todos.filter(function(x){ return !x.done; });
     line("fact", "Din plan", open.length ? open.length + " ting igjen i planen. Neste: " + open[0].t + " " + open[0].x + "." : "Alt i planen er gjort. Resten av dagen er din.");
@@ -848,14 +906,199 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
   }
   renderMeaning();
 
-  /* ---- privacy actions (demo, nothing leaves the page) ---- */
-  $("export-btn").addEventListener("click", function(){ $("pv-msg").textContent = ""; var p = el("p", {"class":"note"}, "I ekte versjon får du en fil med alt du har lagt inn. Denne prototypen lagrer bare eksempeldata i nettleseren din."); $("pv-msg").appendChild(p); });
+  /* ---- Uka og måneden din (lib/uka.js) ----
+     Strøm: alt beregnes én gang når det vises eller når bryteren byttes, og lagres i en liten mellomlagring.
+     Ingen setInterval, ingen løkker i bakgrunnen, ingen automatisk avspilling. Stedet sendes aldri ut. */
+  var STD = {type:"by", navn:"Storslett", lat:69.768, lon:21.030};
+  function sted(){ var s = store("sted"); return (s && typeof s.lat === "number" && typeof s.lon === "number") ? s : STD; }
+  function komma(x, n){ return x.toFixed(n).replace(".", ","); }
+  function stedNavn(s){ return s.type === "posisjon" ? "posisjonen din (" + komma(s.lat, 2) + "° N, " + komma(s.lon, 2) + "° Ø)" : s.navn; }
+  var astro = !!(U && U.stedsdag);
+  var natalSol = astro ? U.fodselsSol(1968, 3, 14) : null;
+  var cache = {};
+  var MERKE = {5:"Bursdag til Ola", 6:"Julemarked i Storslett"};
+  function fase(md){ return H ? H.fasenavn(md.prosent, md.voksende) : (md.voksende ? "Voksende" : "Minkende"); }
+  function ev(parent, cls, tag, text){ var d = el("div", {"class":"ev"}); d.appendChild(el("span", {"class":"tag " + cls}, tag)); d.appendChild(el("span", {"class":"t"}, text)); parent.appendChild(d); }
+  function hendelserCache(nok, fra, til){ if(!cache[nok]){ cache[nok] = U.hendelser(fra, til, natalSol); } return cache[nok]; }
+  function perDag(liste){ var m = {}; liste.forEach(function(h){ var k = U.nokkel(h.dato); (m[k] = m[k] || []).push(h); }); return m; }
+
+  function renderLokal(){
+    var box = $("sky-local"); if(!astro){ box.hidden = true; return; }
+    var s = sted(), r = U.stedsdag(s.lat, s.lon, now, now), ul = $("local-facts"); ul.textContent = "";
+    $("local-name").textContent = stedNavn(s);
+    var naa = r.maaneNaa >= 0 ? "Akkurat nå står den " + U.grad(r.maaneNaa) + " over horisonten." : "Akkurat nå er den under horisonten.";
+    ul.appendChild(el("li", null, r.maaneTekst + ". " + naa));
+    ul.appendChild(el("li", null, r.solTekst + "."));
+  }
+
+  function renderUke(){
+    var box = $("sky-uke"); if(cache.ukeVist){ return; }
+    box.textContent = "";
+    if(!astro){ box.appendChild(el("p", {"class":"muted"}, "Uka kunne ikke regnes ut, fordi beregningsbiblioteket ikke ble lastet.")); return; }
+    var s = sted(), fra = U.dagStart(now), til = U.plussDager(fra, 7), per = perDag(hendelserCache("uke", fra, til));
+    box.appendChild(el("p", {"class":"muted"}, "De neste sju dagene, sett fra " + stedNavn(s) + ". Norsk tid."));
+    var ul = el("ul", {"class":"daylist"});
+    for(var i = 0; i < 7; i++){
+      var dag = U.plussDager(fra, i), md = U.maaneDag(dag), li = el("li", i === 0 ? {"class":"today"} : null);
+      var tittel = U.datoTekst(dag); li.appendChild(el("b", null, tittel.charAt(0).toUpperCase() + tittel.slice(1) + (i === 0 ? " (i dag)" : "")));
+      ev(li, "fact", "Fakta", fase(md) + ", " + md.prosent + " % opplyst. " + U.maaneKort(s.lat, s.lon, dag) + ".");
+      (per[U.nokkel(dag)] || []).forEach(function(h){
+        ev(li, "fact", "Fakta", h.tekst + ".");
+        if(h.tradisjon){ ev(li, "meta", "Tradisjon", h.tradisjon); }
+      });
+      ul.appendChild(li);
+    }
+    box.appendChild(ul);
+    cache.ukeVist = true;
+  }
+
+  function renderMnd(){
+    var box = $("sky-mnd"); if(cache.mndVist){ return; }
+    box.textContent = "";
+    if(!astro){ box.appendChild(el("p", {"class":"muted"}, "Måneden kunne ikke regnes ut, fordi beregningsbiblioteket ikke ble lastet.")); return; }
+    var fra = U.maanedStart(now), til = U.nesteMaaned(now), p = U.deler(now);
+    var liste = hendelserCache("mnd", fra, til), per = perDag(liste);
+    box.appendChild(el("p", {"class":"muted"}, "Hele " + U.MND[p.month - 1] + " " + p.year + ": månefaser, når månen bytter tegn, planeter som begynner eller slutter å gå baklengs, og vinkler til sola ved fødselen til Kari (eksempel). Norsk tid."));
+    var ul = el("ul", {"class":"daylist"}), idag = U.nokkel(now);
+    Object.keys(per).sort().forEach(function(k){
+      var hs = per[k], li = el("li", k === idag ? {"class":"today"} : null), t = U.datoTekst(hs[0].dato);
+      li.appendChild(el("b", null, t.charAt(0).toUpperCase() + t.slice(1) + (k === idag ? " (i dag)" : "")));
+      hs.forEach(function(h){ ev(li, "fact", "Fakta", h.tekst + "."); if(h.tradisjon){ ev(li, "meta", "Tradisjon", h.tradisjon); } });
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    cache.mndVist = true;
+  }
+
+  (function(){
+    var seg = $("sky-seg"); if(!seg){ return; }
+    if(!astro){ seg.hidden = true; }
+    seg.addEventListener("click", function(e){
+      var b = e.target.closest("button[data-span]"); if(!b){ return; }
+      seg.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      var v = b.getAttribute("data-span");
+      $("sky-dag").hidden = v !== "dag"; $("sky-uke").hidden = v !== "uke"; $("sky-mnd").hidden = v !== "mnd";
+      if(v === "uke"){ renderUke(); } else if(v === "mnd"){ renderMnd(); }
+    });
+  })();
+
+  /* Ukestripe i «Hva gjør jeg i dag?», ved Merkedager. */
+  function renderStripe(){
+    var box = $("week-strip"); if(!box || cache.stripeVist){ return; }
+    box.textContent = "";
+    var s = sted(); $("strip-place").textContent = stedNavn(s);
+    var fra = astro ? U.dagStart(now) : null, per = astro ? perDag(hendelserCache("uke", fra, U.plussDager(fra, 7))) : {};
+    for(var i = 0; i < 7; i++){
+      var dag = astro ? U.plussDager(fra, i) : new Date(now.getTime() + i * 86400000);
+      var nr = astro ? U.ukedagNr(dag) : dag.getDay();
+      var c = el("div", {"class":"d" + (i === 0 ? " today" : "")});
+      c.appendChild(el("b", null, (astro ? U.datoKort(dag) : dag.toLocaleDateString("nb-NO", {weekday:"short", day:"numeric", month:"numeric"})) + (i === 0 ? " · i dag" : "")));
+      if(astro){
+        var md = U.maaneDag(dag); c.appendChild(el("span", null, fase(md) + " " + md.prosent + " %"));
+        (per[U.nokkel(dag)] || []).forEach(function(h){
+          if(h.type === "fase"){ c.appendChild(el("span", null, h.tekst)); }
+          else if(h.type === "baklengs"){ c.appendChild(el("span", null, h.planet + (h.starter ? " begynner å gå baklengs" : " slutter å gå baklengs"))); }
+          else if(h.type === "transitt"){ c.appendChild(el("span", null, "★ " + h.planet + " " + (h.vinkel === 0 ? "sammen med" : h.vinkel + "° fra") + " sola ved fødselen")); }
+        });
+        var tegn = (per[U.nokkel(dag)] || []).filter(function(h){ return h.type === "tegn"; })[0];
+        c.appendChild(el("span", {"class":"muted"}, tegn ? "Månen inn i " + tegn.tegn : "Månen i " + md.tegn));
+      }
+      if(MERKE[nr]){ c.appendChild(el("span", {"class":"mk"}, MERKE[nr] + " (eksempel)")); }
+      box.appendChild(c);
+    }
+    cache.stripeVist = true;
+  }
+
+  /* «Hvordan ser uka mi ut?»: ferdigskrevne linjer fra Kari-dataene og himmelen. Ingen KI. */
+  function renderUkeSvar(){
+    var ul = $("week-lines"); ul.textContent = "";
+    function line(cls, tag, text){ var li = el("li"); li.appendChild(el("span", {"class":"tag " + cls}, tag)); li.appendChild(el("span", {"class":"t"}, text)); ul.appendChild(li); }
+    if(astro){
+      var fra = U.dagStart(now), liste = hendelserCache("uke", fra, U.plussDager(fra, 7)), s = sted();
+      var faser = liste.filter(function(h){ return h.type === "fase"; }), skift = liste.filter(function(h){ return h.type === "tegn"; });
+      var bak = liste.filter(function(h){ return h.type === "baklengs"; }), tr = liste.filter(function(h){ return h.type === "transitt"; });
+      var t = faser.length ? faser.map(function(h){ return h.tekst.replace(" kl.", " " + U.datoTekst(h.dato) + " kl."); }).join(", ") + "." : "Ingen nymåne, halvmåne eller fullmåne denne uka.";
+      t += " Månen bytter tegn " + skift.length + " " + (skift.length === 1 ? "gang" : "ganger") + ".";
+      if(bak.length){ t += " " + bak.map(function(h){ return h.planet + (h.starter ? " begynner" : " slutter") + " å gå baklengs " + U.datoTekst(h.dato); }).join(", ") + "."; }
+      line("fact", "Fakta", "Himmelen denne uka: " + t);
+      var oppe = 0, nede = 0;
+      for(var i = 0; i < 7; i++){ var k = U.maaneKort(s.lat, s.lon, U.plussDager(fra, i)); if(k.indexOf("oppe hele") > -1){ oppe++; } if(k.indexOf("under horisonten hele") > -1){ nede++; } }
+      if(oppe || nede){ line("fact", "Fakta", "Sett fra " + stedNavn(s) + " er månen " + (oppe ? "oppe hele døgnet " + oppe + " av 7 dager" : "") + (oppe && nede ? ", og " : "") + (nede ? "under horisonten hele døgnet " + nede + " av 7 dager" : "") + "."); }
+      if(tr.length){ tr.slice(0, 2).forEach(function(h){ line("meta", "Tradisjon", U.datoTekst(h.dato).replace(/^./, function(c){ return c.toUpperCase(); }) + ": " + h.planet + " står " + (h.vinkel === 0 ? "sammen med" : h.vinkel + "° fra") + " sola ved fødselen. " + h.tradisjon); }); }
+      else { line("meta", "Tradisjon", "Ingen av planetene fra sola til Saturn står i en hovedvinkel til sola ved fødselen denne uka."); }
+    }
+    line("fact", "Kalender", "Fredag har Ola bursdag, og lørdag er det julemarked i Storslett (eksempel).");
+    var valgt = dishes.filter(function(x){ return chosen.indexOf(x.id) > -1; }).map(function(x){ return x.name.toLowerCase(); });
+    line("fact", "Din plan", valgt.length ? "Middager du har valgt for uka: " + (H ? H.liste(valgt) : valgt.join(", ")) + ". Handlelisten ligger under Middag og handleliste." : "Du har ikke valgt middager for uka ennå.");
+    if(U){
+      var ds = [];
+      for(var j = 0; j < 7; j++){ var dd = new Date(now.getTime() + j * 86400000), pp = astro ? U.deler(dd) : {year:dd.getFullYear(), month:dd.getMonth() + 1, day:dd.getDate()};
+        ds.push((astro ? U.datoKort(dd).split(" ")[0] : pp.day + ".") + " " + U.tallene(bDay, bMonth, pp.year, pp.month, pp.day).dag.tall); }
+      line("meta", "Tradisjon", "Månedstallet ditt er " + pMonth + ", og dagstallene i uka er " + ds.join(", ") + ". " + (meanings[pMonth] ? "Tallet " + pMonth + " forbindes i tradisjonen med dette: " + meanings[pMonth] : ""));
+    }
+  }
+  (function(){
+    var b = $("week-ask"); if(!b){ return; }
+    b.addEventListener("click", function(){
+      var box = $("week-answer"), open = box.hidden;
+      if(open){ renderUkeSvar(); }
+      box.hidden = !open; b.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  })();
+
+  /* Stedsvalg under «Mine data». By er standard. Posisjon bare ved knappetrykk, én gang. */
+  function nyttSted(s){
+    if(s){ store("sted", s); } else { try{ localStorage.removeItem("meg-sted"); }catch(e){} }
+    cache = {}; renderLokal(); visSted();
+    ["sky-uke","sky-mnd"].forEach(function(id){ if(!$(id).hidden){ if(id === "sky-uke"){ renderUke(); } else { renderMnd(); } } });
+  }
+  function visSted(){
+    var s = sted(), sel = $("by-select"); if(!sel){ return; }
+    $("st-by").checked = s.type !== "posisjon"; $("st-pos").checked = s.type === "posisjon";
+    $("sted-by").hidden = s.type === "posisjon"; $("sted-pos").hidden = s.type !== "posisjon";
+    if(s.type !== "posisjon"){ sel.value = s.navn; }
+    $("sted-status").textContent = "Valgt nå: " + stedNavn(s) + (store("sted") ? "." : " (standard).");
+  }
+  (function(){
+    var sel = $("by-select"); if(!sel){ return; }
+    (U && U.BYER ? U.BYER : [["Storslett", 69.768, 21.030]]).forEach(function(b){ var o = el("option", {value:b[0]}, b[0]); sel.appendChild(o); });
+    sel.addEventListener("change", function(){
+      var b = (U && U.BYER ? U.BYER : []).filter(function(x){ return x[0] === sel.value; })[0];
+      if(b){ nyttSted({type:"by", navn:b[0], lat:b[1], lon:b[2]}); }
+    });
+    $("st-by").addEventListener("change", function(){ $("sted-by").hidden = false; $("sted-pos").hidden = true; var b = (U && U.BYER ? U.BYER : []).filter(function(x){ return x[0] === sel.value; })[0]; nyttSted(b ? {type:"by", navn:b[0], lat:b[1], lon:b[2]} : null); });
+    $("st-pos").addEventListener("change", function(){ $("sted-by").hidden = true; $("sted-pos").hidden = false; $("sted-status").textContent = "Trykk på knappen for å hente posisjonen én gang. Inntil da brukes " + stedNavn(sted()) + "."; });
+    $("pos-btn").addEventListener("click", function(){
+      if(!("geolocation" in navigator)){ $("sted-status").textContent = "Denne nettleseren kan ikke gi posisjon. Velg en by i stedet."; return; }
+      $("sted-status").textContent = "Henter posisjonen én gang …";
+      navigator.geolocation.getCurrentPosition(function(pos){
+        var la = Math.round(pos.coords.latitude * 1000) / 1000, lo = Math.round(pos.coords.longitude * 1000) / 1000;
+        nyttSted({type:"posisjon", navn:"Din posisjon", lat:la, lon:lo});
+      }, function(err){
+        $("sted-status").textContent = (err && err.code === 1 ? "Du sa nei til posisjon. " : "Fikk ikke tak i posisjonen. ") + "Vi bruker fortsatt " + stedNavn(sted()) + ".";
+      }, {enableHighAccuracy:false, timeout:15000, maximumAge:600000});
+    });
+    visSted();
+  })();
+  renderLokal();
+
+  /* ---- privacy actions (nothing leaves the page) ---- */
+  $("export-btn").addEventListener("click", function(){
+    $("pv-msg").textContent = "";
+    var data = {laget: new Date().toISOString(), forklaring: "Alt meg.voteapp.eu (prototype) har lagret i denne nettleseren, også stedet ditt hvis du har valgt et. Ingenting av dette er sendt ut."};
+    try{ for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k && k.indexOf("meg-") === 0){ var v = localStorage.getItem(k); try{ v = JSON.parse(v); }catch(e){} data[k.slice(4)] = v; } } }catch(e){}
+    if(!data.sted){ data.sted = "Ikke valgt. Standard er Storslett, og det er ikke lagret noe."; }
+    var url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:"application/json"}));
+    var a = el("a", {href:url, download:"mine-data-meg-voteapp.json"}); document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    $("pv-msg").appendChild(el("p", {"class":"note"}, "Filen «mine-data-meg-voteapp.json» er laget på enheten din. Den inneholder det som er lagret i denne nettleseren, også stedet ditt."));
+  });
   $("delete-btn").addEventListener("click", function(){
     var box = $("pv-msg"); box.textContent = "";
     var c = el("div", {"class":"confirm"}); c.appendChild(el("b", null, "Slette alt du har lagt inn i meg.voteapp.eu?"));
     c.appendChild(el("span", null, "VoteApp-kontoen og stemmene dine berøres ikke. I prototypen nullstilles bare eksempeldataene."));
     var row = el("div", {"class":"row"}), yes = el("button", {type:"button", "class":"primary"}, "Ja, slett"), no = el("button", {type:"button"}, "Avbryt");
-    yes.addEventListener("click", function(){ ["todos","chosen","have","following","interests","joined"].forEach(function(k){ try{ localStorage.removeItem("meg-"+k); }catch(e){} }); box.textContent = ""; box.appendChild(el("p", {"class":"note"}, "Slettet. Last siden på nytt for å starte med eksempeldata igjen.")); });
+    yes.addEventListener("click", function(){ ["todos","chosen","have","following","interests","joined","sted"].forEach(function(k){ try{ localStorage.removeItem("meg-"+k); }catch(e){} }); cache = {}; renderLokal(); visSted(); box.textContent = ""; box.appendChild(el("p", {"class":"note"}, "Slettet. Last siden på nytt for å starte med eksempeldata igjen.")); });
     no.addEventListener("click", function(){ box.textContent = ""; });
     row.appendChild(yes); row.appendChild(no); c.appendChild(row); box.appendChild(c);
   });
@@ -866,6 +1109,7 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     var v = (location.hash || "#dag").slice(1); if(views.indexOf(v) === -1){ v = "dag"; }
     views.forEach(function(x){ $("view-" + x).hidden = x !== v; });
     if(v === "dag"){ renderMeaning(); }
+    if(v === "plan"){ renderStripe(); }
     $("view-" + v).querySelectorAll(".card").forEach(function(cd, i){ cd.style.setProperty("--i", i); cd.style.animation = "none"; void cd.offsetWidth; cd.style.animation = ""; });
     document.querySelectorAll("nav.tabs a").forEach(function(a){ if(a.getAttribute("href") === "#" + v){ a.setAttribute("aria-current","page"); } else { a.removeAttribute("aria-current"); } });
   }
