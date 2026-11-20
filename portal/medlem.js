@@ -1,4 +1,4 @@
-/* Medlemskap for me.voteapp: innlogging med e-postlenke, lagring av navn og fødselsdata (bare med samtykke),
+/* Medlemskap for me.voteapp: innlogging med e-post og passord eller e-postlenke, lagring av navn og fødselsdata (bare med samtykke),
    prøvetid på 7 dager og spørsmål om å fortsette etterpå. Etter "Ja" går man til kassen i Scale.gg (ScalePay).
    Webhooken scale-webhook kjenner igjen kjøperen på e-posten, så den må være den samme som innloggingen. */
 (function(){
@@ -56,6 +56,11 @@
     } else if(st === "ended"){
       html += "<div class=\"trial\">Du har valgt å ikke fortsette. Har du ombestemt deg? <button type=\"button\" class=\"linkbtn\" id=\"ans-yes\">Jeg vil likevel fortsette</button></div>";
     }
+    html += "<div class=\"pw-box\"><h3>Passord</h3><p class=\"muted\">Med passord logger du inn med e-post og passord, også på mobilen, uten å åpne e-posten. Minst 8 tegn.</p>";
+    html += "<form id=\"pw-form\" autocomplete=\"on\"><input type=\"email\" name=\"email\" autocomplete=\"username\" value=\"" + esc(me.email) + "\" hidden>";
+    html += "<label>Nytt passord<input id=\"pw1\" type=\"password\" autocomplete=\"new-password\" minlength=\"8\" required></label>";
+    html += "<label>Skriv det en gang til<input id=\"pw2\" type=\"password\" autocomplete=\"new-password\" minlength=\"8\" required></label>";
+    html += "<button type=\"submit\">Lagre passord</button></form></div>";
     html += "<label class=\"consent\"><input type=\"checkbox\" id=\"consent\"" + (row.consent_at ? " checked" : "") + "> <span>Lagre navn og fødselsdata på kontoen min, så jeg slipper å skrive dem inn igjen. Dataene ligger i EU, deles ikke med andre og holdes adskilt fra stemmesvar.</span></label>";
     html += "<div class=\"acct-actions\"><button type=\"button\" class=\"linkbtn\" id=\"logout\">Logg ut</button><button type=\"button\" class=\"linkbtn\" id=\"delete-me\">Slett kontoen min og alle data</button></div>";
     out.innerHTML = html;
@@ -74,6 +79,24 @@
     if(st === "trial" && left === 0){ say("Svar på spørsmålet over for å fortsette."); }
 
     $("logout").addEventListener("click", function(){ sb.auth.signOut().then(function(){ location.reload(); }); });
+    $("pw-form").addEventListener("submit", function(e){
+      e.preventDefault();
+      var p1 = $("pw1").value, p2 = $("pw2").value;
+      if(p1.length < 8){ say("Passordet må ha minst 8 tegn.", true); return; }
+      if(p1 !== p2){ say("De to passordene er ikke like. Skriv dem på nytt.", true); return; }
+      say("Lagrer passordet...");
+      sb.auth.updateUser({password: p1}).then(function(r){
+        if(r.error){
+          var m = r.error.message || "";
+          if(/reauth|recent|nonce/i.test(m)){ say("Av sikkerhetshensyn må du logge inn med en ny e-postlenke før du kan lage passord. Logg ut og send deg en ny lenke.", true); return; }
+          if(/same|different/i.test(m)){ say("Dette er allerede passordet ditt.", true); return; }
+          if(/weak|short|characters/i.test(m)){ say("Passordet er for svakt. Bruk minst 8 tegn, gjerne med tall og bokstaver.", true); return; }
+          say("Passordet ble ikke lagret: " + m, true); return;
+        }
+        $("pw1").value = ""; $("pw2").value = "";
+        say("Passordet er lagret. Neste gang kan du logge inn med " + me.email + " og passordet.");
+      });
+    });
     $("delete-me").addEventListener("click", function(){
       if(!confirm("Slette kontoen din og alle lagrede data? Dette kan ikke angres.")){ return; }
       sb.rpc("delete_me").then(function(r){
@@ -181,10 +204,28 @@
     });
   }
 
+  /* Logg inn med e-post og passord */
   $("login-form").addEventListener("submit", function(e){
     e.preventDefault();
-    var email = $("lemail").value.trim();
+    var email = $("lemail").value.trim(), pass = $("lpass").value;
     if(!email){ return; }
+    if(!pass){ say("Skriv passordet ditt, eller trykk «Send meg en innloggingslenke» hvis du ikke har laget passord ennå.", true); $("lpass").focus(); return; }
+    say("Logger inn...");
+    sb.auth.signInWithPassword({email: email, password: pass}).then(function(r){
+      if(r.error){
+        if(/invalid/i.test(r.error.message || "")){ say("Feil e-post eller passord. Har du ikke laget passord ennå, trykk «Send meg en innloggingslenke», og lag passordet inne på kontoen.", true); return; }
+        if(/confirm/i.test(r.error.message || "")){ say("E-posten er ikke bekreftet ennå. Trykk «Send meg en innloggingslenke» først.", true); return; }
+        say("Kunne ikke logge inn: " + r.error.message, true); return;
+      }
+      $("lpass").value = "";
+      say("");
+    });
+  });
+
+  /* Logg inn med lenke på e-post (første gang, eller glemt passord) */
+  $("login-link").addEventListener("click", function(){
+    var email = $("lemail").value.trim();
+    if(!email || !$("lemail").checkValidity()){ say("Skriv e-postadressen din først.", true); $("lemail").focus(); return; }
     say("Sender lenke...");
     sb.auth.signInWithOtp({email: email, options: {emailRedirectTo: location.origin + location.pathname, shouldCreateUser: true}}).then(function(r){
       if(r.error){ say("Kunne ikke sende lenken: " + r.error.message, true); return; }
