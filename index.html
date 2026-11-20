@@ -108,6 +108,13 @@ form.add input[type=text]{flex:1 1 180px}
 .note{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:14px}
 .case{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;background:var(--surface-2)}
 .case .meta-row{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+/* Oss to */
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps li{display:flex;gap:8px;align-items:center;font-size:14px}
+.steps .n{flex:0 0 auto;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--surface-2);border:1px solid var(--line)}
+.steps li.done .n{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+#oss-body{display:flex;flex-direction:column;gap:8px}
+#oss-body select{max-width:100%}
 table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -342,6 +349,13 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
       <article class="card">
         <div class="card-head"><h3>Saker for meg</h3><span class="tag fact">VoteApp</span></div>
         <div id="cases" class="view" style="gap:8px"></div>
+      </article>
+      <article class="card" id="oss-card">
+        <div class="card-head"><h3>Oss to</h3><span class="tag hyp">Demo</span></div>
+        <p>Sammenlign deg med partneren din, et voksent barn eller en venn. Ingenting vises før begge har sagt ja, og hver av dere kan trekke ja-et tilbake når som helst.</p>
+        <ol class="steps" id="oss-steps"></ol>
+        <div id="oss-body" aria-live="polite"></div>
+        <p class="muted">Demonstrasjon med eksempelpersonen Ola. Ingen invitasjon sendes, og ingenting lagres. Du ser bare at dere begge følger en sak, aldri hva noen har stemt. Gjelder bare voksne (18 år og eldre).</p>
       </article>
       <article class="card wide">
         <div class="card-head"><h3>Fellesskap med samme interesser</h3><span class="tag hyp">Prøves ut</span></div>
@@ -828,6 +842,66 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
     });
   }
   renderInterests(); renderCases(); renderGroups();
+  /* ---- Oss to: demo av gjensidig samtykke. Bare i minnet, ingenting sendes eller lagres. Aldri stemmer. ---- */
+  var oss = {invited:false, kari:false, ola:false, rel:"Partner"};
+  var ola = {navn:"Ola", fodt:[1966, 9, 2], interesser:["Natur og friluftsliv","Veier og samferdsel","Kultur og frivillighet","Helse og velvære"]};
+  var ELEMENT = ["Ild","Jord","Luft","Vann","Ild","Jord","Luft","Vann","Ild","Jord","Luft","Vann"];
+  function elementText(a, b){
+    var ea = ELEMENT[a], eb = ELEMENT[b];
+    if(ea === eb){ return "Begge soltegn hører til elementet " + ea.toLowerCase() + ". I tradisjonen regnes det som å kjenne seg igjen i hverandre."; }
+    var pair = [ea, eb].sort().join("+");
+    if(pair === "Ild+Luft" || pair === "Jord+Vann"){ return ea + " og " + eb.toLowerCase() + " regnes i tradisjonen som elementer som utfyller hverandre."; }
+    return ea + " og " + eb.toLowerCase() + " regnes i tradisjonen som ulike måter å møte verden på, med mye å lære av hverandre.";
+  }
+  function renderOss(){
+    var steps = $("oss-steps"), body = $("oss-body"); steps.textContent = ""; body.textContent = "";
+    [["Du lager en invitasjon", oss.invited], ["Du sier ja", oss.kari], ["Ola sier ja", oss.ola]].forEach(function(s, i){
+      var li = el("li", {"class": s[1] ? "done" : ""}); li.appendChild(el("span", {"class":"n", "aria-hidden":"true"}, s[1] ? "✓" : String(i + 1))); li.appendChild(el("span", null, s[0] + (s[1] ? " (gjort)" : ""))); steps.appendChild(li);
+    });
+    var row = el("div", {"class":"row"});
+    function btn(text, primary, fn){ var b = el("button", {type:"button"}, text); if(primary){ b.className = "primary"; } b.addEventListener("click", function(){ fn(); renderOss(); }); row.appendChild(b); }
+    if(!oss.invited){
+      var lab = el("label", {"class":"muted", "for":"oss-rel"}, "Hvem vil du sammenligne deg med?");
+      var sel = el("select", {id:"oss-rel"}); ["Partner","Voksent barn","Venn"].forEach(function(r){ var o = el("option", null, r); if(r === oss.rel){ o.selected = true; } sel.appendChild(o); });
+      sel.addEventListener("change", function(){ oss.rel = sel.value; });
+      body.appendChild(lab); body.appendChild(sel);
+      btn("Lag invitasjon til Ola (demo)", true, function(){ oss.invited = true; });
+      body.appendChild(row); return;
+    }
+    if(!oss.kari || !oss.ola){
+      body.appendChild(el("p", {"class":"note"}, "Invitasjon til Ola (" + oss.rel.toLowerCase() + ") er laget. I ekte versjon sendes den på e-post. Her sendes ingenting. Sammenligningen vises først når begge har sagt ja."));
+      if(!oss.kari){ btn("Jeg sier ja", true, function(){ oss.kari = true; }); }
+      if(!oss.ola){ btn("Spill av: Ola sier ja", false, function(){ oss.ola = true; }); }
+      btn("Avbryt invitasjonen", false, function(){ oss.invited = false; oss.kari = false; oss.ola = false; });
+      body.appendChild(row); return;
+    }
+    /* Begge har sagt ja: kort sammenligning */
+    var box = el("div", {"class":"view", "style":"gap:8px"});
+    if(H && birth){
+      var o = H.fodsel(ola.fodt[0], ola.fodt[1], ola.fodt[2]);
+      var c = el("div", {"class":"case"});
+      var h = el("div", {"class":"card-head"}); h.appendChild(el("b", null, "Himmelen deres")); h.appendChild(el("span", {"class":"tag meta"}, "Tradisjon")); c.appendChild(h);
+      c.appendChild(el("span", null, "Kari: sol i " + birth.sol.tekst + ", måne i " + birth.maane.tekst + "."));
+      c.appendChild(el("span", null, "Ola: sol i " + o.sol.tekst + ", måne i " + o.maane.tekst + "."));
+      c.appendChild(el("span", null, elementText(birth.sol.tegnNr, o.sol.tegnNr)));
+      c.appendChild(el("span", {"class":"muted"}, "Tegnene er regnet ut fra fødselsdatoene (eksempel). Tolkningen er tradisjon og inspirasjon, ikke fakta, og sier ingenting om hvordan det går med dere."));
+      box.appendChild(c);
+    }
+    var both = cases.filter(function(x){ return mine.indexOf(x.i) > -1 && ola.interesser.indexOf(x.i) > -1; });
+    var cs = el("div", {"class":"case"});
+    var ch = el("div", {"class":"card-head"}); ch.appendChild(el("b", null, "Saker dere begge følger")); ch.appendChild(el("span", {"class":"tag fact"}, "VoteApp")); cs.appendChild(ch);
+    if(both.length){ both.forEach(function(x){ cs.appendChild(el("span", null, x.t + " (" + x.i + ", eksempel)")); }); }
+    else { cs.appendChild(el("span", {"class":"muted"}, "Dere følger ingen av de samme sakene akkurat nå.")); }
+    cs.appendChild(el("span", {"class":"muted"}, "Her vises bare at dere begge følger saken. Hva noen har stemt, vises aldri."));
+    box.appendChild(cs);
+    body.appendChild(box);
+    btn("Trekk tilbake mitt ja", false, function(){ oss.kari = false; });
+    btn("Spill av: Ola trekker tilbake", false, function(){ oss.ola = false; });
+    body.appendChild(row);
+  }
+  renderOss();
+  $("interests").addEventListener("change", function(){ renderOss(); });
+
 
   /* ---- «Hva betyr dagen i dag for meg?»: ferdigskrevne linjer bygget av det som står på siden. Ingen KI. ---- */
   function renderMeaning(){
