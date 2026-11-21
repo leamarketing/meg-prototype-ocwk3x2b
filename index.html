@@ -258,7 +258,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <article class="card wide" id="meaning-card">
         <div class="card-head"><h3>Hva betyr dagen i dag for meg?</h3><span class="tag hyp">Prototype</span></div>
         <ul class="meaning" id="meaning"></ul>
-        <p class="muted">Svaret er satt sammen av det som står på denne siden: dagens himmel, merkedagene, planen og interessene til eksempelpersonen Kari. Ingen KI er brukt, ingenting sendes ut, og det gis ingen råd om helse.</p>
+        <p class="muted">Svaret er satt sammen av det som står på denne siden: dagens himmel, merkedagene, planen og interessene dine (eksempelpersonen Kari når du ikke er logget inn). Ingen KI er brukt, ingenting sendes ut, og det gis ingen råd om helse.</p>
       </article>
       <article class="card">
         <div class="card-head"><h3>Tallene dine</h3><span class="tag meta">Tradisjon</span></div>
@@ -347,16 +347,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <article class="card wide" id="week-card">
         <div class="card-head"><h3>Uka di</h3><span class="tag fact">Himmel og kalender</span></div>
         <div class="strip" id="week-strip"></div>
-        <p class="muted">Himmelen er beregnet på enheten for <span id="strip-place">Storslett</span>. Merkedagene er eksempler. En stjerne (★) betyr en vinkel til sola ved fødselen: selve vinkelen er fakta, tolkningen er tradisjon.</p>
+        <p class="muted">Himmelen er beregnet på enheten for <span id="strip-place">Storslett</span>. Merkedagene er eksempler når du ikke er logget inn. En stjerne (★) betyr en vinkel til sola ved fødselen: selve vinkelen er fakta, tolkningen er tradisjon.</p>
         <div class="row"><button type="button" id="week-ask" aria-expanded="false" aria-controls="week-answer">Hvordan ser uka mi ut?</button></div>
         <div id="week-answer" hidden>
           <ul class="meaning" id="week-lines"></ul>
-          <p class="muted">Ferdigskrevet svar bygget av det som står på siden: himmelen, merkedagene, middagene og tallene til eksempelpersonen Kari. Ingen KI er brukt, ingenting sendes ut, og det gis ingen råd om helse.</p>
+          <p class="muted">Ferdigskrevet svar bygget av det som står på siden: himmelen, merkedagene, middagene og tallene dine (eksempelpersonen Kari når du ikke er logget inn). Ingen KI er brukt, ingenting sendes ut, og det gis ingen råd om helse.</p>
         </div>
       </article>
       <article class="card">
         <div class="card-head"><h3>Merkedager</h3><span class="tag fact">Kalender</span></div>
-        <ul class="plain">
+        <ul class="plain" id="merkedager">
           <li><b>Fredag:</b> Bursdag til Ola (eksempel)</li>
           <li><b>Lørdag:</b> Julemarked i Storslett (eksempel)</li>
         </ul>
@@ -615,11 +615,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
   var PROF = (window.MegKonto && window.MegKonto.profil) || null;
   var NAVN = (PROF && PROF.fornavn) || "Kari";
   var EGEN = !!(PROF && PROF.aar && PROF.mnd && PROF.dag);
+  /* Innlogget: planen, middagene, interessene og merkedagene starter tomme, så alt på siden er ditt eget. Eksempeldata bare uten innlogging. */
+  var INN = !!PROF;
   var FY = EGEN ? PROF.aar : 1968, FM = EGEN ? PROF.mnd : 3, FD = EGEN ? PROF.dag : 14;
   function p2(n){ return (n < 10 ? "0" : "") + n; }
   var FDATO = p2(FD) + "." + p2(FM) + "." + FY, EKS = EGEN ? "" : " (eksempel)";
   if(PROF){
-    $("demo-text").textContent = "Du er logget inn" + (PROF.navn ? " som " + PROF.navn : "") + ". Navnet og fødselsdatoen dine hentes fra Medlemsportalen. Resten av siden er fortsatt eksempeldata.";
+    $("demo-text").textContent = "Du er logget inn" + (PROF.navn ? " som " + PROF.navn : "") + ". Navnet og fødselsdatoen dine hentes fra Medlemsportalen. Planen, middagene og interessene er dine egne. Sakene og gruppene er fortsatt eksempler.";
+    var mk = $("merkedager"); if(mk){ mk.textContent = ""; mk.appendChild(el("li", {"class":"muted"}, "Ingen merkedager ennå. Legg inn store dager under Livet mitt.")); }
   } else {
     $("demo-text").appendChild(document.createTextNode(" Logg inn i Medlemsportalen for å se din egen dag."));
   }
@@ -942,7 +945,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   });
 
   /* ---- todo ---- */
-  var todos = store("todos") || [{t:"08:30", x:"Kaffe og fem minutter stillhet", done:true},{t:"10:00", x:"Svare på e-post fra sameiet", done:false},{t:"12:15", x:"Tur i dagslyset, 20 minutter", done:false},{t:"17:00", x:"Middag: laks med potet og brokkoli", done:false},{t:"20:00", x:"Stemme på saken om turstier", done:false}];
+  var todos = store("todos") || (INN ? [] : null) || [{t:"08:30", x:"Kaffe og fem minutter stillhet", done:true},{t:"10:00", x:"Svare på e-post fra sameiet", done:false},{t:"12:15", x:"Tur i dagslyset, 20 minutter", done:false},{t:"17:00", x:"Middag: laks med potet og brokkoli", done:false},{t:"20:00", x:"Stemme på saken om turstier", done:false}];
   function renderTodos(){
     var ul = $("todo"); ul.textContent = "";
     todos.sort(function(a,b){ return a.t < b.t ? -1 : 1; }).forEach(function(it, i){
@@ -957,6 +960,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       li.appendChild(del); ul.appendChild(li);
     });
     var left = todos.filter(function(x){ return !x.done; }).length;
+    if(!todos.length){ $("todo-count").textContent = "Ingenting på planen ennå. Skriv det første du vil gjøre i dag under."; return; }
     $("todo-count").textContent = left === 0 ? "Alt er gjort i dag. Nyt kvelden!" : left + " igjen i dag. Ta én om gangen.";
   }
   $("todo-form").addEventListener("submit", function(e){ e.preventDefault(); var x = $("todo-text").value.trim(); if(!x){ return; } todos.push({t:$("todo-time").value || "12:00", x:x, done:false}); $("todo-text").value = ""; store("todos", todos); renderTodos(); });
@@ -970,9 +974,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
     {id:"omelett", name:"Omelett med sopp og fullkornsbrød", why:"Rask middag, egg gir D-vitamin", ing:["Egg","Sopp","Fullkornsbrød","Smør","Ost"]},
     {id:"makrell", name:"Makrell i tomat på knekkebrød med salat", why:"Fet fisk, rask lunsj eller kveldsmat", ing:["Makrell i tomat","Knekkebrød","Salat","Agurk"]}
   ];
-  var chosen = store("chosen") || ["laks","linse","reinsdyr"];
+  var chosen = store("chosen") || (INN ? [] : ["laks","linse","reinsdyr"]);
   var pantryItems = ["Potet","Smør","Løk","Hvitløk","Egg","Hermetiske tomater","Knekkebrød","Ost","Fløte","Tyttebær","Sitron","Salat","Agurk","Kokosmelk"];
-  var have = store("have") || ["Potet","Smør","Løk","Hvitløk","Egg","Knekkebrød","Tyttebær"];
+  var have = store("have") || (INN ? [] : ["Potet","Smør","Løk","Hvitløk","Egg","Knekkebrød","Tyttebær"]);
   function renderDishes(){
     var box = $("dishes"); box.textContent = "";
     dishes.forEach(function(dsh){
@@ -997,6 +1001,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     var need = {};
     dishes.forEach(function(dsh){ if(chosen.indexOf(dsh.id) > -1){ dsh.ing.forEach(function(g){ if(have.indexOf(g) === -1){ (need[g] = need[g] || []).push(dsh.name); } }); } });
     var ul = $("shop"); ul.textContent = ""; var keys = Object.keys(need).sort(function(a,b){ return a.localeCompare(b, "nb"); });
+    if(!chosen.length){ ul.appendChild(el("li", null, "Kryss av for middagene du vil lage, så kommer handlelisten her.")); shopText = ""; return; }
     if(!keys.length){ ul.appendChild(el("li", null, "Du har alt du trenger. Ingen handletur i dag!")); shopText = ""; return; }
     keys.forEach(function(k){ var li = el("li"); li.appendChild(el("span", null, k)); li.appendChild(el("span", {"class":"muted"}, need[k].join(", "))); ul.appendChild(li); });
     shopText = "Handleliste\n" + keys.map(function(k){ return "- " + k; }).join("\n");
@@ -1015,7 +1020,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     "Magnesium": {foods:["Gresskarkjerner","Mandler","Havregryn","Linser og bønner","Mørk sjokolade"], dish:"linse", tip:"Nøtter og frø er et enkelt mellommåltid."},
     "B12": {foods:["Fisk og skalldyr","Egg","Melk og ost","Kjøtt"], dish:"omelett", tip:"Følger du et plantebasert kosthold, snakk med lege om B12."}
   };
-  var following = store("following") || ["D-vitamin","Magnesium"];
+  var following = store("following") || (INN ? [] : ["D-vitamin","Magnesium"]);
   function renderNutrients(){
     var box = $("nutrients"); box.textContent = "";
     Object.keys(nutrients).forEach(function(n, i){
@@ -1044,7 +1049,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   /* ---- interests, cases, groups ---- */
   var interestList = ["Natur og friluftsliv","Helse og velvære","Mat og lokalproduksjon","Skole og barn","Veier og samferdsel","Kultur og frivillighet","Næring og arbeid"];
-  var mine = store("interests") || ["Natur og friluftsliv","Helse og velvære","Mat og lokalproduksjon"];
+  var mine = store("interests") || (INN ? [] : ["Natur og friluftsliv","Helse og velvære","Mat og lokalproduksjon"]);
   var cases = [
     {t:"Skal det bygges flere turstier langs Reisaelva?", i:"Natur og friluftsliv", s:"Åpen for svar", by:"Nordreisa"},
     {t:"Bør skolene servere et varmt måltid hver dag?", i:"Skole og barn", s:"Åpen for svar", by:"Nordreisa"},
@@ -1159,7 +1164,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       line("fact", "Fakta", "Månen i dag: " + phase + ", " + illum + " % opplyst.");
     }
     line("meta", "Tradisjon", "Dagens tall er " + pDay + ". " + (meanings[pDay] || ""));
-    line("fact", "Kalender", "Fredag har Ola bursdag, og lørdag er det julemarked i Storslett (eksempel).");
+    if(!INN){ line("fact", "Kalender", "Fredag har Ola bursdag, og lørdag er det julemarked i Storslett (eksempel)."); }
     var open = todos.filter(function(x){ return !x.done; });
     line("fact", "Din plan", open.length ? open.length + " ting igjen i planen. Neste: " + open[0].t + " " + open[0].x + "." : "Alt i planen er gjort. Resten av dagen er din.");
     var c = cases.filter(function(x){ return mine.indexOf(x.i) > -1 && x.s === "Åpen for svar"; })[0];
@@ -1177,7 +1182,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   var astro = !!(U && U.stedsdag);
   var natalSol = astro ? U.fodselsSol(FY, FM, FD) : null;
   var cache = {};
-  var MERKE = {5:"Bursdag til Ola", 6:"Julemarked i Storslett"};
+  var MERKE = INN ? {} : {5:"Bursdag til Ola", 6:"Julemarked i Storslett"};
   function fase(md){ return H ? H.fasenavn(md.prosent, md.voksende) : (md.voksende ? "Voksende" : "Minkende"); }
   function ev(parent, cls, tag, text){ var d = el("div", {"class":"ev"}); d.appendChild(el("span", {"class":"tag " + cls}, tag)); d.appendChild(el("span", {"class":"t"}, text)); parent.appendChild(d); }
   function hendelserCache(nok, fra, til){ if(!cache[nok]){ cache[nok] = U.hendelser(fra, til, natalSol); } return cache[nok]; }
@@ -1288,7 +1293,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       if(tr.length){ tr.slice(0, 2).forEach(function(h){ line("meta", "Tradisjon", U.datoTekst(h.dato).replace(/^./, function(c){ return c.toUpperCase(); }) + ": " + h.planet + " står " + (h.vinkel === 0 ? "sammen med" : h.vinkel + "° fra") + " sola ved fødselen. " + h.tradisjon); }); }
       else { line("meta", "Tradisjon", "Ingen av planetene fra sola til Saturn står i en hovedvinkel til sola ved fødselen denne uka."); }
     }
-    line("fact", "Kalender", "Fredag har Ola bursdag, og lørdag er det julemarked i Storslett (eksempel).");
+    if(!INN){ line("fact", "Kalender", "Fredag har Ola bursdag, og lørdag er det julemarked i Storslett (eksempel)."); }
     var valgt = dishes.filter(function(x){ return chosen.indexOf(x.id) > -1; }).map(function(x){ return x.name.toLowerCase(); });
     line("fact", "Din plan", valgt.length ? "Middager du har valgt for uka: " + (H ? H.liste(valgt) : valgt.join(", ")) + ". Handlelisten ligger under Middag og handleliste." : "Du har ikke valgt middager for uka ennå.");
     if(U){
@@ -1362,7 +1367,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
     {d:"1994-06-18", k:"Bryllup", t:"Bryllup i Nordreisa kirke (eksempel)"},
     {d:"2005-08-01", k:"Flytting", t:"Flyttet til Storslett (eksempel)"}
   ];
-  var days = store("dager") || exampleDays.slice();
+  /* Innlogget: bare fødselsdagen din fra profilen, ingen eksempeldager */
+  var days = store("dager") || (INN ? exampleDays.slice(0, EGEN ? 1 : 0) : exampleDays.slice());
   function pad(n){ return (n < 10 ? "0" : "") + n; }
   function parts(iso){ var p = iso.split("-"); return {y:+p[0], m:+p[1], d:+p[2]}; }
   function dateText(iso){ var p = parts(iso); return p.d + ". " + MND[p.m - 1] + " " + p.y; }
