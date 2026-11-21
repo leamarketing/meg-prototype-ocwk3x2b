@@ -94,13 +94,12 @@ a{color:var(--accent)}
 <h2 id="h-testpilot">Bli testpilot: én måned gratis</h2>
 <p>Min dag er under utvikling, og vi trenger folk som prøver nye funksjoner og sier ærlig hva de synes. Som takk får du én måned gratis tilgang til modulene som skal koste penger, for eksempel Sangene mine, når betalingen er på plass.</p>
 <ul class="small">
-<li>Du lager en gratis konto i Medlemsportalen.</li>
 <li>Du prøver nye ting når du har lyst, og sier fra hva som virker og hva som ikke virker.</li>
 <li>Det er helt frivillig, og du kan slutte når du vil.</li>
 <li>Vi sporer deg ikke, og vi deler ingenting med andre.</li>
 </ul>
-<p><a class="knapp" href="/portal/">Lag gratis konto i Medlemsportalen</a></p>
-<p class="small">Si fra til Geir at du vil være testpilot, for eksempel ved å svare på e-posten du fikk.</p>
+<div data-liste-skjema data-side="spill"></div>
+<p class="small">Vil du heller prøve hele Min dag med en gang? <a href="/portal/">Lag gratis konto i Medlemsportalen</a>.</p>
 </section>
 
 <section class="card" aria-labelledby="h-regler">
@@ -120,6 +119,7 @@ a{color:var(--accent)}
 <script defer src="/portal/supabase-public.js"></script>
 <script src="/lib/meg-konto.js?v=2026-11-20"></script>
 <script src="nedtelling.js?v=2026-11-21"></script>
+<script src="/liste/liste.js?v=2026-11-21" defer></script>
 <script>
 // Alderssjekk for voksenrommet: regner hele år ut fra dag, måned og år.
 var Alder=(function(){
