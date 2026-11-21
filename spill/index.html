@@ -65,7 +65,7 @@ a{color:var(--accent)}
 <button type="button" id="visLykke">Vis dagens tall</button>
 <p id="lykkeFeil" class="warn" role="alert"></p>
 <div id="lykkeUt" aria-live="polite"></div>
-<p class="small">Ingenting du skriver her blir lagret eller sendt noe sted.</p>
+<p class="small">Er du logget inn, hentes navn og fødselsdato fra profilen din. Ingenting du skriver her blir lagret eller sendt noe sted.</p>
 </section>
 
 <section class="card" aria-labelledby="h-voksen" style="border:2px solid var(--warn)">
@@ -192,7 +192,11 @@ if(typeof module!=='undefined')module.exports=Alder;
     var p=Alder.profil(),pd=Alder.profilDato(p);
     if(p&&p.navn&&!$('navn').value)$('navn').value=p.navn;
     if(pd&&!$('fdato').value)$('fdato').value=pd;
-    $('profilInfo').textContent=pd?'Vi fant fødselsdatoen din i profilen fra horoskop og dagsguide. Skriv den inn her, så sjekker vi at den stemmer.':'Vi fant ingen lagret profil. Logg inn i Medlemsportalen for å bruke fødselsdatoen du allerede har lagt inn.';
+    $('profilInfo').textContent=pd?'Fødselsdatoen er hentet fra profilen din i Medlemsportalen.':'Vi fant ingen lagret profil. Logg inn i Medlemsportalen, så slipper du å skrive inn fødselsdatoen.';
+    /* Innlogget: vis dagens lykketall med en gang, og åpne voksenrommet uten ny inntasting når profilen viser 18 år eller mer. */
+    if(p&&(p.navn||pd)){ $('visLykke').click(); }
+    if(pd){ $('alderDato').value=pd; var a=Alder.sjekk(pd,new Date());
+      if(a.ok){ try{sessionStorage.setItem('over18','ja');}catch(e){} $('voksenInnhold').hidden=false; $('alderSvar').textContent='Du er '+a.alder+' år ifølge profilen din. Voksenrommet er åpent.'; } }
   })();
   function aapneVoksen(){$('voksenInnhold').hidden=false;}
   try{if(sessionStorage.getItem('over18')==='ja'){aapneVoksen();$('alderSvar').textContent='Alderen er sjekket. Voksenrommet er åpent.';}}catch(e){}
