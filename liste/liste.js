@@ -75,6 +75,7 @@
       }).then(function (r) { return r.json(); }).then(function (s) {
         if (s && s.ok) {
           form.querySelectorAll("input,button").forEach(function (el) { el.disabled = true; });
+          knapp.textContent = "Sendt";
           vis("Takk! Sjekk e-posten din og trykk på lenken for å bekrefte. Finner du den ikke, se i søppelpost eller kampanjer.", true);
         } else {
           var g = s && s.grunn;
