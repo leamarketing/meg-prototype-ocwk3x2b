@@ -3,7 +3,7 @@
    Webhooken scale-webhook kjenner igjen kjøperen på e-posten, så den må være den samme som innloggingen. */
 (function(){
   var CFG = window.ME_SUPABASE || {};
-  var TRIAL_DAYS = 7, PRICE = "9 dollar i måneden";
+  var TRIAL_DAYS = 7, PRICE = "€9 i måneden";
   var CHECKOUT = "https://scalepay.gg/checkout/4d6ceb71-f488-4599-a227-71a2c6ce50e8?flowId=f5724901-f2b3-4e6e-a1df-05099d638953&cardId=3cb184f1-2bee-4471-ba37-6398d51659e1";
   var $ = function(id){ return document.getElementById(id); };
   var msg = $("acct-msg"), out = $("acct-out");
