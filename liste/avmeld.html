@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Meld deg av</title>
+<meta name="description" content="Avmelding fra e-postlisten for Min dag, med ett klikk.">
+<link rel="stylesheet" href="stil.css?v=2026-11-21">
+</head>
+<body>
+<main>
+<h1>Avmelding</h1>
+<div class="card" id="svar" role="status" aria-live="polite"><p>Melder deg av...</p></div>
+<p class="small"><a href="/">Til Min dag</a> · <a href="personvern.html">Personvern</a></p>
+</main>
+<script>
+(function () {
+  var t = new URLSearchParams(location.search).get("t") || "";
+  var svar = document.getElementById("svar");
+  function vis(html, ok) { svar.innerHTML = html; svar.className = "card " + (ok ? "ok" : "feil"); }
+  if (!/^[0-9a-f-]{36}$/i.test(t)) { vis("<p>Lenken mangler en del. Bruk avmeldingslenken nederst i e-posten på nytt.</p>", false); return; }
+  fetch("https://xprcbxubejpazmdbpsmy.supabase.co/functions/v1/liste", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ handling: "avmeld", t: t })
+  }).then(function (r) { return r.json(); }).then(function (s) {
+    if (s && s.ok) vis("<p><b>Du er meldt av.</b> Vi sender deg ingen flere e-poster fra listen.</p><p class=\"small\">Vi tar vare på selve avmeldingen, slik at vi kan vise at du har sagt nei. Ombestemmer du deg, kan du melde deg på igjen når du vil.</p>", true);
+    else vis("<p>Vi fant ikke denne påmeldingen. Er du allerede meldt av, trenger du ikke gjøre noe mer.</p>", false);
+  }).catch(function () {
+    vis("<p>Fikk ikke kontakt, så avmeldingen ble ikke registrert. <button type=\"button\" onclick=\"location.reload()\">Prøv igjen</button></p>", false);
+  });
+})();
+</script>
+</body>
+</html>
