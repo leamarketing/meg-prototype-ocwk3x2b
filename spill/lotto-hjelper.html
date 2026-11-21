@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lotto deep dive</title>
+<meta name="description" content="Lørdagsgøy: hva tallene, forskningen og prognosene faktisk sier om Lotto, og en idé til lykketall i Min dag.">
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1d2430; --muted:#5a6372; --line:#e3e1da;
+  --accent:#1f5f8b; --fakta:#2e7d4f; --hyp:#b7791f; --meta:#7b4bb0; --warn:#a33a3a;
+  --chip:#eef3f7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161c; --card:#1a2029; --ink:#e8ebef; --muted:#a3acb9; --line:#2c3440;
+    --accent:#6fb3e0; --fakta:#6cc792; --hyp:#e0b25c; --meta:#b993e6; --warn:#e58a8a; --chip:#222b36;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161c; --card:#1a2029; --ink:#e8ebef; --muted:#a3acb9; --line:#2c3440;
+  --accent:#6fb3e0; --fakta:#6cc792; --hyp:#e0b25c; --meta:#b993e6; --warn:#e58a8a; --chip:#222b36;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:820px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 8px}
+h2{font-size:1.3rem;margin:40px 0 12px;padding-top:8px;border-top:1px solid var(--line)}
+h3{font-size:1.05rem;margin:20px 0 6px}
+.lead{color:var(--muted);font-size:1.05rem;margin:0 0 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-right:6px;border:1px solid currentColor}
+.fakta{color:var(--fakta)} .hyp{color:var(--hyp)} .meta{color:var(--meta)} .warn{color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+th{font-size:.85rem;color:var(--muted);font-weight:600}
+td.n{text-align:right;white-space:nowrap}
+ul{padding-left:20px} li{margin:4px 0}
+.small{font-size:.88rem;color:var(--muted)}
+.balls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.kule{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
+.kule small{font-size:.72rem;color:var(--muted);white-space:nowrap}
+.bar{height:10px;border-radius:5px;background:var(--accent)}
+.ball{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;background:var(--chip);border:2px solid var(--accent);color:var(--ink)}
+.row{margin:8px 0}
+button{font:inherit;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 16px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--hyp);outline-offset:2px}
+label{display:inline-flex;gap:8px;align-items:center;margin:6px 16px 6px 0}
+a{color:var(--accent)}
+.legend span{margin-right:10px}
+</style>
+</head>
+<body>
+<main>
+<p class="small"><a href="index.html">Tilbake til Spill for familie og venner</a></p>
+<div id="aldersport" class="card">
+<h2 style="margin-top:0;border:0;padding:0">Bare for voksne</h2>
+<p>Lotto-hjelperen ligger i voksenrommet og er for deg som er 18 år eller eldre. Skriv inn fødselsdatoen din, så sjekker vi alderen og at datoen stemmer med profilen din for horoskop og dagsguide.</p>
+<label>Din fødselsdato <input type="date" id="alderDato" style="font:inherit"></label>
+<p><button type="button" id="aapne">Sjekk alder</button></p>
+<p id="alderSvar" role="status" aria-live="polite"></p>
+<p class="small">Hjelpelinjen for spillere og pårørende: <strong>800 800 40</strong>, <a href="https://hjelpelinjen.no">hjelpelinjen.no</a>.</p>
+</div>
+<div id="innhold" hidden>
+<h1>Lotto: hva tallene faktisk sier</h1>
+<p class="lead">Lørdagsgøy, 21. november 2026. Alt vi fant om Lotto hos Norsk Tipping, de gamle «systemene» fra e-posten, hva matematikken sier, og en idé til lykketall i Min dag.</p>
+
+<div class="card legend small">
+<span class="tag fakta">Fakta</span>målt eller regnet ut
+<span class="tag hyp">Hypotese</span>påstått, ikke bevist
+<span class="tag meta">Tradisjon</span>tro, numerologi og inspirasjon
+</div>
+
+<h2>Kort svar</h2>
+<div class="card">
+<ul>
+<li><span class="tag fakta">Fakta</span>Med én rekke er sjansen for 7 rette 1 av 5 379 616. Den er lik for alle rekker, hvilke tall du enn velger.</li>
+<li><span class="tag fakta">Fakta</span>Ingen metode kan forutsi neste trekning. Hver trekning er tilfeldig og husker ingenting fra forrige uke.</li>
+<li><span class="tag fakta">Fakta</span>Det eneste du kan påvirke, er hvor mange du må dele potten med om du vinner. Tall over 31 og rekker uten mønster gir oftere en hel pott til deg alene.</li>
+<li><span class="tag hyp">Hypotese</span>«Systemene» fra e-postene i 2018 lovet mønstre og vinnermetoder. Ingen av dem viste data som tåler en sjekk.</li>
+</ul>
+</div>
+
+<h2>Hva vi fant i e-post og på disken</h2>
+<div class="card">
+<ul>
+<li>BEPS-kurset fra VertiCode, kjøpt 2. mars 2018. Det lærte deg å selge lotto-produktet «Lotto Dominator» videre mot provisjon. Ingen tall eller prognoser i det.</li>
+<li>Reklame og webinarer fra mars 2018, med emner som «Winning the Lottery is Based on This [7 Time Winner Tells All]» og «Secret Lottery Pattern Discovered».</li>
+<li>Én e-post fra 2010 der du sendte deg selv en lottorekke.</li>
+<li>Ingen filer om Lotto, prognoser eller tippesystemer i Nedlastinger, Dokumenter eller på skrivebordet. Søket gjaldt filnavn, ikke innholdet i filene.</li>
+</ul>
+</div>
+
+<h2>Slik fungerer Lotto</h2>
+<div class="card">
+<p><span class="tag fakta">Fakta</span>Det trekkes 7 hovedtall av 34, pluss ett tilleggstall som avgjør andrepremien. Trekningen er på lørdag.</p>
+<p><span class="tag fakta">Fakta</span>En rekke koster 5 kr. Systemspill med 8 til 12 tall koster fra 40 kr (8 rekker) til 3 960 kr (792 rekker), ifølge Norsk Tippings side for systemspill.</p>
+<p class="small">Data mangler: hvor stor del av innsatsen som går tilbake som premier. Det fant vi ingen oppdatert kilde på.</p>
+</div>
+
+<h2>Sjansene, regnet ut</h2>
+<div class="card">
+<p class="small">Regnet ut med 7 av 34 og tilleggstallet trukket blant de 27 tallene som er igjen. Premiegruppene er de samme som Norsk Tipping viser på resultatsiden: 7, 6+1, 6, 5 og 4 rette.</p>
+<table>
+<thead><tr><th>Treff</th><th class="n">Sjanse per rekke</th></tr></thead>
+<tbody>
+<tr><td>7 rette</td><td class="n">1 av 5 379 616</td></tr>
+<tr><td>6 rette + tilleggstall</td><td class="n">1 av 768 517</td></tr>
+<tr><td>6 rette</td><td class="n">1 av 29 558</td></tr>
+<tr><td>5 rette</td><td class="n">1 av 730</td></tr>
+<tr><td>4 rette</td><td class="n">1 av 53</td></tr>
+<tr><td>Minst 4 rette (en premie)</td><td class="n">1 av 49</td></tr>
+</tbody>
+</table>
+<p><span class="tag fakta">Fakta</span>Lørdag 14. november hadde ingen 7 rette, så potten ble overført. 21 fikk 6+1 (110 220 kr), 510 fikk 6 rette (4 750 kr), 21 758 fikk 5 rette (120 kr) og 323 694 fikk 4 rette (50 kr). Omsetningen var 88 176 580 kr. Kilde: Norsk Tippings resultatside.</p>
+<h3>Hva betyr det i praksis?</h3>
+<p><span class="tag fakta">Fakta</span>Spiller du 10 rekker hver lørdag i 50 år, blir det 26 000 rekker. Sjansen for 7 rette minst én gang i løpet av de 50 årene er da omtrent 0,5 prosent.</p>
+</div>
+
+<h2>Prognosene: hva sier forskningen?</h2>
+<div class="card">
+<h3>«Varme» og «kalde» tall</h3>
+<p><span class="tag hyp">Hypotese</span>Mange systemer sier at tall som har kommet ofte er «varme», eller at tall som ikke har kommet på lenge «skal» komme.</p>
+<p><span class="tag fakta">Fakta</span>Når trekningen er tilfeldig og kontrollert, har hvert tall samme sjanse hver gang. Troen på at et tall «skylder» å komme, kalles spillerens feilslutning (gambler's fallacy).</p>
+<h3>Vi testet det selv</h3>
+<p><span class="tag fakta">Fakta</span>Vi lot datamaskinen trekke 520 helt tilfeldige lørdager, altså ti år. Hvert tall skulle i snitt komme 107 ganger. Tallet 3 kom 124 ganger, og tallet 23 bare 90 ganger. Forskjellen kommer av ren tilfeldighet. Slike «mønstre» dukker alltid opp i ekte trekninger også, og de sier ingenting om neste lørdag.</p>
+<h3>Hvem passer på trekningene?</h3>
+<p><span class="tag fakta">Fakta</span>Lotteritilsynet fører tilsyn med trekningene og premieberegningen hos Norsk Tipping. Tilsynet har blant annet laget en egen rapport om Vikinglotto og Joker i 2023.</p>
+<h3>«7 ganger vinner»</h3>
+<p><span class="tag hyp">Hypotese</span>E-postene fra 2018 solgte en metode fra en som skulle ha vunnet sju ganger. Ingen av e-postene viste en sjekk som skiller metoden fra flaks, og en slik metode ville gitt samme sjanse som alle andre rekker.</p>
+</div>
+
+<h2>Det ene grepet som faktisk virker</h2>
+<div class="card">
+<p><span class="tag fakta">Fakta</span>Du kan ikke øke sjansen for å vinne. Du kan øke sjansen for å slippe å dele potten.</p>
+<ul>
+<li>Mange spiller bursdager og datoer, altså tall fra 1 til 31. Bare litt under halvparten av alle mulige rekker (48,9 prosent) består kun av slike tall.</li>
+<li>Rekker med tall fra 32 til 34 med, uten rette linjer eller mønstre på kupongen, deles sjeldnere.</li>
+<li>Den største potten er der flest spiller. Flere spillere betyr også større sjanse for at noen andre har samme rekke.</li>
+</ul>
+<p class="small">Potten i dag, 21. november, er 50 millioner ifølge lotteryguru.com, etter at ingen fikk 7 rette forrige lørdag. En større pott endrer ikke sjansen per rekke.</p>
+</div>
+
+<h2>Vinnerlista: hvor ofte hvert tall er trukket</h2>
+<div class="card">
+<p><span class="tag fakta">Fakta</span>Alle 98 lørdagstrekninger fra 4. januar 2025 til 14. november 2026, talt opp tall for tall. I snitt er hvert tall trukket 20 ganger.</p>
+<p><label>Sorter <select id="sorter" style="font:inherit"><option value="ofte">Flest ganger først</option><option value="tall">Etter tall</option></select></label></p>
+<table id="vinnerliste"><thead><tr><th>Tall</th><th class="n">Ganger</th><th style="width:45%">&nbsp;</th><th class="n">Sist trukket</th></tr></thead><tbody></tbody></table>
+<p class="small">Tallene er talt opp fra resultatarkivet på lotteryguru.com. Siste trekning stemmer med Norsk Tippings egen resultatside. At ett tall har kommet 27 ganger og et annet 14, er vanlig variasjon. Neste lørdag har alle tallene samme sjanse igjen.</p>
+</div>
+
+<h2>Velg din måte å finne tall på</h2>
+<div class="card">
+<p>Fem måter å velge på, slik folk faktisk gjør det. Du leverer rekkene selv hos Norsk Tipping, siden kan ikke spille for deg. Ingenting du skriver her blir lagret eller sendt noe sted.</p>
+<fieldset style="border:0;padding:0;margin:0">
+<legend class="small">Velgemåte</legend>
+<label><input type="radio" name="maate" value="tilfeldig" checked> Helt tilfeldig</label>
+<label><input type="radio" name="maate" value="ofte"> Tall som går ofte igjen</label>
+<label><input type="radio" name="maate" value="sjelden"> Tall som har kommet sjelden</label>
+<label><input type="radio" name="maate" value="mage"> Magefølelse</label>
+<label><input type="radio" name="maate" value="lykke"> Lykketall</label>
+</fieldset>
+
+<div id="p-tilfeldig" class="panel">
+<p><span class="tag fakta">Fakta</span>Datamaskinen trekker 7 av 34, akkurat slik trekningen gjør.</p>
+</div>
+
+<div id="p-ofte" class="panel" hidden>
+<p><span class="tag hyp">Hypotese</span>Noen mener tall som har kommet ofte, fortsetter å komme. Rekka får 3 av disse tallene, resten trekkes tilfeldig.</p>
+<label>Ofte trukket <input type="text" id="ofteTall" value="10 13 19 7 9 25 34" style="font:inherit;width:14em"></label>
+<p class="small">Forhåndsutfylt med de 7 mest trukne tallene i vinnerlista over: 10 (27 ganger), 13 (26), 19 (26), 7, 9, 25 og 34 (24 hver). Du kan skrive inn dine egne tall.</p>
+</div>
+
+<div id="p-sjelden" class="panel" hidden>
+<p><span class="tag hyp">Hypotese</span>Andre mener tall som har kommet sjelden, «skal» komme snart. Rekka får 3 av disse tallene, resten trekkes tilfeldig.</p>
+<label>Sjelden trukket <input type="text" id="sjeldenTall" value="24 26 27 6 8 12 14" style="font:inherit;width:14em"></label>
+<p class="small">Forhåndsutfylt med de 7 minst trukne tallene i vinnerlista over: 24 (14 ganger), 26 (15), 27 (16), og 6, 8, 12 og 14 (17 hver). Tallet 23 har også 17.</p>
+</div>
+
+<div id="p-mage" class="panel" hidden>
+<p><span class="tag meta">Tradisjon</span>Trykk på tallene du får en god følelse for, opptil 7. Resten fylles tilfeldig.</p>
+<div class="balls" id="brett" role="group" aria-label="Velg tall"></div>
+<p class="small" id="mageInfo">Ingen tall valgt.</p>
+</div>
+
+<div id="p-lykke" class="panel" hidden>
+<p><span class="tag meta">Tradisjon</span>Numerologi regner ut et personlig dagtall fra fødselsdatoen din og dagens dato. Dagens forslag tar først med alle tall fra 1 til 34 som hører til dagtallet ditt (for eksempel hører 6, 15, 24 og 33 til tallet 6). Deretter kommer livstallet, navnetallet, fødselsdagen og fødselsmåneden, og resten trekkes tilfeldig.</p>
+<label>Fullt navn <input type="text" id="navn" autocomplete="off" style="font:inherit;width:14em"></label>
+<label>Fødselsdato <input type="date" id="fdato" style="font:inherit"></label>
+<p class="small">Bokstavene regnes etter den pytagoreiske tabellen (A=1 til I=9, og så videre). Æ regnes som AE, Ø som O og Å som AA.</p>
+<p id="lykkeInfo"></p>
+</div>
+
+<div class="row">
+<label><input type="checkbox" id="unngaa" checked> Ta med minst ett tall over 31</label>
+<label>Kupong
+<select id="kupong" style="font:inherit">
+<option value="2">2 rekker</option>
+<option value="5" selected>5 rekker</option>
+<option value="10">10 rekker</option>
+<option value="s8">System 8 tall (8 rekker)</option>
+<option value="s9">System 9 tall (36 rekker)</option>
+<option value="s10">System 10 tall (120 rekker)</option>
+<option value="s11">System 11 tall (330 rekker)</option>
+<option value="s12">System 12 tall (792 rekker)</option>
+</select></label>
+</div>
+<p class="small">Systemspill: du velger 8 til 12 tall, og kupongen spiller alle rekker med 7 av dem. Med 9 tall blir det 36 rekker.</p>
+<button type="button" id="lag">Lag rekker</button>
+<p id="feil" class="warn" role="alert"></p>
+<div id="rekker" aria-live="polite"></div>
+<div id="kost" class="card" style="margin-top:12px" aria-live="polite"></div>
+<p class="small"><span class="tag fakta">Fakta</span>Alle måtene gir nøyaktig samme sjanse, 1 av 5 379 616 per rekke. Det eneste som endrer noe, er valget over 31: da må du sjeldnere dele potten.</p>
+<p class="small"><span class="tag fakta">Fakta</span>Forrige lørdag (14.11.2026) ble tallene 1, 2, 3, 17, 22, 28 og 31 trukket, ifølge lotteryguru.com. Selv 1, 2, 3 på rad kommer, fordi alle rekker er like sannsynlige.</p>
+</div>
+
+<h2>Idé: lykketall i Min dag</h2>
+<div class="card">
+<p>En liten, frivillig modul i Min dag (me.voteapp.eu): «Dagens lykketall». Konsept, ikke bygget.</p>
+<h3>Hva den kan vise</h3>
+<ul>
+<li><span class="tag meta">Tradisjon</span>Ditt personlige tall fra numerologi, regnet ut fra navn eller fødselsdato. Merket tydelig som tradisjon og inspirasjon.</li>
+<li><span class="tag meta">Tradisjon</span>Dagens tall og en kort tekst om hva tallet står for i ulike tradisjoner, sammen med dagens himmel som allerede finnes i Min dag.</li>
+<li><span class="tag fakta">Fakta</span>En fast linje: «Lykketall endrer ikke sjansen i spill. Alle tall har samme sjanse.»</li>
+</ul>
+<h3>Regler den må følge</h3>
+<ul>
+<li>Ingen lenker eller knapper til pengespill, og ingen tekst som oppfordrer til å spille. Det holder modulen trygt unna reglene om markedsføring av pengespill. Dette bør en jurist se over før lansering.</li>
+<li>Fødselsdato og navn bare med samtykke, lagret adskilt fra stemmesvar, og lett å slette.</li>
+<li>Lenke til Hjelpelinjen nederst: 800 800 40, hjelpelinjen.no.</li>
+<li>Gratis første uke, deretter betalt i euro, som andre nye moduler. PRIS IKKE SATT.</li>
+</ul>
+</div>
+
+<h2>Ansvarlig spill</h2>
+<div class="card">
+<p>Sett beløpet før du spiller, og se på det som underholdning. Hjelpelinjen for spillere og pårørende: <strong>800 800 40</strong>, <a href="https://hjelpelinjen.no">hjelpelinjen.no</a>.</p>
+</div>
+
+<h2>Kilder</h2>
+<div class="card small">
+<ul>
+<li>Regler og odds for Lotto: <a href="https://www.wikiwand.com/en/articles/Norsk_Tipping">Norsk Tipping, Wikiwand</a></li>
+<li>Tilsyn med trekninger: <a href="https://lottstift.no/app/uploads/2023/08/23_00845-5-Endelig-Tilsynsrapport-trekninger-og-gevinstberegning-Vikinglotto-og-Joker-1050559_2_1.pdf">Lotteritilsynet, tilsynsrapport 2023</a></li>
+<li>Hjelpelinjen: <a href="https://spillavhengighet.no/en/hjelpetilbud/hjelpetelefonen">spillavhengighet.no</a></li>
+<li>Pris og systemspill: <a href="https://www.norsk-tipping.no/lotteri/lotto/system">Norsk Tipping, Lotto systemspill</a></li>
+<li>Hvilke rekker folk spiller mest: <a href="https://www.norsk-tipping.no/artikler/dette-er-de-mest-spilte-lotto-rekkene2026">Norsk Tipping, de mest spilte Lotto-rekkene</a></li>
+<li>Alle 98 trekninger 04.01.2025 til 14.11.2026, og potten 21.11.2026: <a href="https://lotteryguru.com/norway-lottery-results/no-lotto/no-lotto-results-history">lotteryguru.com, resultatarkiv</a> (tredjepart, talt opp av oss 21.11.2026)</li>
+<li>Premier og omsetning 14.11.2026: <a href="https://www.norsk-tipping.no/lotteri/lotto/resultater">Norsk Tipping, Lotto resultater</a></li>
+<li>Sjanser og simulering: egne utregninger (7 av 34), 21.11.2026</li>
+<li>E-postene: Geirs Gmail, 2010 og 2018</li>
+</ul>
+</div>
+</div>
+</main>
+<!-- Innlogging fra Medlemsportalen: gir profilen (navn og fødselsdato) som horoskop og dagsguide bruker. -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script defer src="/portal/supabase-public.js"></script>
+<script src="/lib/meg-konto.js?v=2026-11-20"></script>
+<script>
+// Alderssjekk for voksenrommet: regner hele år ut fra dag, måned og år.
+var Alder=(function(){
+  function alder(fdato,idag){
+    var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(fdato||'');
+    if(!m)return null;
+    var y=+m[1],mo=+m[2],d=+m[3];
+    var f=new Date(y,mo-1,d);
+    if(f.getFullYear()!==y||f.getMonth()!==mo-1||f.getDate()!==d)return null;
+    if(f>idag)return -1;
+    var a=idag.getFullYear()-y;
+    if(idag.getMonth()+1<mo||(idag.getMonth()+1===mo&&idag.getDate()<d))a--;
+    return a;
+  }
+  function sjekk(fdato,idag){
+    var a=alder(fdato,idag);
+    if(a===null)return {ok:false,alder:null,melding:'Skriv inn en gyldig fødselsdato med dag, måned og år.'};
+    if(a<0)return {ok:false,alder:null,melding:'Fødselsdatoen kan ikke være frem i tid.'};
+    if(a>120)return {ok:false,alder:a,melding:'Sjekk fødselsåret, det ser ikke riktig ut.'};
+    if(a<18)return {ok:false,alder:a,melding:'Du er '+a+' år. Voksenrommet er for 18 år og eldre, men resten av modulen er åpen for deg.'};
+    return {ok:true,alder:a,melding:'Du er '+a+' år. Voksenrommet er åpent.'};
+  }
+  // Profilen fra Medlemsportalen, den samme som horoskop og dagsguide bruker: {navn, aar, mnd, dag, ...}
+  function profil(){
+    try{ if(window.MegKonto && window.MegKonto.profil) return window.MegKonto.profil; }catch(e){}
+    try{ var s=localStorage.getItem('meg-profil'); return s?JSON.parse(s):null; }catch(e){ return null; }
+  }
+  function profilDato(p){
+    if(!p||!p.aar||!p.mnd||!p.dag) return null;
+    return p.aar+'-'+String(p.mnd).padStart(2,'0')+'-'+String(p.dag).padStart(2,'0');
+  }
+  // Spør om datoen, men sjekk den mot det personen allerede har lagt inn i profilen.
+  function sjekkMotProfil(fdato,p,idag){
+    var pd=profilDato(p),r=sjekk(fdato,idag);
+    if(r.alder===null) return r;
+    if(pd&&pd!==fdato) return {ok:false,alder:null,avvik:true,melding:'Datoen stemmer ikke med fødselsdatoen i profilen din, den du la inn for horoskop og dagsguide. Sjekk at du skrev riktig. Er profilen feil, rett den i Medlemsportalen først.'};
+    r.kilde=pd?'profil':'egenerklaering';
+    if(r.ok) r.melding+=pd?' Datoen stemmer med profilen din.':' Vi fant ingen lagret profil, så dette er en egenerklæring.';
+    return r;
+  }
+  return {alder:alder,sjekk:sjekk,profil:profil,profilDato:profilDato,sjekkMotProfil:sjekkMotProfil};
+})();
+if(typeof module!=='undefined')module.exports=Alder;
+</script>
+<script>
+(function(){
+  function vis(){document.getElementById('aldersport').hidden=true;document.getElementById('innhold').hidden=false;}
+  try{if(sessionStorage.getItem('over18')==='ja')vis();}catch(e){}
+  document.getElementById('aapne').addEventListener('click',function(){
+    var a=Alder.sjekkMotProfil(document.getElementById('alderDato').value,Alder.profil(),new Date());
+    document.getElementById('alderSvar').textContent=a.melding;
+    if(a.ok){try{sessionStorage.setItem('over18','ja');}catch(e){}vis();}
+  });
+})();
+</script>
+<script>
+var Lotto=(function(){
+  function tilfeldig(n){var a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n;}
+  function blandUt(liste,antall){var p=liste.slice(),ut=[];while(ut.length<antall&&p.length){ut.push(p.splice(tilfeldig(p.length),1)[0]);}return ut;}
+  function tallFra(tekst){var s={};(tekst.match(/\d+/g)||[]).forEach(function(x){x=+x;if(x>=1&&x<=34)s[x]=1;});return Object.keys(s).map(Number);}
+  function reduser(n){while(n>9&&n!==11&&n!==22&&n!==33){n=String(n).split('').reduce(function(a,b){return a+ +b;},0);}return n;}
+  function navnetall(navn){
+    var t=navn.toUpperCase().replace(/Æ/g,'AE').replace(/Ø/g,'O').replace(/Å/g,'AA').replace(/[^A-Z]/g,'');
+    if(!t)return 0;var sum=0;for(var i=0;i<t.length;i++){sum+=((t.charCodeAt(i)-65)%9)+1;}return reduser(sum);
+  }
+  function livstall(dato){return reduser(dato.replace(/\D/g,'').split('').reduce(function(a,b){return a+ +b;},0));}
+  function siffersum(s){return String(s).replace(/\D/g,'').split('').reduce(function(a,b){return a+ +b;},0);}
+  // Dagens tall etter vanlig numerologi: universelt dagtall og personlig dagtall
+  function dagtall(idag,fdato){
+    var i=idag.split('-'),u=reduser(siffersum(idag)),p=null;
+    if(fdato){var f=fdato.split('-');
+      var aar=reduser(siffersum(f[1])+siffersum(f[2])+siffersum(i[0]));
+      var mnd=reduser(aar+siffersum(i[1]));
+      p=reduser(mnd+siffersum(i[2]));}
+    return {universelt:u,personlig:p};
+  }
+  function familie(tall){var ut=[];for(var n=1;n<=34;n++)if(reduser(n)===tall)ut.push(n);return ut;}
+  function lykketall(navn,dato,idag){
+    var liste=[];var leggTil=function(x){if(x>=1&&x<=34&&liste.indexOf(x)<0)liste.push(x);};
+    if(idag){var dt=dagtall(idag,dato);familie(dt.personlig||dt.universelt).forEach(leggTil);}
+    if(dato){var d=dato.split('-');leggTil(livstall(dato));}
+    leggTil(navnetall(navn));
+    if(dato){leggTil(+d[2]);leggTil(+d[1]);}
+    return liste;
+  }
+  // faste: tall som skal med, fraListe+antallFra: velg et utvalg fra en liste
+  function rekke(faste,over31,antall){
+    antall=antall||7;
+    for(var forsok=0;forsok<1000;forsok++){
+      var t=faste.slice(0,antall);var pool=[];for(var i=1;i<=34;i++)if(t.indexOf(i)<0)pool.push(i);
+      t=t.concat(blandUt(pool,antall-t.length)).sort(function(a,b){return a-b});
+      if(!over31||t[antall-1]>31)return t;
+    }
+    return t;
+  }
+  function binom(n,k){var r=1;for(var i=1;i<=k;i++)r=r*(n-k+i)/i;return Math.round(r);}
+  var PRIS=5,ALLE=5379616;
+  function kostnad(rader){
+    var uke=rader*PRIS,aar=uke*52,p=1-Math.pow(1-1/ALLE,rader*52);
+    return {rader:rader,uke:uke,aar:aar,tiAar:aar*10,sjanseAar:p,snittAar:ALLE/(rader*52)};
+  }
+  var VINNER={antall:98,
+    hoved:[18,18,18,20,21,17,24,17,24,27,19,17,26,17,22,23,20,22,26,19,21,18,17,14,24,15,16,20,21,20,23,19,19,24],
+    sist:["14.11.2026","14.11.2026","14.11.2026","03.10.2026","31.10.2026","31.10.2026","17.10.2026","10.10.2026","26.09.2026","31.10.2026","07.11.2026","01.08.2026","04.07.2026","19.09.2026","17.10.2026","17.10.2026","14.11.2026","22.08.2026","07.11.2026","07.11.2026","26.09.2026","14.11.2026","24.10.2026","07.11.2026","05.09.2026","19.09.2026","31.10.2026","14.11.2026","08.08.2026","07.11.2026","14.11.2026","31.10.2026","31.10.2026","24.10.2026"]};
+  return {tilfeldig:tilfeldig,blandUt:blandUt,tallFra:tallFra,navnetall:navnetall,livstall:livstall,lykketall:lykketall,dagtall:dagtall,familie:familie,rekke:rekke,binom:binom,kostnad:kostnad,VINNER:VINNER};
+})();
+(function(){
+  if(typeof document==='undefined')return;
+  var $=function(id){return document.getElementById(id);};
+  var V=Lotto.VINNER;
+  function kule(t){
+    var w=document.createElement('span');w.className='kule';
+    var b=document.createElement('span');b.className='ball';b.textContent=t;
+    var s=document.createElement('small');s.textContent=V.hoved[t-1]+' ganger';
+    w.title='Tallet '+t+' er trukket '+V.hoved[t-1]+' ganger i '+V.antall+' trekninger, sist '+V.sist[t-1];
+    w.appendChild(b);w.appendChild(s);return w;
+  }
+  function tegnListe(){
+    var maks=Math.max.apply(null,V.hoved),rader=[];
+    for(var n=1;n<=34;n++)rader.push(n);
+    if($('sorter').value==='ofte')rader.sort(function(a,b){return V.hoved[b-1]-V.hoved[a-1]||a-b;});
+    $('vinnerliste').tBodies[0].innerHTML=rader.map(function(n){
+      return '<tr><td><strong>'+n+'</strong></td><td class="n">'+V.hoved[n-1]+'</td><td><div class="bar" style="width:'+Math.round(V.hoved[n-1]/maks*100)+'%"></div></td><td class="n">'+V.sist[n-1]+'</td></tr>';
+    }).join('');
+  }
+  $('sorter').addEventListener('change',tegnListe);tegnListe();
+  var valgt=[];
+  var brett=$('brett');
+  for(var i=1;i<=34;i++){(function(n){
+    var w=document.createElement('span');w.className='kule';
+    var b=document.createElement('button');b.type='button';b.className='ball';b.textContent=n;b.setAttribute('aria-pressed','false');
+    b.setAttribute('aria-label','Tallet '+n+', trukket '+V.hoved[n-1]+' ganger');
+    var s=document.createElement('small');s.textContent=V.hoved[n-1]+' g.';w.appendChild(b);w.appendChild(s);
+    b.addEventListener('click',function(){
+      var k=valgt.indexOf(n);
+      if(k>=0){valgt.splice(k,1);}else if(valgt.length<7){valgt.push(n);}
+      b.setAttribute('aria-pressed',valgt.indexOf(n)>=0?'true':'false');
+      b.style.background=valgt.indexOf(n)>=0?'var(--accent)':'';b.style.color=valgt.indexOf(n)>=0?'#fff':'';
+      $('mageInfo').textContent=valgt.length?'Valgt: '+valgt.slice().sort(function(a,b){return a-b}).join(', '):'Ingen tall valgt.';
+    });
+    brett.appendChild(w);
+  })(i);}
+  function maate(){return document.querySelector('input[name=maate]:checked').value;}
+  document.querySelectorAll('input[name=maate]').forEach(function(r){r.addEventListener('change',function(){
+    document.querySelectorAll('.panel').forEach(function(p){p.hidden=true;});$('p-'+maate()).hidden=false;$('feil').textContent='';
+  });});
+  $('lag').addEventListener('click',function(){
+    var k=$('kupong').value,system=k.charAt(0)==='s';
+    var n=system?1:parseInt(k,10),str=system?parseInt(k.slice(1),10):7;
+    var over=$('unngaa').checked,m=maate(),feil='';
+    var lag=function(){return Lotto.rekke([],over,str);};
+    if(m==='ofte'||m==='sjelden'){
+      var liste=Lotto.tallFra($(m==='ofte'?'ofteTall':'sjeldenTall').value);
+      if(liste.length<3)feil='Skriv inn minst tre tall mellom 1 og 34.';
+      lag=function(){return Lotto.rekke(Lotto.blandUt(liste,3),over,str);};
+    }else if(m==='mage'){
+      if(!valgt.length)feil='Trykk på minst ett tall du har en god følelse for.';
+      lag=function(){return Lotto.rekke(valgt,over,str);};
+    }else if(m==='lykke'){
+      var navn=$('navn').value,dato=$('fdato').value;
+      if(!navn.trim()&&!dato)feil='Skriv navn, fødselsdato eller begge.';
+      var idag=new Date();idag=idag.getFullYear()+'-'+String(idag.getMonth()+1).padStart(2,'0')+'-'+String(idag.getDate()).padStart(2,'0');
+      var lt=Lotto.lykketall(navn,dato,idag),dt=Lotto.dagtall(idag,dato),dagT=dt.personlig||dt.universelt;
+      $('lykkeInfo').innerHTML=feil?'':'<strong>Dagens forslag</strong><br>Dagens universelle dagtall: '+dt.universelt+
+        (dt.personlig?'<br>Ditt personlige dagtall i dag: '+dt.personlig:'')+
+        '<br>Tall fra 1 til 34 som hører til dagtallet '+dagT+': '+Lotto.familie(dagT).join(', ')+
+        (dato?'<br>Livstall: '+Lotto.livstall(dato):'')+(navn.trim()?'<br>Navnetall: '+Lotto.navnetall(navn):'')+
+        '<br>Første rekke er dagens forslag: dagens tall først, så dine faste tall. De andre rekkene beholder dagens tall og fyller resten tilfeldig.';
+      var fam=Lotto.familie(dagT);
+      lag=function(r){return Lotto.rekke(r?fam:lt,over,str);};
+    }
+    $('feil').textContent=feil;var ut=$('rekker');ut.innerHTML='';$('kost').innerHTML='';if(feil)return;
+    for(var r=0;r<n;r++){
+      var d=document.createElement('div');d.className='balls';d.setAttribute('aria-label',system?'Systemtall':'Rekke '+(r+1));
+      lag(r).forEach(function(t){d.appendChild(kule(t));});
+      ut.appendChild(d);
+    }
+    var rader=system?Lotto.binom(str,7):n,c=Lotto.kostnad(rader);
+    var kr=function(x){return Math.round(x).toLocaleString('nb-NO')+' kr';};
+    var aar=c.snittAar>=1000?Math.round(c.snittAar).toLocaleString('nb-NO'):c.snittAar.toLocaleString('nb-NO',{maximumFractionDigits:0});
+    $('kost').innerHTML='<h3 style="margin-top:0">Hva koster kupongen?</h3><table><tbody>'+
+      '<tr><td>Rekker</td><td class="n">'+rader.toLocaleString('nb-NO')+'</td></tr>'+
+      '<tr><td>Én lørdag</td><td class="n">'+kr(c.uke)+'</td></tr>'+
+      '<tr><td>Hver lørdag i ett år</td><td class="n">'+kr(c.aar)+'</td></tr>'+
+      '<tr><td>Hver lørdag i ti år</td><td class="n">'+kr(c.tiAar)+'</td></tr>'+
+      '<tr><td>Sjanse for 7 rette i løpet av ett år</td><td class="n">'+(c.sjanseAar*100).toLocaleString('nb-NO',{maximumSignificantDigits:2})+' %</td></tr>'+
+      '<tr><td>Så mange år tar det i snitt før 7 rette</td><td class="n">'+aar+' år</td></tr>'+
+      '</tbody></table><p class="small">Regnet med 5 kr per rekke, slik Norsk Tipping oppgir på siden for systemspill. Sjekk prisen før du leverer.</p>';
+  });
+})();
+if(typeof module!=='undefined')module.exports=Lotto;
+</script>
+</body>
+</html>

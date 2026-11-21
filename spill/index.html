@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spill for familie og venner</title>
+<meta name="description" content="Gratis modul i Min dag: spillkveld, dagens lykketall og Lotto-hjelperen for voksne.">
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1d2430; --muted:#5a6372; --line:#e3e1da;
+  --accent:#1f5f8b; --fakta:#2e7d4f; --meta:#7b4bb0; --warn:#a33a3a; --chip:#eef3f7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161c; --card:#1a2029; --ink:#e8ebef; --muted:#a3acb9; --line:#2c3440;
+    --accent:#6fb3e0; --fakta:#6cc792; --meta:#b993e6; --warn:#e58a8a; --chip:#222b36;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161c; --card:#1a2029; --ink:#e8ebef; --muted:#a3acb9; --line:#2c3440;
+  --accent:#6fb3e0; --fakta:#6cc792; --meta:#b993e6; --warn:#e58a8a; --chip:#222b36;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:820px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 6px}
+h2{font-size:1.25rem;margin:0 0 8px}
+.lead{color:var(--muted);margin:0 0 20px}
+.merke{display:inline-block;background:var(--fakta);color:#fff;font-weight:700;font-size:.8rem;padding:3px 10px;border-radius:999px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-right:6px;border:1px solid currentColor}
+.fakta{color:var(--fakta)} .meta{color:var(--meta)} .warn{color:var(--warn)}
+.small{font-size:.88rem;color:var(--muted)}
+.status{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+button,.knapp{font:inherit;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;text-decoration:none;display:inline-block}
+button[disabled]{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--meta);outline-offset:2px}
+label{display:inline-flex;gap:8px;align-items:center;margin:6px 16px 6px 0}
+input[type=text],input[type=date]{font:inherit}
+.tall{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.ball{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;background:var(--chip);border:2px solid var(--meta)}
+a{color:var(--accent)}
+.knapp{color:#fff}
+</style>
+</head>
+<body>
+<main>
+<span class="merke">Gratis modul</span>
+<h1>Spill for familie og venner</h1>
+<p class="lead">Moro sammen med de du er glad i: finn en spillkveld, se dagens lykketall, og for voksne som liker å tippe, en Lotto-hjelper med ærlige tall. Prototype 21.11.2026, ikke bygget i appen ennå.</p>
+
+<section class="card" aria-labelledby="h-kveld">
+<p class="status">Konsept</p>
+<h2 id="h-kveld">Familiens spillkveld</h2>
+<p>Finn en kveld som passer, stem på hvilket spill dere skal spille, og få påminnelse. Alle i familien har lik stemme, også barna. Planen ligger klar fra 18. november.</p>
+<p class="small">Kommer senere. Ikke bygget ennå.</p>
+</section>
+
+<section class="card" aria-labelledby="h-lykke">
+<p class="status">Prototype, for alle</p>
+<h2 id="h-lykke">Dagens lykketall</h2>
+<p><span class="tag meta">Tradisjon</span>Numerologi regner ut et personlig dagtall fra fødselsdatoen og dagens dato. Det er tradisjon og inspirasjon, og tallene sier ingenting om hva som vil skje.</p>
+<label>Navn <input type="text" id="navn" autocomplete="off"></label>
+<label>Fødselsdato <input type="date" id="fdato"></label>
+<button type="button" id="visLykke">Vis dagens tall</button>
+<p id="lykkeFeil" class="warn" role="alert"></p>
+<div id="lykkeUt" aria-live="polite"></div>
+<p class="small">Ingenting du skriver her blir lagret eller sendt noe sted.</p>
+</section>
+
+<section class="card" aria-labelledby="h-voksen" style="border:2px solid var(--warn)">
+<p class="status">Egen gruppe</p>
+<h2 id="h-voksen">Voksenrommet: bare for 18 år og eldre</h2>
+<p>Her ligger det som handler om pengespill. For å komme inn spør vi om fødselsdatoen din, dag, måned og år, og sjekker den mot fødselsdatoen du allerede har lagt inn i profilen for horoskop og dagsguide.</p>
+<p class="small" id="profilInfo"></p>
+<label>Din fødselsdato <input type="date" id="alderDato"></label>
+<button type="button" id="sjekkAlder">Sjekk alder</button>
+<p id="alderSvar" role="status" aria-live="polite"></p>
+<p class="small">Uten lagret profil er dette en egenerklæring. Den ekte appen bør også sjekke alder med BankID eller Vipps, og fødselsdatoen i profilen bør ikke kunne endres fritt etterpå uten at voksenrommet stenges.</p>
+</section>
+
+<section class="card" aria-labelledby="h-lotto" id="voksenInnhold" hidden>
+<p class="status">Prototype, i voksenrommet</p>
+<h2 id="h-lotto">Lotto-hjelperen</h2>
+<p>For deg som allerede liker å tippe: vinnerlista over hvor ofte hvert tall er trukket, fem måter å velge tall på, systemspill og hva kupongen koster over tid. Du leverer kupongen selv hos Norsk Tipping.</p>
+<p><span class="tag fakta">Fakta</span>Alle tall har samme sjanse i hver trekning, 1 av 5 379 616 per rekke for 7 rette.</p>
+<p><a class="knapp" id="lottoLenke" href="lotto-hjelper.html">Åpne Lotto-hjelperen</a></p>
+<p class="small">Spill bare for beløp du har råd til å tape. Hjelpelinjen for spillere og pårørende: <strong>800 800 40</strong>, <a href="https://hjelpelinjen.no">hjelpelinjen.no</a>.</p>
+</section>
+
+<section class="card" aria-labelledby="h-regler">
+<h2 id="h-regler">Slik holder modulen seg innenfor</h2>
+<ul class="small">
+<li>Modulen er gratis og selger ingen spill. Den har ingen kjøpsknapp, ingen lenke til spillkjøp og ingen provisjon fra spillselskaper.</li>
+<li>Lotto-delen ligger i et eget voksenrom. Alderen regnes ut fra full fødselsdato, og du slipper inn fra og med 18-årsdagen.</li>
+<li>Ingen påminnelser, e-post eller SMS som oppfordrer til å spille.</li>
+<li>Lykketall er merket som tradisjon, og det står tydelig at tall ikke endrer sjansen.</li>
+<li>Navn og fødselsdato behandles bare i nettleseren. Skal noe lagres senere, kreves samtykke, og det holdes adskilt fra stemmesvar.</li>
+<li>Før lansering må en jurist se på reglene om markedsføring av pengespill.</li>
+</ul>
+</section>
+</main>
+<!-- Innlogging fra Medlemsportalen: gir profilen (navn og fødselsdato) som horoskop og dagsguide bruker. -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script defer src="/portal/supabase-public.js"></script>
+<script src="/lib/meg-konto.js?v=2026-11-20"></script>
+<script>
+// Alderssjekk for voksenrommet: regner hele år ut fra dag, måned og år.
+var Alder=(function(){
+  function alder(fdato,idag){
+    var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(fdato||'');
+    if(!m)return null;
+    var y=+m[1],mo=+m[2],d=+m[3];
+    var f=new Date(y,mo-1,d);
+    if(f.getFullYear()!==y||f.getMonth()!==mo-1||f.getDate()!==d)return null;
+    if(f>idag)return -1;
+    var a=idag.getFullYear()-y;
+    if(idag.getMonth()+1<mo||(idag.getMonth()+1===mo&&idag.getDate()<d))a--;
+    return a;
+  }
+  function sjekk(fdato,idag){
+    var a=alder(fdato,idag);
+    if(a===null)return {ok:false,alder:null,melding:'Skriv inn en gyldig fødselsdato med dag, måned og år.'};
+    if(a<0)return {ok:false,alder:null,melding:'Fødselsdatoen kan ikke være frem i tid.'};
+    if(a>120)return {ok:false,alder:a,melding:'Sjekk fødselsåret, det ser ikke riktig ut.'};
+    if(a<18)return {ok:false,alder:a,melding:'Du er '+a+' år. Voksenrommet er for 18 år og eldre, men resten av modulen er åpen for deg.'};
+    return {ok:true,alder:a,melding:'Du er '+a+' år. Voksenrommet er åpent.'};
+  }
+  // Profilen fra Medlemsportalen, den samme som horoskop og dagsguide bruker: {navn, aar, mnd, dag, ...}
+  function profil(){
+    try{ if(window.MegKonto && window.MegKonto.profil) return window.MegKonto.profil; }catch(e){}
+    try{ var s=localStorage.getItem('meg-profil'); return s?JSON.parse(s):null; }catch(e){ return null; }
+  }
+  function profilDato(p){
+    if(!p||!p.aar||!p.mnd||!p.dag) return null;
+    return p.aar+'-'+String(p.mnd).padStart(2,'0')+'-'+String(p.dag).padStart(2,'0');
+  }
+  // Spør om datoen, men sjekk den mot det personen allerede har lagt inn i profilen.
+  function sjekkMotProfil(fdato,p,idag){
+    var pd=profilDato(p),r=sjekk(fdato,idag);
+    if(r.alder===null) return r;
+    if(pd&&pd!==fdato) return {ok:false,alder:null,avvik:true,melding:'Datoen stemmer ikke med fødselsdatoen i profilen din, den du la inn for horoskop og dagsguide. Sjekk at du skrev riktig. Er profilen feil, rett den i Medlemsportalen først.'};
+    r.kilde=pd?'profil':'egenerklaering';
+    if(r.ok) r.melding+=pd?' Datoen stemmer med profilen din.':' Vi fant ingen lagret profil, så dette er en egenerklæring.';
+    return r;
+  }
+  return {alder:alder,sjekk:sjekk,profil:profil,profilDato:profilDato,sjekkMotProfil:sjekkMotProfil};
+})();
+if(typeof module!=='undefined')module.exports=Alder;
+</script>
+<script>
+(function(){
+  function reduser(n){while(n>9&&n!==11&&n!==22&&n!==33){n=String(n).split('').reduce(function(a,b){return a+ +b;},0);}return n;}
+  function sum(s){return String(s).replace(/\D/g,'').split('').reduce(function(a,b){return a+ +b;},0);}
+  function navnetall(navn){
+    var t=navn.toUpperCase().replace(/Æ/g,'AE').replace(/Ø/g,'O').replace(/Å/g,'AA').replace(/[^A-Z]/g,'');
+    if(!t)return 0;var s=0;for(var i=0;i<t.length;i++){s+=((t.charCodeAt(i)-65)%9)+1;}return reduser(s);
+  }
+  var $=function(id){return document.getElementById(id);};
+  $('visLykke').addEventListener('click',function(){
+    var navn=$('navn').value.trim(),f=$('fdato').value,ut=$('lykkeUt');
+    var d=new Date(),idag=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    $('lykkeFeil').textContent='';ut.innerHTML='';
+    if(!navn&&!f){$('lykkeFeil').textContent='Skriv navn, fødselsdato eller begge.';return;}
+    var u=reduser(sum(idag)),p=null,i=idag.split('-');
+    if(f){var b=f.split('-');var aar=reduser(sum(b[1])+sum(b[2])+sum(i[0]));p=reduser(reduser(aar+sum(i[1]))+sum(i[2]));}
+    var dag=p||u,fam=[];for(var n=1;n<=34;n++)if(reduser(n)===dag)fam.push(n);
+    var linjer=['Dagens universelle dagtall: '+u];
+    if(p)linjer.push('Ditt personlige dagtall i dag: '+p);
+    if(f)linjer.push('Livstall: '+reduser(sum(f)));
+    if(navn)linjer.push('Navnetall: '+navnetall(navn));
+    ut.innerHTML='<p>'+linjer.join('<br>')+'</p><p class="small">Tall fra 1 til 34 som hører til dagtallet '+dag+':</p><div class="tall">'+
+      fam.map(function(x){return '<span class="ball">'+x+'</span>';}).join('')+'</div>';
+  });
+  (function(){
+    var p=Alder.profil(),pd=Alder.profilDato(p);
+    if(p&&p.navn&&!$('navn').value)$('navn').value=p.navn;
+    if(pd&&!$('fdato').value)$('fdato').value=pd;
+    $('profilInfo').textContent=pd?'Vi fant fødselsdatoen din i profilen fra horoskop og dagsguide. Skriv den inn her, så sjekker vi at den stemmer.':'Vi fant ingen lagret profil. Logg inn i Medlemsportalen for å bruke fødselsdatoen du allerede har lagt inn.';
+  })();
+  function aapneVoksen(){$('voksenInnhold').hidden=false;}
+  try{if(sessionStorage.getItem('over18')==='ja'){aapneVoksen();$('alderSvar').textContent='Alderen er sjekket. Voksenrommet er åpent.';}}catch(e){}
+  $('sjekkAlder').addEventListener('click',function(){
+    var a=Alder.sjekkMotProfil($('alderDato').value,Alder.profil(),new Date());
+    $('alderSvar').textContent=a.melding;
+    if(a.ok){try{sessionStorage.setItem('over18','ja');}catch(e){}aapneVoksen();}
+    else{try{sessionStorage.removeItem('over18');}catch(e){}$('voksenInnhold').hidden=true;}
+  });
+})();
+</script>
+</body>
+</html>
