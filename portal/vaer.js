@@ -114,10 +114,19 @@
 
   /* Sist valgte sted huskes i denne nettleseren, så været åpner der neste gang. */
   var LAST = "me_vaer_sted";
-  function lastPlace(){ try { var p = JSON.parse(localStorage.getItem(LAST) || "null"); return p && isFinite(p.lat) && isFinite(p.lon) ? p : null; } catch(e){ return null; } }
+  /* Felles med Min dag: "meg-sted" er stedet valgt der. Det sist valgte av de to gjelder. */
+  function lastPlace(){
+    var p = null, m = null;
+    try { p = JSON.parse(localStorage.getItem(LAST) || "null"); } catch(e){}
+    try { m = JSON.parse(localStorage.getItem("meg-sted") || "null"); } catch(e){}
+    if(!(p && isFinite(p.lat) && isFinite(p.lon))){ p = null; }
+    if(m && typeof m.lat === "number" && typeof m.lon === "number"){ m = {lat:m.lat, lon:m.lon, name:(m.type === "posisjon" ? "Min posisjon" : m.navn), t:m.t || 0}; } else { m = null; }
+    if(p && m){ return (m.t || 0) > (p.t || 0) ? m : p; }
+    return p || m;
+  }
   function loadPoint(lat, lon, name){
     var my = ++reqId;
-    try { localStorage.setItem(LAST, JSON.stringify({lat:lat, lon:lon, name:name})); } catch(e){}
+    try { var t = Date.now(); localStorage.setItem(LAST, JSON.stringify({lat:lat, lon:lon, name:name, t:t})); localStorage.setItem("meg-sted", JSON.stringify({type:"by", navn:name, lat:+lat, lon:+lon, t:t})); } catch(e){}
     status("Henter varsel ...");
     if(pin){ pin.setLatLng([lat, lon]); }
     getForecast(lat, lon).then(function(d){

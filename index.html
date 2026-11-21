@@ -224,8 +224,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <h1 id="greeting">God morgen, Kari</h1>
         <p class="msg" id="day-msg">Dagens tall er en invitasjon til å starte noe nytt. Ta det første lille steget før lunsj.</p>
       </div>
-      <div class="facts" aria-label="Fakta for Storslett i dag">
-        <span>Sted</span><b>Storslett, Nordreisa</b>
+      <div class="facts" aria-label="Fakta for stedet ditt i dag">
+        <span>Sted</span><b id="head-place">Storslett, Nordreisa</b>
         <span>Sol opp</span><b id="sunrise">–</b>
         <span>Sol ned</span><b id="sunset">–</b>
         <span>Dagslys</span><b id="daylen">–</b>
@@ -584,6 +584,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <!-- Relativ sti, så forhåndsvisningen på raw.githack også finner skriptet. -->
 <script src="lib/sang.js?v=2026-11-20"></script>
 <script src="lib/ferdige-sanger.js?v=2026-11-21b"></script>
+<script src="/portal/hopp.js?v=2026-11-21"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
 <script src="/lib/meg-konto.js?v=2026-11-21"></script>
@@ -678,9 +679,31 @@ button:disabled{opacity:.5;cursor:not-allowed}
     }catch(e){ birth = null; }
   }
 
-  /* ---- sun for Storslett (69.77 N, 21.03 E): standard declination, equation of time and hour angle ---- */
+  /* ---- Mitt sted: ett felles sted for Min dag og været i Medlemsportalen (samme nettleser).
+     Min dag lagrer i "meg-sted", været i "me_vaer_sted". Det sist valgte gjelder begge steder. ---- */
+  function hentSted(){
+    var a = null, b = null;
+    try{ a = JSON.parse(localStorage.getItem("meg-sted") || "null"); }catch(e){}
+    try{ b = JSON.parse(localStorage.getItem("me_vaer_sted") || "null"); }catch(e){}
+    if(a && !(typeof a.lat === "number" && typeof a.lon === "number")){ a = null; }
+    if(b && isFinite(b.lat) && isFinite(b.lon)){ b = {type:"by", navn:b.name || "Valgt sted", lat:+b.lat, lon:+b.lon, t:b.t || 0}; } else { b = null; }
+    if(a && b){ return (b.t || 0) > (a.t || 0) ? b : a; }
+    return a || b;
+  }
+  function lagreSted(s){
+    var t = Date.now();
+    try{
+      if(s){ s.t = t; localStorage.setItem("meg-sted", JSON.stringify(s));
+        localStorage.setItem("me_vaer_sted", JSON.stringify({lat:s.lat, lon:s.lon, name:(s.type === "posisjon" ? "Min posisjon" : s.navn), t:t})); }
+      else { localStorage.removeItem("meg-sted"); localStorage.removeItem("me_vaer_sted"); }
+    }catch(e){}
+  }
+  var MITT = hentSted() || {type:"by", navn:"Storslett", lat:69.768, lon:21.030};
+  $("head-place").textContent = MITT.type === "posisjon" ? "Posisjonen din" : (MITT.navn === "Storslett" ? "Storslett, Nordreisa" : MITT.navn);
+
+  /* ---- sun for the chosen place (default Storslett 69.77 N, 21.03 E): standard declination, equation of time and hour angle ---- */
   var SUN = (function(){
-    var lat = 69.77 * Math.PI / 180, lon = 21.03;
+    var lat = MITT.lat * Math.PI / 180, lon = MITT.lon;
     var start = Date.UTC(now.getUTCFullYear(), 0, 0);
     var doy = Math.floor((Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - start) / 86400000);
     var g = 2 * Math.PI / 365 * (doy - 1);
@@ -1135,7 +1158,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
      Strøm: alt beregnes én gang når det vises eller når bryteren byttes, og lagres i en liten mellomlagring.
      Ingen setInterval, ingen løkker i bakgrunnen, ingen automatisk avspilling. Stedet sendes aldri ut. */
   var STD = {type:"by", navn:"Storslett", lat:69.768, lon:21.030};
-  function sted(){ var s = store("sted"); return (s && typeof s.lat === "number" && typeof s.lon === "number") ? s : STD; }
+  function sted(){ return hentSted() || STD; }
   function komma(x, n){ return x.toFixed(n).replace(".", ","); }
   function stedNavn(s){ return s.type === "posisjon" ? "posisjonen din (" + komma(s.lat, 2) + "° N, " + komma(s.lon, 2) + "° Ø)" : s.navn; }
   var astro = !!(U && U.stedsdag);
@@ -1273,7 +1296,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   /* Stedsvalg under «Mine data». By er standard. Posisjon bare ved knappetrykk, én gang. */
   function nyttSted(s){
-    if(s){ store("sted", s); } else { try{ localStorage.removeItem("meg-sted"); }catch(e){} }
+    lagreSted(s);
     cache = {}; renderLokal(); visSted();
     ["sky-uke","sky-mnd"].forEach(function(id){ if(!$(id).hidden){ if(id === "sky-uke"){ renderUke(); } else { renderMnd(); } } });
   }
@@ -1281,8 +1304,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
     var s = sted(), sel = $("by-select"); if(!sel){ return; }
     $("st-by").checked = s.type !== "posisjon"; $("st-pos").checked = s.type === "posisjon";
     $("sted-by").hidden = s.type === "posisjon"; $("sted-pos").hidden = s.type !== "posisjon";
-    if(s.type !== "posisjon"){ sel.value = s.navn; }
-    $("sted-status").textContent = "Valgt nå: " + stedNavn(s) + (store("sted") ? "." : " (standard).");
+    if(s.type !== "posisjon"){ if(![].some.call(sel.options, function(o){ return o.value === s.navn; })){ sel.appendChild(el("option", {value:s.navn}, s.navn)); } sel.value = s.navn; }
+    $("sted-status").textContent = "Valgt nå: " + stedNavn(s) + (hentSted() ? ". Gjelder også været i Medlemsportalen." : " (standard).");
   }
   (function(){
     var sel = $("by-select"); if(!sel){ return; }
