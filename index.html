@@ -187,6 +187,14 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 .langbar select{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;max-width:100%}
 .langbar select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .tag.planned{display:inline-block;margin-left:4px;vertical-align:1px}
+/* MyBiz-kortet */
+#mybiz-card a.btn{text-decoration:none;display:inline-block}
+#mybiz-card a.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+#mybiz-body{display:flex;flex-direction:column;gap:10px}
+.mb-title{font-family:var(--display);font-weight:700;font-size:20px}
+.mb-prog{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700}
+.mb-prog progress{width:100%;height:12px;accent-color:var(--accent)}
+.mb-step{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:var(--surface-2)}
 /* Sangene mine */
 .songrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .songrow[hidden]{display:none}
@@ -289,6 +297,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <label class="muted" for="grateful">Tre ting du er takknemlig for</label>
         <input id="grateful" type="text" placeholder="Kaffe på trappa, en hyggelig nabo, nysnø" style="font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
         <p class="muted" id="mood-reply">Velg et humør, så får du et lite ord på veien.</p>
+      </article>
+      <article class="card" id="mybiz-card" aria-labelledby="mybiz-h">
+        <div class="card-head"><h3 id="mybiz-h">MyBiz</h3><span class="tag fact" id="mybiz-tag">Bare for deg</span></div>
+        <div id="mybiz-body"><p class="muted">Henter MinBiz-planen din.</p></div>
       </article>
       <article class="card">
         <div class="card-head"><h3>Lys og rytme i nord</h3><span class="tag fact">Fakta</span></div>
@@ -532,6 +544,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
             <tr><td>Matforråd og middager</td><td>Handleliste</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" aria-label="Matforråd og middager" checked> På</label></td></tr>
             <tr><td>Interesser</td><td>Varsler om saker</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" aria-label="Interesser" checked> På</label></td></tr>
             <tr><td>Sangvalg og tekst til sanger</td><td>Utkast til morgensang, kveldssang og sang til noen</td><td>Bare deg, lagres bare på enheten</td><td><a href="#sang">Velg under Sangene mine</a></td></tr>
+            <tr><td>MinBiz-plan og steg</td><td>Kortet MyBiz med fremdrift og dagens steg</td><td>Bare deg, hentes fra MinBiz-kontoen din og kobles aldri til stemmene dine</td><td><a href="https://my.bizplanpilot.com/app.html">Styres i MinBiz</a></td></tr>
             <tr><td>Synlighet i grupper</td><td>Fellesskap</td><td>Gruppene du velger</td><td><label class="chip"><input type="checkbox" aria-label="Synlighet i grupper"> Av</label></td></tr>
           </tbody>
         </table></div>
@@ -572,7 +585,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script src="lib/sang.js?v=2026-11-20"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
-<script src="/lib/meg-konto.js?v=2026-11-20"></script>
+<script src="/lib/meg-konto.js?v=2026-11-21"></script>
+<script src="/lib/mybiz.js?v=2026-11-21"></script>
 <script>
 (function(){
   "use strict";
