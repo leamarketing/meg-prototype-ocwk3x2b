@@ -21,6 +21,9 @@
     '<button type="button" class="hopp-btn" id="hopp-til" aria-haspopup="true" aria-expanded="false" aria-controls="hopp-meny">Hopp til</button>' +
     '<button type="button" class="hopp-btn hopp-topp" id="hopp-topp" aria-label="Til toppen av siden">↑</button>';
   document.body.appendChild(box);
+  /* Litt luft nederst, så knappene aldri dekker det siste på siden */
+  var plass = document.createElement("div"); plass.setAttribute("aria-hidden", "true"); plass.style.height = "72px";
+  document.body.appendChild(plass);
   var meny = box.querySelector("#hopp-meny"), til = box.querySelector("#hopp-til"), topp = box.querySelector("#hopp-topp");
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function go(el){ el.scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "start"}); }

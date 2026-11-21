@@ -205,6 +205,10 @@ footer{font-size:13px;color:var(--muted);text-align:center;padding-top:8px}
 .til .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
 .til .pair > div{display:flex;flex-direction:column;gap:4px}
 .lyrics{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:10px;background:var(--surface-2)}
+details.utkast{border-top:1px solid var(--line);padding:10px 0}
+details.utkast > summary{cursor:pointer;font-weight:700;padding:4px 0}
+details.utkast .row{margin-top:8px;gap:8px}
+details.sang-mer > summary{cursor:pointer;color:var(--muted);padding:4px 0}
 .lyrics[hidden]{display:none}
 .lyrics h4{font-family:var(--display);font-size:17px;margin:0}
 .lyr-h{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px}
@@ -477,10 +481,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div class="grid">
       <article class="card wide">
         <div class="card-head"><h2 id="h-sang">Morgensang og kveldssang</h2><span class="tag hyp">Demo</span></div>
-        <p>Vil du ha en egen sang til morgenen eller kvelden? Den lages ut fra navnet ditt, horoskopet og dagens tall. Alt er av til du slår det på selv.</p>
+        <p>Trykk «Lag morgensang» eller «Lag kveldssang», så får du en tekst laget av navnet ditt, horoskopet og dagens tall. Den havner i «Mine sangutkast» og blir liggende der.</p>
+        <details class="sang-mer">
+        <summary>Flere valg</summary>
         <div class="chips">
-          <label class="chip" for="sang-morgen"><input type="checkbox" id="sang-morgen"> Morgensang</label>
-          <label class="chip" for="sang-kveld"><input type="checkbox" id="sang-kveld"> Kveldssang</label>
+          <label class="chip" for="sang-morgen"><input type="checkbox" id="sang-morgen"> Ny morgensang hver dag</label>
+          <label class="chip" for="sang-kveld"><input type="checkbox" id="sang-kveld"> Ny kveldssang hver dag</label>
         </div>
         <p class="muted" id="sang-status" aria-live="polite"></p>
         <fieldset id="sang-bruk" class="chips" style="border:0;padding:0;margin:0">
@@ -493,6 +499,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
         </fieldset>
         <p class="muted" id="sang-person"></p>
         <div class="songrow"><label for="sang-stemme">Stemme</label><select id="sang-stemme"><option value="kvinne">Kvinnestemme</option><option value="mann">Mannsstemme</option></select><span class="muted">Brukes når den sungne versjonen kommer.</span></div>
+        </details>
         <div class="songrow" id="rad-morgen" hidden><label for="sang-morgen-type">Morgensang som</label><select id="sang-morgen-type"><option value="vuggevise">Rolig vuggevise</option><option value="morgensang" selected>Glad morgensang</option><option value="ballade">Ballade</option><option value="vise">Vise</option><option value="country">Country</option><option value="pop">Pop</option></select><button type="button" class="primary" id="lag-morgen" disabled>Lag morgensang</button></div>
         <div class="lyrics" id="ut-morgen" aria-live="polite" hidden></div>
         <div class="songrow" id="rad-kveld" hidden><label for="sang-kveld-type">Kveldssang som</label><select id="sang-kveld-type"><option value="vuggevise" selected>Rolig vuggevise</option><option value="morgensang">Glad morgensang</option><option value="ballade">Ballade</option><option value="vise">Vise</option><option value="country">Country</option><option value="pop">Pop</option></select><button type="button" class="primary" id="lag-kveld" disabled>Lag kveldssang</button></div>
@@ -514,6 +521,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
           <p class="muted" id="til-msg" aria-live="polite"></p>
         </form>
         <div class="lyrics" id="ut-til" aria-live="polite" hidden></div>
+      </article>
+      <article class="card wide" id="mine-utkast-kort" hidden>
+        <div class="card-head"><h3>Mine sangutkast</h3><span class="tag fact">Bare på denne enheten</span></div>
+        <p class="muted">Alle utkastene du har laget, nyeste øverst. Trykk på et utkast for å lese det.</p>
+        <div id="mine-utkast"></div>
       </article>
       <article class="card">
         <div class="card-head"><h3>Slik blir det senere</h3><span class="tag hyp">Kommer senere</span></div>
@@ -583,9 +595,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script src="/lib/himmel.js?v=2026-11-20"></script>
 <script src="/lib/uka.js?v=2026-11-20b"></script>
 <!-- Relativ sti, så forhåndsvisningen på raw.githack også finner skriptet. -->
-<script src="lib/sang.js?v=2026-11-20"></script>
+<script src="lib/sang.js?v=2026-11-21"></script>
 <script src="lib/ferdige-sanger.js?v=2026-11-21b"></script>
-<script src="/portal/hopp.js?v=2026-11-21"></script>
+<script src="/portal/hopp.js?v=2026-11-21b"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
 <script src="/lib/meg-konto.js?v=2026-11-21"></script>
@@ -1465,7 +1477,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     });
     msg.addEventListener("click", function(e){
       var b = e.target; if(!b || b.tagName !== "BUTTON" || !b.classList.contains("primary")){ return; }
-      try{ var del = []; for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k === "meg-dager" || k === "meg-sang" || k.indexOf("meg-otd-") === 0){ del.push(k); } } del.forEach(function(k){ localStorage.removeItem(k); }); }catch(x){}
+      try{ var del = []; for(var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if(k === "meg-dager" || k === "meg-sang" || k === "meg-sang-utkast" || k.indexOf("meg-otd-") === 0){ del.push(k); } } del.forEach(function(k){ localStorage.removeItem(k); }); }catch(x){}
       days = []; renderTimeline();
     });
   })();
