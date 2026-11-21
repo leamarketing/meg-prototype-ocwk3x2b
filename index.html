@@ -451,8 +451,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <section class="view" id="view-livet" aria-labelledby="h-livet" hidden>
     <div class="grid">
       <article class="card wide">
-        <div class="card-head"><h2 id="h-livet">Dine store dager</h2><span class="tag fact">Bare på denne enheten</span></div>
-        <p class="muted">Legg inn dager som betyr noe for deg. For hver dag ser du hvordan himmelen sto, og hva som skjedde i verden den datoen. Dagene lagres bare i nettleseren på denne enheten, og er med når du laster ned eller sletter under Mine data.</p>
+        <div class="card-head"><h2 id="h-livet">Dine store dager</h2><span class="tag fact" data-konto="Lagret på kontoen din">Bare på denne enheten</span></div>
+        <p class="muted">Legg inn dager som betyr noe for deg. For hver dag ser du hvordan himmelen sto, og hva som skjedde i verden den datoen. <span data-konto="Dagene lagres på kontoen din, så du finner dem igjen på alle enhetene dine. De er med når du laster ned eller sletter under Mine data.">Dagene lagres bare i nettleseren på denne enheten, og er med når du laster ned eller sletter under Mine data.</span></p>
         <form class="add" id="day-form">
           <label class="sr" for="day-date">Dato</label>
           <input type="date" id="day-date" required min="1900-01-01" max="2100-12-31">
@@ -523,7 +523,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <div class="lyrics" id="ut-til" aria-live="polite" hidden></div>
       </article>
       <article class="card wide" id="mine-utkast-kort" hidden>
-        <div class="card-head"><h3>Mine sangutkast</h3><span class="tag fact">Bare på denne enheten</span></div>
+        <div class="card-head"><h3>Mine sangutkast</h3><span class="tag fact" data-konto="Lagret på kontoen din">Bare på denne enheten</span></div>
         <p class="muted">Alle utkastene du har laget, nyeste øverst. Trykk på et utkast for å lese det.</p>
         <div id="mine-utkast"></div>
       </article>
@@ -534,8 +534,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <p class="muted">Ingen KI brukes i denne prototypen. Teksten lages av enkle maler på enheten din, og ingenting sendes ut.</p>
       </article>
       <article class="card">
-        <div class="card-head"><h3>Dine sangvalg</h3><span class="tag fact">Bare på denne enheten</span></div>
-        <p class="muted">Valgene og teksten du skriver lagres bare i nettleseren på denne enheten. De er helt atskilt fra stemmene dine og sakene i VoteApp, og er med når du laster ned eller sletter under Mine data.</p>
+        <div class="card-head"><h3>Dine sangvalg</h3><span class="tag fact" data-konto="Lagret på kontoen din">Bare på denne enheten</span></div>
+        <p class="muted"><span data-konto="Valgene og teksten du skriver lagres på kontoen din.">Valgene og teksten du skriver lagres bare i nettleseren på denne enheten.</span> De er helt atskilt fra stemmene dine og sakene i VoteApp, og er med når du laster ned eller sletter under Mine data.</p>
         <div class="row"><button type="button" id="sang-glem">Slett sangvalgene mine</button></div>
       </article>
     </div>
@@ -555,7 +555,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
             <tr><td>Målinger og helsenotater</td><td>Matforslag</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" aria-label="Målinger og helsenotater" checked> På</label></td></tr>
             <tr><td>Matforråd og middager</td><td>Handleliste</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" aria-label="Matforråd og middager" checked> På</label></td></tr>
             <tr><td>Interesser</td><td>Varsler om saker</td><td>Bare deg</td><td><label class="chip"><input type="checkbox" aria-label="Interesser" checked> På</label></td></tr>
-            <tr><td>Sangvalg og tekst til sanger</td><td>Utkast til morgensang, kveldssang og sang til noen</td><td>Bare deg, lagres bare på enheten</td><td><a href="#sang">Velg under Sangene mine</a></td></tr>
+            <tr><td>Sangvalg og tekst til sanger</td><td>Utkast til morgensang, kveldssang og sang til noen</td><td data-konto="Bare deg, lagres på kontoen din">Bare deg, lagres bare på enheten</td><td><a href="#sang">Velg under Sangene mine</a></td></tr>
             <tr><td>MinBiz-plan og steg</td><td>Kortet MyBiz med fremdrift og dagens steg</td><td>Bare deg, hentes fra MinBiz-kontoen din og kobles aldri til stemmene dine</td><td><a href="https://my.bizplanpilot.com/app.html">Styres i MinBiz</a></td></tr>
             <tr><td>Synlighet i grupper</td><td>Fellesskap</td><td>Gruppene du velger</td><td><label class="chip"><input type="checkbox" aria-label="Synlighet i grupper"> Av</label></td></tr>
           </tbody>
@@ -595,12 +595,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script src="/lib/himmel.js?v=2026-11-20"></script>
 <script src="/lib/uka.js?v=2026-11-20b"></script>
 <!-- Relativ sti, så forhåndsvisningen på raw.githack også finner skriptet. -->
-<script src="lib/sang.js?v=2026-11-21"></script>
+<script src="lib/sang.js?v=2026-11-21k"></script>
 <script src="lib/ferdige-sanger.js?v=2026-11-21b"></script>
 <script src="/portal/hopp.js?v=2026-11-21b"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
-<script src="/lib/meg-konto.js?v=2026-11-21"></script>
+<script src="/lib/meg-konto.js?v=2026-11-21k"></script>
 <script src="/lib/mybiz.js?v=2026-11-21"></script>
 <script>
 (function(){
@@ -1462,7 +1462,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     e.preventDefault();
     var d = $("day-date").value; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ $("livet-msg").textContent = "Velg en dato."; return; }
     days.push({d:d, k:$("day-kind").value, t:$("day-title").value.trim()}); saveDays(); renderTimeline();
-    $("day-title").value = ""; $("livet-msg").textContent = "Lagt til " + dateText(d) + ". Lagret bare på denne enheten.";
+    $("day-title").value = ""; $("livet-msg").textContent = "Lagt til " + dateText(d) + (window.MegKonto && window.MegKonto.paKonto ? ". Lagret på kontoen din." : ". Lagret bare på denne enheten.");
   });
   renderTimeline();
 
@@ -1470,7 +1470,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
      «Slett alt» fjerner også dagene og de lagrede hendelsene. Lagt til som egne lyttere. */
   (function(){
     var msg = $("pv-msg");
-    var info = el("p", {"class":"muted"}, "Dine store dager i Livet mitt lagres bare på denne enheten. De er med når du laster ned, og blir borte når du sletter.");
+    var info = el("p", {"class":"muted"}, (window.MegKonto && window.MegKonto.paKonto ? "Planen, middagene, interessene, de store dagene og sangene dine lagres på kontoen din, adskilt fra stemmene dine. Stedet lagres bare på denne enheten. Alt er med når du laster ned, og blir borte fra både enheten og kontoen når du sletter." : "Dine store dager i Livet mitt lagres bare på denne enheten. De er med når du laster ned, og blir borte når du sletter."));
     msg.parentNode.insertBefore(info, msg);
     $("export-btn").addEventListener("click", function(){
       var data = {laget: new Date().toISOString(), kilde: "me.voteapp.eu prototype, lagret i nettleseren", data: {}};
