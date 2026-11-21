@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slektsgransking i Min dag</title>
+<meta name="description" content="Utkast med eksempeldata: et slektstre der hver kobling viser hvilken kilde den bygger på. Levende personer er private.">
+<meta name="robots" content="noindex">
+<style>
+:root{
+  --bg:#f7f6f2; --card:#ffffff; --ink:#1d2430; --muted:#566070; --line:#dedbd2;
+  --accent:#1f5f8b; --accent-ink:#ffffff; --chip:#eef3f7;
+  --m-bek:#1e6b43; --m-bek-bg:#e3f3ea;
+  --m-sto:#1f5f8b; --m-sto-bg:#e4eff8;
+  --m-dna:#5b3f99; --m-dna-bg:#efe8fa;
+  --m-munt:#8a5a00; --m-munt-bg:#fbf0d9;
+  --m-omst:#a33a3a; --m-omst-bg:#fbe5e5;
+  --m-imp:#555f6d; --m-imp-bg:#eceef1;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161c; --card:#1a2029; --ink:#e8ebef; --muted:#a3acb9; --line:#2c3440;
+    --accent:#6fb3e0; --accent-ink:#0f1a24; --chip:#222b36;
+    --m-bek:#7fd6a4; --m-bek-bg:#173326;
+    --m-sto:#8cc3ea; --m-sto-bg:#172a3a;
+    --m-dna:#c3a8f0; --m-dna-bg:#2a2140;
+    --m-munt:#f0c46a; --m-munt-bg:#3a2d12;
+    --m-omst:#f09a9a; --m-omst-bg:#3d1c1c;
+    --m-imp:#b8c0cc; --m-imp-bg:#262c35;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161c; --card:#1a2029; --ink:#e8ebef; --muted:#a3acb9; --line:#2c3440;
+  --accent:#6fb3e0; --accent-ink:#0f1a24; --chip:#222b36;
+  --m-bek:#7fd6a4; --m-bek-bg:#173326;
+  --m-sto:#8cc3ea; --m-sto-bg:#172a3a;
+  --m-dna:#c3a8f0; --m-dna-bg:#2a2140;
+  --m-munt:#f0c46a; --m-munt-bg:#3a2d12;
+  --m-omst:#f09a9a; --m-omst-bg:#3d1c1c;
+  --m-imp:#b8c0cc; --m-imp-bg:#262c35;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:900px;margin:0 auto;padding:28px 16px 96px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 6px}
+h2{font-size:1.3rem;margin:0 0 8px}
+h3{font-size:1.05rem;margin:14px 0 6px}
+p{margin:0 0 10px}
+.lead{color:var(--muted);margin:0 0 14px}
+.eks{background:var(--m-munt-bg);color:var(--ink);border:1px solid var(--m-munt);border-radius:10px;padding:10px 14px;margin:0 0 16px;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+.small{font-size:.88rem;color:var(--muted)}
+a{color:var(--accent)}
+button{font:inherit;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:9px 14px;cursor:pointer;min-height:44px}
+button.lys{background:var(--chip);color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=text],textarea{font:inherit;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+textarea{min-height:64px}
+.gen{margin:18px 0 6px;font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.rad{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.person{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.person.valgt{border:2px solid var(--accent)}
+.person .navn{font-weight:700;line-height:1.3}
+.person .aar{font-size:.9rem;color:var(--muted)}
+.person .rel{font-size:.82rem;color:var(--muted)}
+.person button.merke{align-self:flex-start}
+.merke{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;border-radius:999px;padding:4px 10px;border:1.5px solid currentColor;min-height:32px;background:var(--chip);color:var(--ink);cursor:pointer}
+.merke .ik{font-size:.95rem}
+.m-bek{color:var(--m-bek);background:var(--m-bek-bg)}
+.m-sto{color:var(--m-sto);background:var(--m-sto-bg)}
+.m-dna{color:var(--m-dna);background:var(--m-dna-bg)}
+.m-munt{color:var(--m-munt);background:var(--m-munt-bg)}
+.m-omst{color:var(--m-omst);background:var(--m-omst-bg)}
+.m-imp{color:var(--m-imp);background:var(--m-imp-bg)}
+span.merke{cursor:default}
+.forklaring{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center}
+.sjekk{list-style:none;padding:0;margin:6px 0 10px}
+.sjekk li{padding:4px 0 4px 30px;position:relative}
+.sjekk li::before{position:absolute;left:0;top:4px;width:22px;text-align:center;font-weight:700}
+.sjekk li.ok::before{content:"✓";color:var(--m-bek)}
+.sjekk li.nei::before{content:"!";color:var(--m-omst)}
+.kilde{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:var(--bg)}
+.kilde .avs{font-family:ui-serif,Georgia,serif;background:var(--card);border-left:3px solid var(--line);padding:6px 10px;margin:6px 0;white-space:pre-wrap}
+.ki{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--m-munt);color:var(--m-munt);background:var(--m-munt-bg)}
+.logg{list-style:none;padding:0;margin:0}
+.logg li{border-top:1px solid var(--line);padding:6px 0;font-size:.92rem}
+.mots{border-left:4px solid var(--m-omst);padding:8px 12px;margin:8px 0;background:var(--bg);border-radius:0 8px 8px 0}
+.mots.ignorert{border-left-color:var(--line);opacity:.8}
+.versjoner{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.innlegg{border-top:1px solid var(--line);padding:8px 0}
+.stolpe{height:10px;border-radius:999px;background:var(--chip);overflow:hidden;margin:4px 0}
+.stolpe span{display:block;height:100%;background:var(--accent)}
+.knapper{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.svar{font-weight:600}
+.kommer{opacity:.85}
+details{border-top:1px solid var(--line);padding:8px 0}
+summary{cursor:pointer;font-weight:700;min-height:32px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+@media (max-width:520px){ h1{font-size:1.6rem} .card{padding:14px} }
+</style>
+</head>
+<body>
+<main>
+<p class="small"><a href="/portal/">Til Min dag</a></p>
+<h1>Slektsgransking</h1>
+<p class="lead"><strong>Se hvordan du vet det.</strong> Hver strek i treet viser hvilken kilde som bærer den, og familien kan se, diskutere og forbedre grunnlaget sammen.</p>
+<p class="eks" role="note"><strong>Utkast med eksempeldata, 21.11.2026.</strong> Alle personer, kilder, avskrifter og stemmer på denne siden er oppdiktet for å vise hvordan modulen kan virke. Lenkene går bare til forsiden hos kildene, ikke til ekte oppslag. Ingenting du gjør her lagres eller sendes noe sted.</p>
+
+<section class="card" aria-labelledby="h-tre" id="tre-kort">
+  <h2 id="h-tre">Treet ditt</h2>
+  <p id="duInfo" class="small"></p>
+  <p class="small">Trykk på merket under en person for å se kildene bak koblingen. En linje bakover er aldri sterkere enn det svakeste leddet.</p>
+  <div id="tre"></div>
+</section>
+
+<section class="card" aria-labelledby="h-detalj" id="detalj" hidden tabindex="-1">
+  <h2 id="h-detalj">Kobling</h2>
+  <div id="detaljInnhold"></div>
+</section>
+
+<section class="card" aria-labelledby="h-mots" id="motsigelser-kort">
+  <h2 id="h-mots">Motsigelser i treet</h2>
+  <p class="small">Treet sjekkes av seg selv for ting som ikke kan stemme, for eksempel barn født før forelderen eller årstall som ikke stemmer med kilden. Vil du la en motsigelse stå, må du skrive hvorfor, så andre i familien ser det.</p>
+  <div id="motsigelser"></div>
+</section>
+
+<section class="card" aria-labelledby="h-imp" id="import-kort">
+  <h2 id="h-imp">Hent inn et tre fra Geni, MyHeritage eller et slektsprogram</h2>
+  <p>Ta ut en GEDCOM-fil (det vanlige filformatet for slektstrær) der du har treet ditt i dag, og velg den her. Fila leses bare i nettleseren din.</p>
+  <div class="knapper">
+    <label class="lys" style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--chip);cursor:pointer;min-height:44px">Velg GEDCOM-fil <input type="file" id="gedFil" accept=".ged,.gedcom,text/plain" style="max-width:190px"></label>
+    <button type="button" id="gedEks" class="lys">Prøv med eksempelfil</button>
+  </div>
+  <div id="importUt" aria-live="polite"></div>
+</section>
+
+<section class="card" aria-labelledby="h-logg">
+  <h2 id="h-logg">Endringslogg</h2>
+  <p class="small">Alt som endres, vises med hvem, når og hvorfor.</p>
+  <ul class="logg" id="logg"></ul>
+</section>
+
+<section class="card kommer" aria-labelledby="h-kommer">
+  <h2 id="h-kommer">Kommer senere</h2>
+  <p><strong>Hvem er på bildet?</strong> Forslag til hvem som er på gamle familiebilder. Ansikter regnes som biometriske opplysninger, så det krever eget samtykke, og aldri for levende personer uten deres ja. Ikke bygget.</p>
+  <p><strong>DNA-treff.</strong> Du kan skrive inn et treff du har fått hos en DNA-tjeneste (tjeneste og antall cM) når begge parter har sagt ja. DNA kan støtte en kobling, men aldri gjøre den bekreftet alene. VoteApp selger og analyserer ikke DNA. Ikke bygget.</p>
+  <p><strong>Slik levde de.</strong> En kort fortelling om en avdød person, laget av KI fra kildene i treet, med kilden ved hver opplysning. Ikke bygget.</p>
+</section>
+
+<section class="card" aria-labelledby="h-merker">
+  <h2 id="h-merker">Hva merkene betyr</h2>
+  <div class="forklaring" id="merkeliste"></div>
+</section>
+
+<section class="card" aria-labelledby="h-lesmer">
+  <h2 id="h-lesmer">Les mer</h2>
+  <details>
+    <summary>Slik slår vi fast at noe stemmer</summary>
+    <p>Modulen følger den anerkjente metoden for slektsforskning (Genealogical Proof Standard): søk grundig, oppgi kilden nøyaktig, sammenlign kildene, løs motsigelser og skriv en konklusjon. Hver kobling viser de fem stegene som en sjekkliste.</p>
+    <p>Bekreftet krever en primærkilde, som kirkebok eller folketelling, der noen har lest avskriften mot bildet, og ingen uløste motsigelser. KI kan lese håndskrift og foreslå en avskrift, men et menneske må sjekke den mot bildet før merket endres. Familiens rådgivende stemme bestemmer bare hvilken versjon som vises først. Bare kilder kan gjøre en kobling bekreftet.</p>
+  </details>
+  <details>
+    <summary>Levende personer og personvern</summary>
+    <p>Alle uten dødsdato som er født for under 110 år siden, regnes som levende. De er private: andre ser bare «Levende person» og etternavnet. Personen kan inviteres til å se og godkjenne sin egen profil, og vises for familien først etter ja. Det skal finnes en knapp for «Dette er meg, fjern meg».</p>
+    <p>Kirkebøker er sperret i 60 til 100 år, så de nyeste generasjonene må ofte bygge på egne dokumenter, som dåpsattest, eller merkes som muntlige. Slektsdata holdes adskilt fra stemmesvar i VoteApp.</p>
+  </details>
+  <details>
+    <summary>Hva vi har lært av de store tjenestene</summary>
+    <p>Fra FamilySearch: en begrunnelse ved hver endring, og en endringslogg alle kan se. Fra MyHeritage: en kjede er aldri sterkere enn det svakeste leddet, og forslag blir aldri fakta før et menneske har sagt ja. Fra Geni: en automatisk sjekk av motsigelser, og at en import stopper når den finner en mulig dublett. Fra Digitalarkivet: lenken til bildet er kilden, og navnet på den som skrev av vises.</p>
+  </details>
+  <details>
+    <summary>Hva som ikke er bygget ennå</summary>
+    <p>Lagring, innlogget familiegruppe, invitasjoner, ekte søk i Digitalarkivet og andre kilder, ekte KI-lesing, eksport til GEDCOM og sletteknappen. Pris er ikke satt. Adressen for modulen er ikke valgt.</p>
+  </details>
+</section>
+</main>
+
+<!-- Innlogging fra Medlemsportalen: gir profilen (navn, fødselsdato og fødested) som første person i treet. -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script defer src="/portal/supabase-public.js"></script>
+<script src="/lib/meg-konto.js?v=2026-11-21k"></script>
+<script src="slekt.js?v=2026-11-21a"></script>
+<script src="/portal/hopp.js?v=2026-11-21b"></script>
+</body>
+</html>
