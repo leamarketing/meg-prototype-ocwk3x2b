@@ -5,15 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <script>
-/* Automatisk spraak: brukerens eget valg vinner, ellers telefonens spraak. Ukjent spraak gir engelsk. */
+/* Språk: bare personens eget valg i språkmenyen sender til en annen språkversjon.
+   Telefonens språk brukes ikke lenger (21.11.2026): de andre språkversjonene er eldre kopier uten innlogging,
+   så alle får den nyeste, norske versjonen til de selv velger noe annet. Slås på igjen når språkene er oppdatert. */
 (function(){
   var saved = null; try{ saved = localStorage.getItem("meg-lang"); }catch(e){}
-  var go = function(c){ if(c && c !== "nb"){ location.replace("/" + c + "/" + location.hash); } };
-  if(saved){ go(saved); return; }
-  var map = {nb:"nb", nn:"nb", no:"nb", da:"nb", sv:"nb", en:"en", pt:"pt", es:"es", zh:"zh", se:"se", fkv:"fkv"};
-  var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
-  for(var i=0;i<list.length;i++){ var p = String(list[i]).toLowerCase().split("-")[0]; if(map[p]){ go(map[p]); return; } }
-  go("en");
+  var ok = {en:1, pt:1, es:1, zh:1, se:1, fkv:1};
+  if(saved && ok[saved]){ location.replace("/" + saved + "/" + location.hash); }
 })();
 </script>
 <title>Min dag · me.voteapp.eu (prototype)</title>

@@ -161,13 +161,15 @@
     var d = parseInt($("bd").value, 10), m = parseInt($("bm").value, 10), y = parseInt($("by").value, 10);
     if(!d || !m || !y){ return; }
     var lat = parseFloat(String($("blat").value).replace(",", ".")), lon = parseFloat(String($("blon").value).replace(",", "."));
-    /* Sted valgt fra Kartverket-listen: lagre plasseringen på kontoen, så den følger med til andre enheter. */
-    if((isNaN(lat) || isNaN(lon)) && window.Stedsok){ var ks = window.Stedsok.known($("bp").value); if(ks){ lat = ks.lat; lon = ks.lon; } }
+    /* Sted valgt fra listen (Norge eller resten av verden): lagre plasseringen og tidssonen på kontoen,
+       så de følger med til andre enheter. Egne koordinater regnes som norsk tid (tom tidssone). */
+    var tz = null;
+    if((isNaN(lat) || isNaN(lon)) && window.Stedsok){ var ks = window.Stedsok.known($("bp").value); if(ks){ lat = ks.lat; lon = ks.lon; tz = ks.tz && ks.tz !== "Europe/Oslo" ? ks.tz : null; } }
     var patch = {
       birth_date: y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"),
       birth_time: $("bt").value || null,
       birth_place: $("bp").value.trim() || null,
-      lat: isNaN(lat) ? null : lat, lon: isNaN(lon) ? null : lon,
+      lat: isNaN(lat) ? null : lat, lon: isNaN(lon) ? null : lon, birth_tz: tz,
       updated_at: new Date().toISOString()
     };
     sb.from("members").update(patch).eq("id", me.id).then(function(r){
@@ -192,7 +194,7 @@
       var hasLL = row.lat != null && row.lon != null;
       if(hasLL && row.birth_place && window.Stedsok){
         /* Stedsnavn med lagret plassering: husk stedet, så teksten viser navnet og ikke tall. */
-        window.Stedsok.remember({label:row.birth_place, lat:row.lat, lon:row.lon});
+        window.Stedsok.remember({label:row.birth_place, lat:row.lat, lon:row.lon, tz:row.birth_tz || ""});
         $("blat").value = ""; $("blon").value = "";
       } else {
         $("blat").value = hasLL ? row.lat : ""; $("blon").value = hasLL ? row.lon : "";
