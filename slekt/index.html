@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Slekt · prototype · VoteApp</title>
+<meta name="description" content="Prototype av slektsmodulen i VoteApp: bygg treet selv, se hvilken kilde som bærer hver kobling, og les og skriv GEDCOM. Eksempeldata, alt lagres bare i nettleseren.">
+<style>
+/* Layout: one column of cards, phone first. No web fonts, no images, no scripts from other sites. */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --surface-2:#e8efee; --ink:#14232b; --muted:#4f5f66; --line:#c9d6d5;
+  --accent:#17765d; --accent-ink:#ffffff; --warn-bg:#fdf1e4; --warn-ink:#6e420c; --danger:#a3261b; --danger-ink:#ffffff;
+  --b-bekreftet-bg:#dcefe6; --b-bekreftet:#11553f;
+  --b-stottet-bg:#dcebf5;   --b-stottet:#154e72;
+  --b-dna-bg:#ece2f4;       --b-dna:#5a2f7a;
+  --b-muntlig-bg:#f4ecd2;   --b-muntlig:#634a08;
+  --b-importert-bg:#e3e8ea; --b-importert:#33434a;
+  --b-ingen-bg:#ffffff;     --b-ingen:#4a5a60;
+  --b-omstridt-bg:#fbe3e1;  --b-omstridt:#8a1f17;
+  --font:"Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0e171b; --surface:#16232a; --surface-2:#1d2d35; --ink:#e6eef0; --muted:#a6b8be; --line:#33474f;
+  --accent:#43c39b; --accent-ink:#06231a; --warn-bg:#3a2a16; --warn-ink:#f3c98a; --danger:#f08a7e; --danger-ink:#2a0905;
+  --b-bekreftet-bg:#173a31; --b-bekreftet:#9ee3c6;
+  --b-stottet-bg:#183245;   --b-stottet:#9fd0f0;
+  --b-dna-bg:#33243f;       --b-dna:#dcc0f2;
+  --b-muntlig-bg:#3a3117;   --b-muntlig:#ecd27e;
+  --b-importert-bg:#26343a; --b-importert:#c9d4d8;
+  --b-ingen-bg:#16232a;     --b-ingen:#b8c6cb;
+  --b-omstridt-bg:#45201d;  --b-omstridt:#f5b3ab;
+}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;overflow-wrap:anywhere}
+.wrap{max-width:980px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 56px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{line-height:1.2;margin:0}
+h1{font-size:clamp(28px,6vw,40px);font-weight:800}
+h2{font-size:22px;font-weight:750}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+.skip{position:absolute;left:-9999px;top:0}
+.skip:focus{left:12px;top:12px;background:var(--surface);padding:8px 12px;border-radius:8px;z-index:10}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px}
+.demo{background:var(--warn-bg);color:var(--warn-ink);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.demo strong{font-size:17px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,.btn{font:inherit;font-weight:650;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:9px 14px;min-height:44px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.ghost,.btn.ghost{background:transparent;color:var(--accent)}
+button.danger{background:var(--danger);border-color:var(--danger);color:var(--danger-ink)}
+button.link{background:none;border:none;color:var(--accent);padding:0 2px;min-height:0;text-decoration:underline;font-weight:600}
+label{font-weight:600}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--muted);border-radius:8px;padding:8px 10px;min-height:44px;width:100%}
+textarea{min-height:72px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.check{display:flex;gap:8px;align-items:flex-start;font-weight:500}
+.check input{width:22px;height:22px;min-height:0;flex:0 0 auto;margin-top:2px}
+fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0}
+legend{font-weight:700;padding:0 4px}
+/* Generations */
+.gen{display:flex;flex-direction:column;gap:8px}
+.gen-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px;list-style:none;margin:0;padding:0}
+.person{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.person.rot{border:2px solid var(--accent)}
+.pname{font-weight:750;font-size:17px}
+.tag{display:inline-block;font-size:13px;font-weight:650;border-radius:999px;padding:1px 9px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
+/* Source badges: colour AND text AND symbol */
+.merke{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;font-weight:700;border-radius:999px;padding:2px 10px;border:1px solid currentColor;white-space:normal}
+.merke .sym{font-weight:800}
+.m-bekreftet{background:var(--b-bekreftet-bg);color:var(--b-bekreftet)}
+.m-stottet{background:var(--b-stottet-bg);color:var(--b-stottet)}
+.m-dna{background:var(--b-dna-bg);color:var(--b-dna)}
+.m-muntlig{background:var(--b-muntlig-bg);color:var(--b-muntlig)}
+.m-importert{background:var(--b-importert-bg);color:var(--b-importert)}
+.m-ingen{background:var(--b-ingen-bg);color:var(--b-ingen);border-style:dashed}
+.m-omstridt{background:var(--b-omstridt-bg);color:var(--b-omstridt);border-width:2px}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.tablewrap{overflow-x:auto}
+ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.kobling{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.kilde{font-size:14.5px;border-left:3px solid var(--line);padding-left:8px}
+.sens{background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:8px 10px}
+/* Dialog */
+dialog{border:1px solid var(--line);border-radius:var(--r);padding:0;width:min(640px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dlg{padding:16px;display:flex;flex-direction:column;gap:12px}
+.dlg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.innlegg{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.innlegg.medkilde{border-left:4px solid var(--accent)}
+.bar{height:10px;border-radius:6px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.bar span{display:block;height:100%;background:var(--accent)}
+.status{min-height:1.5em;font-weight:600}
+details>summary{cursor:pointer;font-weight:700;min-height:32px}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#hoved">Hopp til innholdet</a>
+<main class="wrap" id="hoved">
+  <header class="card">
+    <p class="row"><span class="tag">Prototype, konsept</span> <span class="tag">Ikke ferdig produkt</span> <span class="tag">Pris ikke satt</span></p>
+    <h1>Slekt</h1>
+    <p><strong>Se hvordan du vet det.</strong> Hver kobling i treet viser hvilken kilde som bærer den, og familien kan se, diskutere og forbedre grunnlaget sammen.</p>
+    <div class="demo" role="note">
+      <strong>Dette er en klikkbar prototype.</strong>
+      <p>Alt du skriver lagres bare i denne nettleseren på denne enheten. Ingenting sendes til noen server, og ingen andre ser det. Eksempelfamilien Strandli er oppdiktet: ingen ekte personer. Stemmer i familiesakene er rådgivende og bare en demo. Adressen for modulen er ikke valgt.</p>
+    </div>
+  </header>
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+
+  <section class="card" id="start" aria-labelledby="start-h" hidden>
+    <h2 id="start-h">Start med deg selv</h2>
+    <p>Legg inn deg selv først. Deretter legger du til foreldre, besteforeldre, søsken og barn, én person om gangen.</p>
+    <form id="start-form" class="grid" novalidate>
+      <div class="field"><label for="s-fornavn">Fornavn</label><input id="s-fornavn" name="fornavn" autocomplete="given-name" required></div>
+      <div class="field"><label for="s-etternavn">Etternavn</label><input id="s-etternavn" name="etternavn" autocomplete="family-name"></div>
+      <div class="field"><label for="s-fodt">Født (dag.måned.år eller bare år)</label><input id="s-fodt" name="fodt" inputmode="numeric" placeholder="14.05.1985"></div>
+      <div class="field"><label for="s-sted">Fødested</label><input id="s-sted" name="sted"></div>
+      <div class="row"><button type="submit">Start treet</button></div>
+    </form>
+    <p class="muted small">Eller prøv med eksempeldata, eller les inn en GEDCOM-fil fra et annet slektsprogram:</p>
+    <div class="row">
+      <button type="button" class="ghost" data-act="eksempel">Last inn eksempeldata</button>
+      <button type="button" class="ghost" data-act="velg-fil" data-for="fil-start">Les inn GEDCOM-fil</button>
+      <input type="file" id="fil-start" accept=".ged,.gedcom,text/plain" hidden data-fil>
+    </div>
+  </section>
+
+  <section class="card" id="tre" aria-labelledby="tre-h" hidden>
+    <div class="row" style="justify-content:space-between">
+      <h2 id="tre-h">Treet</h2>
+      <fieldset>
+        <legend>Vis treet som</legend>
+        <div class="row">
+          <label class="check"><input type="radio" name="visning" value="eier" checked> Meg (eier av treet)</label>
+          <label class="check"><input type="radio" name="visning" value="leser"> En slektning i familiegruppen</label>
+        </div>
+      </fieldset>
+    </div>
+    <p class="muted small" id="visning-forklaring"></p>
+    <div id="generasjoner"></div>
+    <details>
+      <summary>Alle personer (<span id="antall">0</span>)</summary>
+      <div class="tablewrap"><table>
+        <caption class="skip">Alle personer i treet</caption>
+        <thead><tr><th scope="col">Navn</th><th scope="col">Født</th><th scope="col">Død</th><th scope="col">Status</th></tr></thead>
+        <tbody id="alle"></tbody>
+      </table></div>
+    </details>
+  </section>
+
+  <section class="card" id="saker" aria-labelledby="saker-h" hidden>
+    <h2 id="saker-h">Familiesaker: omstridte koblinger</h2>
+    <p>Når kilder eller familiemedlemmer er uenige, blir koblingen en sak. Innlegg med kilde vises over innlegg uten. Familien kan gi en <strong>rådgivende</strong> stemme om hvilken versjon som skal vises først. Lik stemmevekt. Stemmen gjør aldri en kobling bekreftet: bare kilder kan gjøre det. Begge versjoner bevares.</p>
+    <p class="demo small" role="note">Demo: «Familiegruppen» er fire oppdiktede navn. Ingenting sendes, ingen blir varslet.</p>
+    <div id="sakliste"></div>
+  </section>
+
+  <section class="card" id="kildemerke" aria-labelledby="km-h">
+    <h2 id="km-h">Kildemerkene</h2>
+    <p>Hver kobling får et merke med farge, symbol og tekst. Har en kobling flere kilder, vises det sterkeste merket.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th scope="col">Merke</th><th scope="col">Betyr</th><th scope="col">Hva som kreves</th></tr></thead>
+      <tbody id="merketabell"></tbody>
+    </table></div>
+    <p class="small">DNA alene gir aldri «Bekreftet», bare «Støttet», fordi DNA sjelden viser nøyaktig hvordan to personer er i slekt. Hvem som la inn kilden vises alltid.</p>
+  </section>
+
+  <section class="card" id="sensitiv" aria-labelledby="pv-h">
+    <h2 id="pv-h">Personvern i prototypen</h2>
+    <ul>
+      <li><strong>Levende er private som standard.</strong> Uten dødsdato og født for under 110 år siden regnes en person som levende. Ukjent fødselsår uten dødsdato regnes også som levende.</li>
+      <li>En slektning i familiegruppen ser bare «Levende person» og etternavn, til personen selv har sagt ja til å bli vist (i prototypen: et avkrysningsfelt).</li>
+      <li>Barn under 16 år vises ikke for andre enn eieren.</li>
+      <li>Sensitive felt (som adopsjon, dødsårsak, sykdom) er skjult som standard, også for avdøde som døde for under 100 år siden. De tas bare med i GEDCOM-fila hvis du krysser av for det.</li>
+      <li>Ingen DNA-rådata. Et DNA-treff skrives bare inn som en kort kilde (tjeneste, cM, dato), og forutsetter samtykke fra begge.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="filer" aria-labelledby="filer-h">
+    <h2 id="filer-h">Dine data</h2>
+    <p>Familien eier sine egne data. Last ned treet som GEDCOM 7, eller les inn en fil (GEDCOM 7 eller 5.5.1). Alle koblinger fra en annen fil får merket «Importert, ikke kildekontrollert» til noen legger på kilde.</p>
+    <fieldset>
+      <legend>Last ned (GEDCOM)</legend>
+      <label class="check"><input type="checkbox" id="ut-sensitiv"> Ta med sensitive felt</label>
+      <label class="check"><input type="checkbox" id="ut-levende"> Utelat levende personer (for å dele fila med andre)</label>
+      <div class="row"><button type="button" data-act="last-ned">Last ned (GEDCOM)</button></div>
+    </fieldset>
+    <div class="row">
+      <button type="button" class="ghost" data-act="velg-fil" data-for="fil-inn">Les inn GEDCOM-fil</button>
+      <input type="file" id="fil-inn" accept=".ged,.gedcom,text/plain" hidden data-fil>
+      <button type="button" class="ghost" data-act="angre" id="angre-knapp" disabled>Angre siste endring</button>
+      <button type="button" class="danger" data-act="slett-alt">Slett alt</button>
+    </div>
+    <details>
+      <summary>Endringslogg</summary>
+      <ol id="logg" class="small"></ol>
+    </details>
+  </section>
+
+  <section class="card" aria-labelledby="ikke-h">
+    <h2 id="ikke-h">Ikke bygget ennå</h2>
+    <ul>
+      <li>Innlogging, lagring på server og deling med familiegruppen. Invitasjon og samtykke på e-post.</li>
+      <li>Knappen «Dette er meg, fjern meg» for slektninger.</li>
+      <li>Ekte søk i kilder fra modulen. Knappen «Søk i Digitalarkivet» åpner bare Digitalarkivets eget søk med navn, år og sted fylt ut.</li>
+      <li>Forslag fra KI. Ingen KI er med i prototypen.</li>
+      <li>Kobling til Min dag og til sakene i VoteApp.</li>
+      <li>Personvernerklæring, behandlingsprotokoll og vurdering av personvernkonsekvenser (DPIA). Må være på plass før noen ekte versjon.</li>
+    </ul>
+  </section>
+</main>
+
+<dialog id="dlg-person" aria-labelledby="dp-h"><div class="dlg" id="dp-innhold"></div></dialog>
+<dialog id="dlg-skjema" aria-labelledby="ds-h"><form class="dlg" id="ds-form" method="dialog" novalidate></form></dialog>
+<dialog id="dlg-bekreft" aria-labelledby="db-h">
+  <div class="dlg">
+    <h2 id="db-h">Slette alt?</h2>
+    <p>Hele treet, alle kilder, familiesaker og stemmer i denne nettleseren blir slettet. Det kan ikke angres. Last ned en GEDCOM-fil først hvis du vil ta vare på treet.</p>
+    <div class="row"><button type="button" class="danger" data-act="slett-ja">Ja, slett alt</button><button type="button" class="ghost" data-act="lukk">Avbryt</button></div>
+  </div>
+</dialog>
+
+<script src="kjerne.js?v=2026-11-20"></script>
+<script src="slekt.js?v=2026-11-20"></script>
+</body>
+</html>

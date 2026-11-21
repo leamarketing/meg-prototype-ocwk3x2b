@@ -1,0 +1,35 @@
+0 HEAD
+1 SOUR TEST
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+0 @P1@ INDI
+1 NAME Test /Eksempelsen/
+2 GIVN Test
+2 SURN Eksempelsen
+1 SEX M
+1 BIRT
+2 DATE 12 JAN 1850
+2 PLAC Testvik, Troms
+1 DEAT Y
+1 FAMS @FA@
+0 @P2@ INDI
+1 NAME Prøve /Eksempelsen/
+1 SEX F
+1 BIRT
+2 DATE ABT 1852
+1 NOTE Første linje
+2 CONT andre linje
+1 FAMS @FA@
+0 @P3@ INDI
+1 NAME Barn /Eksempelsen/
+1 SEX F
+1 BIRT
+2 DATE 1885
+1 FAMC @FA@
+0 @FA@ FAM
+1 HUSB @P1@
+1 WIFE @P2@
+1 CHIL @P3@
+0 TRLR

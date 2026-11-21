@@ -1,0 +1,178 @@
+0 HEAD
+1 GEDC
+2 VERS 7.0
+1 SOUR VOTEAPP-SLEKT
+2 NAME VoteApp slekt (prototype)
+1 NOTE EKSEMPELDATA. Alle personer i denne fila er oppdiktet. Ingen ekte personer.
+0 @I1@ INDI
+1 NAME Kari /Strandli/
+1 SEX F
+1 BIRT
+2 DATE 14 MAY 1985
+2 PLAC Tromsø
+1 _EKSEMPEL Y
+0 @I2@ INDI
+1 NAME Erik /Strandli/
+1 SEX M
+1 BIRT
+2 DATE 1988
+2 PLAC Tromsø
+1 _EKSEMPEL Y
+0 @I3@ INDI
+1 NAME Per /Strandli/
+1 SEX M
+1 BIRT
+2 DATE 1956
+2 PLAC Skjervøy
+1 _EKSEMPEL Y
+0 @I4@ INDI
+1 NAME Ingrid /Moen/
+1 SEX F
+1 BIRT
+2 DATE 1958
+2 PLAC Lyngen
+1 _EKSEMPEL Y
+0 @I5@ INDI
+1 NAME Johan /Strandli/
+1 SEX M
+1 BIRT
+2 DATE 3 MAR 1921
+2 PLAC Skjervøy
+1 DEAT
+2 DATE 1994
+2 PLAC Skjervøy
+1 _EKSEMPEL Y
+0 @I6@ INDI
+1 NAME Marie /Bakken/
+1 SEX F
+1 BIRT
+2 DATE 1925
+2 PLAC Kåfjord
+1 DEAT
+2 DATE 2010
+2 PLAC Tromsø
+1 _EKSEMPEL Y
+0 @I7@ INDI
+1 NAME Anders /Moen/
+1 SEX M
+1 BIRT
+2 DATE 1918
+2 PLAC Lyngen
+1 DEAT
+2 DATE 1980
+2 PLAC Lyngen
+1 _SENSITIV Dødsårsak (oppdiktet eksempel på et sensitivt felt)
+1 _EKSEMPEL Y
+0 @I8@ INDI
+1 NAME Anna /Lie/
+1 SEX F
+1 BIRT
+2 DATE 1922
+2 PLAC Lyngen
+1 _EKSEMPEL Y
+0 @I9@ INDI
+1 NAME Lars /Strandli/
+1 SEX M
+1 BIRT
+2 DATE ABT 1888
+2 PLAC Skjervøy
+1 DEAT
+2 DATE 1950
+1 _EKSEMPEL Y
+0 @I10@ INDI
+1 NAME Elen /Hansen/
+1 SEX F
+1 BIRT
+2 DATE 1890
+1 DEAT
+2 DATE 1972
+1 _EKSEMPEL Y
+0 @I11@ INDI
+1 NAME Nils /Strandli/
+1 SEX M
+1 BIRT
+2 DATE 1890
+2 PLAC Skjervøy
+1 DEAT
+2 DATE 1961
+1 _EKSEMPEL Y
+0 @I12@ INDI
+1 NAME Sofie /Strandli/
+1 SEX F
+1 BIRT
+2 DATE 2015
+2 PLAC Tromsø
+1 _EKSEMPEL Y
+0 @I13@ INDI
+1 NAME Ola /Berg/
+1 SEX M
+1 BIRT
+2 DATE 1983
+1 _EKSEMPEL Y
+0 @I14@ INDI
+1 NAME Peder /Strandli/
+1 SEX M
+1 BIRT
+2 DATE ABT 1855
+2 PLAC Skjervøy
+1 _EKSEMPEL Y
+0 @F1@ FAM
+1 HUSB @I13@
+1 WIFE @I1@
+1 _KILDE Samboerskap (muntlig, eksempel)
+2 _TYPE muntlig
+2 _AV Kari
+1 CHIL @I12@
+2 _KILDE Fødselsattest, eget dokument (eksempel)
+3 _TYPE annen
+3 _AV Kari
+0 @F2@ FAM
+1 HUSB @I3@
+1 WIFE @I4@
+1 CHIL @I1@
+2 _KILDE Dåpsattest, eget dokument (eksempel)
+3 _TYPE annen
+3 _AV Kari
+1 CHIL @I2@
+2 _KILDE DNA-treff mellom Kari og Erik, helsøsken (eksempel, oppdiktet tall: 2 600 cM). Samtykke fra begge.
+3 _TYPE dna
+3 _AV Kari
+2 _KILDE Familien forteller det (eksempel)
+3 _TYPE muntlig
+3 _AV Per
+0 @F3@ FAM
+1 HUSB @I5@
+1 WIFE @I6@
+1 CHIL @I3@
+2 _KILDE Bygdebok, side 214 (eksempel, oppdiktet sidetall)
+3 _TYPE annen
+3 _AV Kari
+0 @F4@ FAM
+1 HUSB @I7@
+1 WIFE @I8@
+1 CHIL @I4@
+0 @F5@ FAM
+1 HUSB @I9@
+1 WIFE @I10@
+1 _KILDE Vielse i kirkebok (eksempel, ingen ekte lenke)
+2 _TYPE kirkebok
+2 _AV Kari
+1 CHIL @I5@
+2 _OMSTRIDT Y
+2 _KILDE Dåp i kirkebok oppgir Lars som far (eksempel, ingen ekte lenke)
+3 _TYPE kirkebok
+3 _AV Kari
+2 _KILDE Familiefortelling: broren Nils var egentlig faren (eksempel)
+3 _TYPE muntlig
+3 _AV Erik
+0 @F6@ FAM
+1 HUSB @I14@
+1 CHIL @I9@
+2 _KILDE Folketelling 1891, bor hjemme som sønn (eksempel, ingen ekte lenke)
+3 _TYPE folketelling
+3 _AV Kari
+1 CHIL @I11@
+2 _KILDE Folketelling 1891, bor hjemme som sønn (eksempel, ingen ekte lenke)
+3 _TYPE folketelling
+3 _AV Kari
+0 TRLR
