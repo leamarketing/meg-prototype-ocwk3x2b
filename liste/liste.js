@@ -51,6 +51,20 @@
       "</form>";
     var form = boks.querySelector("form");
     var melding = form.querySelector(".ls-melding");
+    /* Innlogget i Medlemsportalen: fyll inn fornavn og e-post fra kontoen, så de slipper å skrive dem (Geir 21.11.2026). */
+    function fraKonto() {
+      var p = null;
+      try { p = (window.MegKonto && window.MegKonto.profil) || JSON.parse(localStorage.getItem("meg-profil") || "null"); } catch (e) {}
+      if (!p) return;
+      if (p.fornavn && !form.navn.value) form.navn.value = p.fornavn;
+      if (p.epost && !form.epost.value) form.epost.value = p.epost;
+      if (p.epost && !form.querySelector(".ls-fra-konto")) {
+        var info = document.createElement("p"); info.className = "ls-liten ls-fra-konto";
+        info.textContent = "Fylt inn fra kontoen din. Kryss av for det du vil ha, og trykk «Meld meg på».";
+        form.insertBefore(info, form.firstChild);
+      }
+    }
+    fraKonto(); document.addEventListener("megkonto", fraKonto);
     var knapp = form.querySelector("button");
     function vis(tekst, ok) {
       melding.textContent = tekst;

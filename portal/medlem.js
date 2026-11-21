@@ -61,6 +61,14 @@
     html += "<label>Nytt passord<input id=\"pw1\" type=\"password\" autocomplete=\"new-password\" minlength=\"8\" required></label>";
     html += "<label>Skriv det en gang til<input id=\"pw2\" type=\"password\" autocomplete=\"new-password\" minlength=\"8\" required></label>";
     html += "<button type=\"submit\">Lagre passord</button></form></div>";
+    /* Spør én gang, rett etter innlogging: skal vi huske navn og fødselsdato? (Geir 21.11.2026: ikke gi folk mer å gjøre.) */
+    var sagtNei = false; try { sagtNei = localStorage.getItem("me_husk_nei") === "1"; } catch(e){}
+    if(!row.consent_at && !sagtNei && isOpen(row)){
+      html += "<div class=\"ask\" id=\"husk\" role=\"region\" aria-labelledby=\"husk-h\"><h3 id=\"husk-h\">Skal vi huske deg?</h3>";
+      html += "<p>Da husker vi navnet og fødselsdatoen din, så du slipper å skrive dem inn igjen. Min dag, Sangene mine og Spill bruker dem også.</p>";
+      html += "<p class=\"muted\">Dataene ligger i EU, deles ikke med andre og holdes adskilt fra stemmesvar. Du kan slette alt når du vil.</p>";
+      html += "<div class=\"row\"><button type=\"button\" id=\"husk-ja\">Ja, husk meg</button><button type=\"button\" class=\"no\" id=\"husk-nei\">Nei takk</button></div></div>";
+    }
     html += "<label class=\"consent\"><input type=\"checkbox\" id=\"consent\"" + (row.consent_at ? " checked" : "") + "> <span>Lagre navn og fødselsdata på kontoen min, så jeg slipper å skrive dem inn igjen. Dataene ligger i EU, deles ikke med andre og holdes adskilt fra stemmesvar.</span></label>";
     html += "<div class=\"acct-actions\"><button type=\"button\" class=\"linkbtn\" id=\"logout\">Logg ut</button><button type=\"button\" class=\"linkbtn\" id=\"delete-me\">Slett kontoen min og alle data</button></div>";
     out.innerHTML = html;
@@ -104,6 +112,9 @@
         sb.auth.signOut().then(function(){ location.reload(); });
       });
     });
+    var hj = $("husk-ja"), hn = $("husk-nei");
+    if(hj){ hj.addEventListener("click", function(){ var c = $("consent"); c.checked = true; c.dispatchEvent(new Event("change")); var b = $("husk"); if(b){ b.remove(); } }); }
+    if(hn){ hn.addEventListener("click", function(){ try { localStorage.setItem("me_husk_nei", "1"); } catch(e){} var b = $("husk"); if(b){ b.remove(); } say("Greit. Du kan slå det på senere med avkrysningen under."); }); }
     $("consent").addEventListener("change", function(e){
       var on = e.target.checked, now = new Date().toISOString();
       var patch = on ? {consent_at: now, updated_at: now}
@@ -111,7 +122,7 @@
       sb.from("members").update(patch).eq("id", me.id).then(function(r){
         if(r.error){ say("Kunne ikke lagre valget: " + r.error.message, true); e.target.checked = !on; return; }
         row.consent_at = patch.consent_at;
-        say(on ? "Lagret. Navn og fødselsdata lagres når du trykker på knappene." : "Lagrede navn og fødselsdata er slettet.");
+        say(on ? "Nå husker vi navnet og fødselsdatoen din. Det du skriver inn, lagres på kontoen." : "Lagrede navn og fødselsdata er slettet.");
         if(on){ saveName(); saveBirth(); }
       });
     });
