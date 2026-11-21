@@ -391,12 +391,12 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
       </select></label>
       <label>År<input id="by" name="by" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="For eksempel 1965" required></label>
       <label>Klokkeslett<input id="bt" name="bt" type="time" aria-describedby="bt-hint"></label>
-      <label>Fødested<input id="bp" name="bp" list="places" placeholder="Velg fra listen, f.eks. Tromsø"></label>
+      <label>Fødested<input id="bp" name="bp" list="places" autocomplete="off" placeholder="Skriv stedet, f.eks. Tromsø eller Maceió"></label>
       <datalist id="places"></datalist>
       <button type="submit">Vis fødselsdagen min</button>
       <details class="coords">
-        <summary>Født utenfor Norge, og stedet er ikke i listen?</summary>
-        <p class="muted">Skriv inn koordinatene selv (desimalgrader, sør og vest med minus). Klokkeslettet regnes da som norsk tid.</p>
+        <summary>Finner du ikke stedet i listen?</summary>
+        <p class="muted">Steder i hele verden kommer opp når du skriver de første bokstavene i Fødested. Velg stedet fra listen, så regnes klokkeslettet i lokal tid der du ble født. Finner du det likevel ikke, kan du skrive koordinatene selv (desimalgrader, sør og vest med minus). Da regnes klokkeslettet som norsk tid.</p>
         <div class="coord-row">
           <label>Breddegrad<input id="blat" name="blat" inputmode="decimal" placeholder="f.eks. 69.77"></label>
           <label>Lengdegrad<input id="blon" name="blon" inputmode="decimal" placeholder="f.eks. 21.03"></label>
@@ -1015,9 +1015,9 @@ a.tile:focus-visible{outline:3px solid #1f7a5c;outline-offset:2px}
 <script src="/lib/datotast.js?v=2026-11-21"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script src="supabase-public.js"></script>
-<script src="medlem.js?v=2026-11-21b"></script>
+<script src="medlem.js?v=2026-11-21c"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="stedsok.js"></script>
+<script src="stedsok.js?v=2026-11-21c"></script>
 <script src="vaer.js?v=2026-11-20"></script>
 <script src="norge.js"></script>
 <script src="hopp.js?v=2026-11-21b"></script>
