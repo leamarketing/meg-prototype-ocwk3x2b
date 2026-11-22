@@ -211,6 +211,16 @@
     sb.from("members").select("*").eq("id", me.id).maybeSingle().then(function(r){
       if(r.error){ say("Kunne ikke hente kontoen: " + r.error.message, true); return; }
       if(!r.data){ say("Kontoen er ikke klar ennå. Last siden på nytt om litt.", true); return; }
+      /* Ny konto fra «Bli medlem» i Min dag med samtykke: flytt navn og fødselsdato fra kontoens metadata til medlemsraden én gang. */
+      var md = me.user_metadata || {};
+      if(!r.data.consent_at && md.samtykke === true && (md.full_name || md.birth_date) && !load.flyttet){
+        load.flyttet = true;
+        var na = new Date().toISOString(), patch = {consent_at: na, updated_at: na};
+        if(md.full_name){ patch.full_name = String(md.full_name).slice(0, 200); }
+        if(/^\d{4}-\d{2}-\d{2}$/.test(md.birth_date || "")){ patch.birth_date = md.birth_date; }
+        sb.from("members").update(patch).eq("id", me.id).then(function(){ load(); });
+        return;
+      }
       var first = !row; row = r.data;
       renderLoggedIn();
       if(first && isOpen(row)){ restore(); }

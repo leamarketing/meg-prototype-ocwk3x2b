@@ -12,7 +12,7 @@
   if(saved === "se" || saved === "fkv"){ location.replace("/" + saved + "/" + location.hash); }
 })();
 </script>
-<script src="/lib/sprak.js?v=2026-11-22"></script>
+<script src="/lib/sprak.js?v=2026-11-22b"></script>
 <title>Min dag · me.voteapp.eu (prototype)</title>
 <meta name="description" content="Prototype av Min dag: dagsoversikt, planlegging, middag og handleliste, interesser og fellesskap koblet til saker i VoteApp. Eksempeldata, ingen ekte persondata.">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -55,6 +55,15 @@ p{margin:0}
 .sky .who{display:flex;flex-direction:column;gap:6px;min-width:0}
 .sky .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
 .sky .msg{font-size:17px;max-width:42ch;opacity:.95}
+.inn-knapper{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 2px}
+.inn-knapper button,.inn-knapper a{font:inherit;font-weight:700;font-size:15px;padding:10px 16px;border-radius:999px;cursor:pointer;text-decoration:none;display:inline-block}
+.inn-knapper .inn-hoved{background:#f2f7f6;color:#0b1d2b;border:1px solid #f2f7f6}
+.inn-knapper .inn-ny{background:transparent;color:#f2f7f6;border:1px solid rgba(242,247,246,.7)}
+.inn-knapper :focus-visible{outline:3px solid #f0a94a;outline-offset:2px}
+.gjest{margin:6px 0 0;max-width:460px}.gjest-tittel{margin:0 0 6px;font-weight:700;font-size:15px}
+.gjest-rad{display:flex;flex-wrap:wrap;gap:8px}.gjest-rad input{flex:1 1 120px;min-width:0;font:inherit;font-size:15px;padding:9px 12px;border-radius:10px;border:1px solid rgba(242,247,246,.6);background:rgba(255,255,255,.12);color:#f2f7f6}
+.gjest-rad input::placeholder{color:rgba(242,247,246,.75)}.gjest-rad button,.gjest-glem{font:inherit;font-weight:700;font-size:15px;padding:9px 14px;border-radius:999px;border:1px solid #f2f7f6;background:transparent;color:#f2f7f6;cursor:pointer}
+.gjest-liten{margin:6px 0 0;font-size:13px;opacity:.85}.gjest :focus-visible{outline:3px solid #f0a94a;outline-offset:2px}
 .sky .facts{display:grid;grid-template-columns:repeat(2,minmax(0,auto));gap:6px 18px;align-content:start;font-size:14px;background:rgba(5,15,22,.45);border-radius:12px;padding:12px 14px}
 .sky .facts span{opacity:.8}
 .sky .facts b{font-variant-numeric:tabular-nums}
@@ -593,11 +602,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script src="/lib/uka.js?v=2026-11-20b"></script>
 <!-- Relativ sti, så forhåndsvisningen på raw.githack også finner skriptet. -->
 <script src="lib/sang.js?v=2026-11-21k"></script>
-<script src="lib/ferdige-sanger.js?v=2026-11-22"></script>
+<script src="lib/ferdige-sanger.js?v=2026-11-22b"></script>
 <script src="/portal/hopp.js?v=2026-11-21b"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
-<script src="/lib/meg-konto.js?v=2026-11-21k"></script>
+<script src="/lib/meg-konto.js?v=2026-11-22b"></script>
+<script src="/lib/medlem-meny.js?v=2026-11-22b"></script>
 <script src="/lib/mybiz.js?v=2026-11-21"></script>
 <script>
 (function(){
@@ -610,20 +620,28 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   /* ---- Innlogget i Medlemsportalen? Da brukes navnet og fødselsdatoen derfra (lib/meg-konto.js). Ellers eksempelpersonen Kari. ---- */
   var PROF = (window.MegKonto && window.MegKonto.profil) || null;
-  var NAVN = (PROF && PROF.fornavn) || "Kari";
-  var EGEN = !!(PROF && PROF.aar && PROF.mnd && PROF.dag);
+  /* Første besøk uten konto: man kan skrive fornavn og fødselsdato rett i toppen og se sin egen dag med en gang (Geir 22.11.2026).
+     Det lagres bare i nettleseren på denne enheten («meg-gjest»), og «Bli medlem» fyller det inn. */
+  var GJEST = null;
+  if(!PROF){ try{ GJEST = JSON.parse(localStorage.getItem("meg-gjest") || "null"); }catch(e){ GJEST = null; } }
+  var EGENP = PROF || GJEST;
+  var NAVN = (EGENP && EGENP.fornavn) || "Kari";
+  var EGEN = !!(EGENP && EGENP.aar && EGENP.mnd && EGENP.dag);
+  var PROFX = PROF; PROF = EGENP; /* resten av siden bruker navn og fødselsdato herfra */
   /* Innlogget: planen, middagene, interessene og merkedagene starter tomme, så alt på siden er ditt eget. Eksempeldata bare uten innlogging. */
-  var INN = !!PROF;
+  var INN = !!PROFX;
   var FY = EGEN ? PROF.aar : 1968, FM = EGEN ? PROF.mnd : 3, FD = EGEN ? PROF.dag : 14;
   function p2(n){ return (n < 10 ? "0" : "") + n; }
   var FDATO = p2(FD) + "." + p2(FM) + "." + FY, EKS = EGEN ? "" : " (eksempel)";
-  if(PROF){
+  if(GJEST){
+    $("demo-text").textContent = "Navnet og fødselsdatoen er dine og ligger bare på denne enheten. Planen, middagene, sakene og gruppene er fortsatt eksempler. Bli medlem for å ta det med deg til alle enhetene dine.";
+  } else if(PROF){
     $("demo-text").textContent = "Du er logget inn" + (PROF.navn ? " som " + PROF.navn : "") + ". Navnet og fødselsdatoen dine hentes fra Medlemsportalen. Planen, middagene og interessene er dine egne. Sakene og gruppene er fortsatt eksempler.";
     var mk = $("merkedager"); if(mk){ mk.textContent = ""; mk.appendChild(el("li", {"class":"muted"}, "Ingen merkedager ennå. Legg inn store dager under Livet mitt.")); }
   } else {
-    $("demo-text").appendChild(document.createTextNode(" Logg inn i Medlemsportalen for å se din egen dag."));
+    $("demo-text").appendChild(document.createTextNode(" Logg inn eller bli medlem for å se din egen dag."));
   }
-  $("birth-note").textContent = EGEN ? "Fødselsdatoen " + FDATO + " er hentet fra kontoen din." : "Fødselsdato 14.03.1968 er eksempel.";
+  $("birth-note").textContent = EGEN ? (GJEST ? "Fødselsdatoen " + FDATO + " er den du skrev inn." : "Fødselsdatoen " + FDATO + " er hentet fra kontoen din.") : "Fødselsdato 14.03.1968 er eksempel.";
 
   /* ---- date and greeting ---- */
   var oslo = { timeZone:"Europe/Oslo" };
@@ -631,7 +649,48 @@ button:disabled{opacity:.5;cursor:not-allowed}
   var hour = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo)));
   /* Natt kl. 23 til 05: «God natt» (Geir 21.11.2026: ikke «God morgen» klokka tre om natta). */
   var NATT = hour >= 23 || hour < 5;
-  $("greeting").textContent = (NATT ? "God natt" : hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld") + ", " + NAVN;
+  var HILSEN = NATT ? "God natt" : hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld";
+  /* Ikke innlogget: ingen eksempelnavn i hilsenen, men «Logg inn» og «Bli medlem» (Geir 22.11.2026). Eksempeldataene under står merket som eksempel. */
+  $("greeting").textContent = PROF ? HILSEN + ", " + NAVN : HILSEN;
+  if(!PROFX){
+    /* Ingen konto: «Se din egen dag» med fornavn og fødselsdato, bare på enheten. Har man skrevet det inn, kan man bytte eller glemme det. */
+    var gs = el("form", {"class":"gjest", id:"gjest", novalidate:""});
+    if(!GJEST){
+      gs.appendChild(el("p", {"class":"gjest-tittel"}, "Se din egen dag"));
+      var gRad = el("div", {"class":"gjest-rad"});
+      var gNavn = el("input", {type:"text", autocomplete:"given-name", placeholder:"Fornavn", "aria-label":"Fornavn"});
+      var gDato = el("input", {type:"text", inputmode:"numeric", placeholder:"dd.mm.åååå", "aria-label":"Fødselsdato", autocomplete:"bday"});
+      var gKnapp = el("button", {type:"submit"}, "Vis min dag");
+      gRad.appendChild(gNavn); gRad.appendChild(gDato); gRad.appendChild(gKnapp); gs.appendChild(gRad);
+      var gMsg = el("p", {"class":"gjest-liten", role:"status", "aria-live":"polite"}, "Ligger bare på denne enheten. Ingenting sendes.");
+      gs.appendChild(gMsg);
+      gs.addEventListener("submit", function(e){
+        e.preventDefault();
+        var m = gDato.value.trim().match(/^(\d{1,2})[.\/\- ](\d{1,2})[.\/\- ](\d{4})$/), fn = gNavn.value.trim().split(/\s+/)[0] || "";
+        var ok = m && (function(){ var t = new Date(+m[3], +m[2] - 1, +m[1]); return t.getFullYear() === +m[3] && t.getMonth() === +m[2] - 1 && t.getDate() === +m[1] && t <= new Date() && +m[3] >= 1900; })();
+        if(!fn){ gMsg.textContent = "Skriv fornavnet ditt."; gNavn.focus(); return; }
+        if(!ok){ gMsg.textContent = "Skriv fødselsdatoen som dd.mm.åååå, for eksempel 14.03.1968."; gDato.focus(); return; }
+        try{ localStorage.setItem("meg-gjest", JSON.stringify({fornavn: fn.slice(0, 40), aar: +m[3], mnd: +m[2], dag: +m[1]})); }catch(x){}
+        location.reload();
+      });
+    } else {
+      var glem = el("button", {type:"button", "class":"gjest-glem"}, "Glem navnet og datoen");
+      glem.addEventListener("click", function(){ try{ localStorage.removeItem("meg-gjest"); }catch(x){} location.reload(); });
+      gs.appendChild(glem);
+    }
+    var inn = el("div", {"class":"inn-knapper", id:"inn-knapper"});
+    var bLogg = el("button", {type:"button", "class":"inn-hoved"}, "Logg inn"), bNy = el("button", {type:"button", "class":"inn-ny"}, "Bli medlem");
+    bLogg.addEventListener("click", function(){ if(window.MegInn){ window.MegInn.apne("inn"); } else { location.href = "/portal/"; } });
+    bNy.addEventListener("click", function(){ if(window.MegInn){ window.MegInn.apne("ny"); } else { location.href = "/portal/"; } });
+    inn.appendChild(bLogg); inn.appendChild(bNy);
+    var hvem = $("greeting").parentNode; hvem.insertBefore(inn, $("greeting").nextSibling); hvem.insertBefore(gs, inn.nextSibling);
+    /* Innlogget, men uten lagret navn og fødselsdato: vis veien dit i stedet for innloggingsknappene. */
+    document.addEventListener("megkonto-klar", function(){
+      if(window.MegKonto && window.MegKonto.bruker && !window.MegKonto.profil){
+        inn.textContent = ""; gs.remove(); var a = el("a", {href:"/portal/", "class":"inn-hoved"}, "Legg inn navn og fødselsdato"); inn.appendChild(a);
+      }
+    });
+  }
 
   /* ---- numerology: example birth date 14.03.1968 ---- */
   function reduceNum(n){ while(n > 9 && n !== 11 && n !== 22){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
