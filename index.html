@@ -12,7 +12,7 @@
   if(saved === "se" || saved === "fkv"){ location.replace("/" + saved + "/" + location.hash); }
 })();
 </script>
-<script src="/lib/sprak.js?v=2026-11-22b"></script>
+<script src="/lib/sprak.js?v=2026-11-22c"></script>
 <title>Min dag · me.voteapp.eu (prototype)</title>
 <meta name="description" content="Prototype av Min dag: dagsoversikt, planlegging, middag og handleliste, interesser og fellesskap koblet til saker i VoteApp. Eksempeldata, ingen ekte persondata.">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -600,7 +600,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script src="/lib/datotast.js?v=2026-11-21"></script>
 <script src="/lib/astronomy.browser.min.js?v=2026-11-20"></script>
 <script src="/lib/himmel.js?v=2026-11-20"></script>
-<script src="/lib/uka.js?v=2026-11-20b"></script>
+<script src="/lib/uka.js?v=2026-11-22"></script>
 <!-- Relativ sti, så forhåndsvisningen på raw.githack også finner skriptet. -->
 <script src="lib/sang.js?v=2026-11-21k"></script>
 <script src="lib/ferdige-sanger.js?v=2026-11-22b"></script>
@@ -645,7 +645,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
   $("birth-note").textContent = EGEN ? (GJEST ? "Fødselsdatoen " + FDATO + " er den du skrev inn." : "Fødselsdatoen " + FDATO + " er hentet fra kontoen din.") : "Fødselsdato 14.03.1968 er eksempel.";
 
   /* ---- date and greeting ---- */
-  var oslo = { timeZone:"Europe/Oslo" };
+  /* Klokkeslett vises i telefonens egen tid. I Norge er det norsk tid som før. */
+  var TZ_EGEN = "Europe/Oslo"; try{ TZ_EGEN = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Oslo"; }catch(e){}
+  var oslo = { timeZone:TZ_EGEN };
   $("today-label").textContent = now.toLocaleDateString("nb-NO", Object.assign({weekday:"long", day:"numeric", month:"long", year:"numeric"}, oslo));
   var hour = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo)));
   /* Natt kl. 23 til 05: «God natt» (Geir 21.11.2026: ikke «God morgen» klokka tre om natta). */
@@ -778,7 +780,36 @@ button:disabled{opacity:.5;cursor:not-allowed}
       else { localStorage.removeItem("meg-sted"); localStorage.removeItem("me_vaer_sted"); }
     }catch(e){}
   }
-  var MITT = hentSted() || {type:"by", navn:"Storslett", lat:69.768, lon:21.030};
+  /* Standardsted når man ikke har valgt selv: gjettes ut fra telefonens tidssone (Geir 22.11.2026). Ingen IP-adresse, ingenting sendes ut.
+     Står telefonen på norsk tid, er det Storslett som før. */
+  var TZSTED = {"Arctic/Longyearbyen":["Longyearbyen",78.223,15.647], "Europe/Stockholm":["Stockholm",59.329,18.069], "Europe/Copenhagen":["København",55.676,12.568],
+    "Europe/Helsinki":["Helsinki",60.170,24.938], "Atlantic/Reykjavik":["Reykjavík",64.147,-21.942], "Europe/London":["London",51.507,-0.128], "Europe/Dublin":["Dublin",53.349,-6.260],
+    "Europe/Berlin":["Berlin",52.520,13.405], "Europe/Amsterdam":["Amsterdam",52.370,4.895], "Europe/Paris":["Paris",48.857,2.352], "Europe/Madrid":["Madrid",40.417,-3.704],
+    "Europe/Lisbon":["Lisboa",38.722,-9.139], "Europe/Rome":["Roma",41.903,12.496], "Europe/Warsaw":["Warszawa",52.230,21.012],
+    "America/Maceio":["Maceió",-9.666,-35.735], "America/Recife":["Recife",-8.048,-34.877], "America/Fortaleza":["Fortaleza",-3.732,-38.527], "America/Bahia":["Salvador",-12.978,-38.501],
+    "America/Sao_Paulo":["São Paulo",-23.551,-46.633], "America/Argentina/Buenos_Aires":["Buenos Aires",-34.604,-58.382], "America/Mexico_City":["Ciudad de México",19.433,-99.133],
+    "America/New_York":["New York",40.713,-74.006], "America/Toronto":["Toronto",43.653,-79.383], "America/Chicago":["Chicago",41.878,-87.630], "America/Denver":["Denver",39.739,-104.990],
+    "America/Los_Angeles":["Los Angeles",34.052,-118.244], "Asia/Shanghai":["Beijing",39.904,116.407], "Asia/Hong_Kong":["Hong Kong",22.320,114.169], "Asia/Taipei":["Taipei",25.033,121.565],
+    "Asia/Tokyo":["Tokyo",35.676,139.650], "Asia/Singapore":["Singapore",1.352,103.820], "Australia/Sydney":["Sydney",-33.869,151.209], "Africa/Johannesburg":["Johannesburg",-26.204,28.047]};
+  var TZG = TZSTED[TZ_EGEN];
+  var STANDARD = TZG ? {type:"by", navn:TZG[0], lat:TZG[1], lon:TZG[2]} : {type:"by", navn:"Storslett", lat:69.768, lon:21.030};
+  var MITT = hentSted() || STANDARD;
+  var STEDKORT = MITT.type === "posisjon" ? "posisjonen din" : MITT.navn;
+  /* Oversettelsen kjenner tekstene med «Storslett» og «Norsk tid.». Andre steder og egen tid byttes inn etterpå (lib/sprak.js). */
+  window.MEG_BYTT = [];
+  if(STEDKORT !== "Storslett"){ window.MEG_BYTT.push([STEDKORT, "Storslett"]); }
+  if(MITT.lat < 0){ window.MEG_BYTT.push(["° S)", "° N)"]); }
+  if(TZ_EGEN !== "Europe/Oslo"){
+    window.MEG_BYTT.push(["Klokkeslettene vises i lokal tid.", "Klokkeslettene vises i norsk tid."], ["Lokal tid.", "Norsk tid."]); /* lengste først */
+    /* Teksten under «Stedet ditt» sier at klokkeslettene er norsk tid. Utenfor Norge stemmer ikke det. */
+    [].forEach.call(document.querySelectorAll("#view-personvern p"), function(p){ if(p.textContent.indexOf("Klokkeslettene vises i norsk tid.") !== -1){ p.textContent = p.textContent.replace("Klokkeslettene vises i norsk tid.", "Klokkeslettene vises i lokal tid."); } });
+  }
+  var TIDTEKST = TZ_EGEN === "Europe/Oslo" ? "Norsk tid." : "Lokal tid.";
+  if(STEDKORT !== "Storslett"){
+    var bredde = Math.abs(MITT.lat).toFixed(1).replace(".", ",") + "° " + (MITT.lat < 0 ? "S" : "N");
+    $("sunarc").setAttribute("aria-label", "Solas høyde over horisonten gjennom døgnet i " + STEDKORT);
+    var sa = [].filter.call(document.querySelectorAll("p"), function(p){ return p.textContent.indexOf("Solbanen og soltidene er beregnet for") === 0; })[0]; if(sa){ sa.textContent = "Solbanen og soltidene er beregnet for " + STEDKORT + " (" + bredde + ")."; }
+  }
   $("head-place").textContent = MITT.type === "posisjon" ? "Posisjonen din" : (MITT.navn === "Storslett" ? "Storslett, Nordreisa" : MITT.navn);
 
   /* ---- sun for the chosen place (default Storslett 69.77 N, 21.03 E): standard declination, equation of time and hour angle ---- */
@@ -825,7 +856,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   (function(){
     var altNow = SUN.alt(SUN.nowUtc);
     var mode = altNow > 0 ? "day" : altNow > -6 ? "twilight" : altNow > -12 ? "blue" : "night";
-    var names = {day:"Sola er oppe over Storslett nå", twilight:"Skumring over Storslett", blue:"Den blå timen over Storslett", night:"Natt over Storslett"};
+    var names = {day:"Sola er oppe over " + STEDKORT + " nå", twilight:"Skumring over " + STEDKORT, blue:"Den blå timen over " + STEDKORT, night:"Natt over " + STEDKORT};
     $("sky-phase").textContent = names[mode] + " · sola står " + Math.abs(altNow).toFixed(1).replace(".", ",") + "° " + (altNow >= 0 ? "over" : "under") + " horisonten";
     var skies = {
       day:      [["#4f86c2",0],["#9cc0e0",0.55],["#f4cfa0",1]],
@@ -1239,7 +1270,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   /* ---- Uka og måneden din (lib/uka.js) ----
      Strøm: alt beregnes én gang når det vises eller når bryteren byttes, og lagres i en liten mellomlagring.
      Ingen setInterval, ingen løkker i bakgrunnen, ingen automatisk avspilling. Stedet sendes aldri ut. */
-  var STD = {type:"by", navn:"Storslett", lat:69.768, lon:21.030};
+  var STD = STANDARD;
   function sted(){ return hentSted() || STD; }
   function komma(x, n){ return x.toFixed(n).replace(".", ","); }
   function stedNavn(s){ return s.type === "posisjon" ? "posisjonen din (" + komma(s.lat, 2) + "° N, " + komma(s.lon, 2) + "° Ø)" : s.navn; }
@@ -1266,7 +1297,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     box.textContent = "";
     if(!astro){ box.appendChild(el("p", {"class":"muted"}, "Uka kunne ikke regnes ut, fordi beregningsbiblioteket ikke ble lastet.")); return; }
     var s = sted(), fra = U.dagStart(now), til = U.plussDager(fra, 7), per = perDag(hendelserCache("uke", fra, til));
-    box.appendChild(el("p", {"class":"muted"}, "De neste sju dagene, sett fra " + stedNavn(s) + ". Norsk tid."));
+    box.appendChild(el("p", {"class":"muted"}, "De neste sju dagene, sett fra " + stedNavn(s) + ". " + TIDTEKST));
     var ul = el("ul", {"class":"daylist"});
     for(var i = 0; i < 7; i++){
       var dag = U.plussDager(fra, i), md = U.maaneDag(dag), li = el("li", i === 0 ? {"class":"today"} : null);
@@ -1288,7 +1319,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     if(!astro){ box.appendChild(el("p", {"class":"muted"}, "Måneden kunne ikke regnes ut, fordi beregningsbiblioteket ikke ble lastet.")); return; }
     var fra = U.maanedStart(now), til = U.nesteMaaned(now), p = U.deler(now);
     var liste = hendelserCache("mnd", fra, til), per = perDag(liste);
-    box.appendChild(el("p", {"class":"muted"}, "Hele " + U.MND[p.month - 1] + " " + p.year + ": månefaser, når månen bytter tegn, planeter som begynner eller slutter å gå baklengs, og vinkler til sola ved fødselen til " + NAVN + EKS + ". Norsk tid."));
+    box.appendChild(el("p", {"class":"muted"}, "Hele " + U.MND[p.month - 1] + " " + p.year + ": månefaser, når månen bytter tegn, planeter som begynner eller slutter å gå baklengs, og vinkler til sola ved fødselen til " + NAVN + EKS + ". " + TIDTEKST));
     var ul = el("ul", {"class":"daylist"}), idag = U.nokkel(now);
     Object.keys(per).sort().forEach(function(k){
       var hs = per[k], li = el("li", k === idag ? {"class":"today"} : null), t = U.datoTekst(hs[0].dato);
