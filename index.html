@@ -12,7 +12,7 @@
   if(saved === "se" || saved === "fkv"){ location.replace("/" + saved + "/" + location.hash); }
 })();
 </script>
-<script src="/lib/sprak.js?v=2026-11-22c"></script>
+<script src="/lib/sprak.js?v=2026-11-22j"></script>
 <title>Min dag · me.voteapp.eu (prototype)</title>
 <meta name="description" content="Prototype av Min dag: dagsoversikt, planlegging, middag og handleliste, interesser og fellesskap koblet til saker i VoteApp. Eksempeldata, ingen ekte persondata.">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -266,6 +266,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <div class="card-head"><h3>Hva betyr dagen i dag for meg?</h3><span class="tag hyp">Prototype</span></div>
         <ul class="meaning" id="meaning"></ul>
         <p class="muted">Svaret er satt sammen av det som står på denne siden: dagens himmel, merkedagene, planen og interessene dine (eksempelpersonen Kari når du ikke er logget inn). Ingen KI er brukt, ingenting sendes ut, og det gis ingen råd om helse.</p>
+      </article>
+      <article class="card wide" id="jul-card">
+        <div class="card-head"><h3><span aria-hidden="true">❄ </span>Lyskalenderen</h3><span class="tag fact">Gratis</span></div>
+        <p>24 dører fra 1. desember. Hver dør gir deg noe du kan gi til andre, og et felles nordlys vokser for hver stjerne som tennes.</p>
+        <p><a class="btn" href="/julekalender/" style="text-decoration:none;display:inline-block">Åpne julekalenderen</a></p>
       </article>
       <article class="card">
         <div class="card-head"><h3>Tallene dine</h3><span class="tag meta">Tradisjon</span></div>
@@ -608,7 +613,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
 <script src="/lib/meg-konto.js?v=2026-11-22b"></script>
-<script src="/lib/medlem-meny.js?v=2026-11-22b"></script>
+<script src="/lib/medlem-meny.js?v=2026-11-22j"></script>
 <script src="/lib/mybiz.js?v=2026-11-21"></script>
 <script>
 (function(){
