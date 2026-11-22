@@ -54,7 +54,7 @@ const MAILS: Mail[] = [
     pre: "Hva som skjer etterpå, i klartekst",
     body: [
       "Prøvetiden din i Min dag varer i to dager til. Jeg vil gjerne at du vet hva som skjer etterpå, så du ikke får noen overraskelser.",
-      "<ul style=\"margin:0 0 14px;padding-left:20px\"><li>Om to dager spør vi deg om du vil fortsette.</li><li>Svarer du ja, koster det 9 dollar i måneden. Du kan slutte når du vil.</li><li>Svarer du nei, trekker vi ingenting. Du har aldri lagt inn kort hos oss.</li><li>Saker og stemmer på voteapp.eu er gratis, og det skal de alltid være. Det du betaler for her, er bare Min dag.</li></ul>",
+      "<ul style=\"margin:0 0 14px;padding-left:20px\"><li>Om to dager spør vi deg om du vil fortsette.</li><li>Svarer du ja, koster det 9 euro i måneden. Du kan slutte når du vil.</li><li>Svarer du nei, trekker vi ingenting. Du har aldri lagt inn kort hos oss.</li><li>Saker og stemmer på voteapp.eu er gratis, og det skal de alltid være. Det du betaler for her, er bare Min dag.</li></ul>",
       "Vil du at vi sletter alt vi har lagret om deg, kan du gjøre det selv under «Min konto».",
     ],
     button: ["Gå til kontoen din", "/portal/#konto"] },
@@ -63,7 +63,7 @@ const MAILS: Mail[] = [
     pre: "Ett svar, og du velger helt selv",
     body: [
       "Nå har du hatt Min dag i en uke. Takk for at du prøvde.",
-      "Vil du fortsette, er prisen 9 dollar i måneden, og du kan slutte når du vil. Vil du ikke, er det helt i orden. Da skjer det ingenting mer.",
+      "Vil du fortsette, er prisen 9 euro i måneden, og du kan slutte når du vil. Vil du ikke, er det helt i orden. Da skjer det ingenting mer.",
       "Du svarer inne på kontoen din:",
     ],
     button: ["Svar på kontoen min", "/portal/#konto"],
