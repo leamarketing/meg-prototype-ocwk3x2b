@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lyskalenderen 2026</title>
+<meta name="description" content="En julekalender der hver dør gir deg noe å gi. 24 små gjerninger for andre, og et felles nordlys som vokser. Gratis i Min dag.">
+<style>
+:root{
+  --bg:#0d1824; --sky1:#0d1824; --sky2:#132a3a; --card:#16283a; --ink:#f2efe8; --muted:#b9c4cf;
+  --line:#2a4256; --gold:#f2c76b; --red:#d9584a; --green:#5fd1a4; --door:#1e3a52; --door-open:#2c5672; --focus:#f2c76b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0d1824; --card:#16283a; --ink:#f2efe8; --muted:#b9c4cf; --line:#2a4256; }
+}
+:root[data-theme="dark"]{ --bg:#0d1824; --card:#16283a; --ink:#f2efe8; --muted:#b9c4cf; --line:#2a4256; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--gold)}
+main{max-width:900px;margin:0 auto;padding:0 16px 64px}
+.himmel{position:relative;overflow:hidden;border-radius:0 0 24px 24px;padding:40px 20px 28px;margin:0 -16px 24px;
+  background:linear-gradient(180deg,var(--sky1),var(--sky2))}
+.nordlys{position:absolute;left:-10%;right:-10%;top:-20%;height:var(--lys,30%);pointer-events:none;opacity:var(--styrke,.35);
+  background:radial-gradient(60% 80% at 30% 100%,rgba(95,209,164,.55),transparent 70%),radial-gradient(50% 70% at 70% 100%,rgba(130,120,230,.4),transparent 70%);
+  filter:blur(18px);transition:height 1.2s ease,opacity 1.2s ease}
+.stjerner{position:absolute;inset:0;pointer-events:none}
+.stjerner i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.85}
+.himmel > *:not(.nordlys):not(.stjerner){position:relative}
+.girlander{font-size:1.4rem;letter-spacing:.4em;color:var(--gold);margin:0 0 6px;text-align:center}
+h1{font-size:2.2rem;line-height:1.15;margin:4px 0 8px;text-align:center}
+.lead{max-width:60ch;margin:0 auto;text-align:center;color:var(--muted)}
+.teller{margin:18px auto 0;text-align:center;font-weight:700}
+.teller strong{color:var(--green);font-size:1.6rem}
+.merke{display:inline-block;background:var(--red);color:#fff;font-weight:700;font-size:.8rem;padding:3px 10px;border-radius:999px}
+.forhand{background:#5a3b12;color:#ffe3ad;border-radius:10px;padding:10px 14px;margin:0 0 16px;font-size:.95rem}
+.dorer{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin:12px 0 28px}
+.dor{aspect-ratio:1/1;border-radius:12px;border:2px solid var(--line);background:var(--door);color:var(--ink);font:700 1.6rem/1 Georgia,serif;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative}
+.dor small{font:600 .7rem/1.2 system-ui,sans-serif;color:var(--muted)}
+.dor[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.dor.idag{border-color:var(--gold);box-shadow:0 0 0 3px rgba(242,199,107,.25)}
+.dor.apnet{background:var(--door-open)}
+.dor.gjort::after{content:"★";position:absolute;top:6px;right:8px;font-size:1rem;color:var(--gold)}
+button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0}
+.card h2{margin:0 0 8px;font-size:1.25rem}
+.small{font-size:.9rem;color:var(--muted)}
+dialog{max-width:560px;width:calc(100% - 32px);border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);padding:22px}
+dialog::backdrop{background:rgba(5,10,16,.7)}
+dialog h2{margin:0 0 4px;font-family:Georgia,serif}
+.valg{display:grid;gap:10px;margin:16px 0 8px}
+.valg button,.knapp{font:inherit;text-align:left;background:var(--door);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
+.valg button:hover{border-color:var(--gold)}
+.valg b{display:block;color:var(--gold);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+.lukk{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer}
+.hoved{background:var(--gold);color:#1b1b1b;border:0;border-radius:10px;padding:12px 18px;font:700 1rem system-ui,sans-serif;cursor:pointer}
+.takk{color:var(--green);font-weight:700}
+label{display:block;margin:12px 0 4px;font-weight:600}
+select,textarea{width:100%;font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px}
+.sjekk{display:flex;gap:10px;align-items:flex-start;font-weight:400}
+.sjekk input{margin-top:5px;width:20px;height:20px}
+.feil{color:#ffb4a8}
+footer{color:var(--muted);font-size:.85rem;margin-top:32px}
+@media (prefers-reduced-motion: reduce){.nordlys{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<header class="himmel" id="himmel">
+  <div class="nordlys" id="nordlys" aria-hidden="true"></div>
+  <div class="stjerner" id="stjerner" aria-hidden="true"></div>
+  <p class="girlander" aria-hidden="true">❄ ✦ ❄ ✦ ❄</p>
+  <p style="text-align:center;margin:0"><span class="merke">Gratis i Min dag</span></p>
+  <h1>Lyskalenderen</h1>
+  <p class="lead">Hver dør gir deg noe du kan gi. Gjør du det, eller bare tenker på noen, tenner du en stjerne i nordlyset vårt. Alt teller like mye.</p>
+  <p class="teller" aria-live="polite"><strong id="antall">…</strong> stjerner tent så langt</p>
+</header>
+
+<p class="forhand" id="forhandTekst" hidden>Forhåndsvisning: alle dører er åpne for å teste. Den ekte kalenderen åpner én dør om dagen fra 1. desember.</p>
+<p id="nedtelling" class="small" hidden></p>
+
+<section aria-labelledby="h-dorer">
+  <h2 id="h-dorer" style="font-size:1.2rem">Dørene</h2>
+  <div class="dorer" id="dorer"></div>
+</section>
+
+<section class="card" aria-labelledby="h-onske">
+  <h2 id="h-onske">Hva ønsker du deg denne julen?</h2>
+  <p class="small">Helt frivillig og uten navn. Julenissen og hjelperne samler ønskene for å forstå hva folk i ulike aldre trenger. Svarene brukes bare som samlet statistikk.</p>
+  <form id="onskeskjema" novalidate>
+    <label for="alder">Alderen din</label>
+    <select id="alder" required>
+      <option value="">Velg alder</option>
+      <option value="1-6">1 til 6 år (fylles ut av mamma eller pappa)</option>
+      <option value="7-14">7 til 14 år</option>
+      <option value="15-17">15 til 17 år</option>
+      <option value="18-25">18 til 25 år</option>
+      <option value="26-39">26 til 39 år</option>
+      <option value="40-59">40 til 59 år</option>
+      <option value="60-120">60 år og eldre</option>
+    </select>
+    <p class="small" id="barnTekst" hidden>Er du under 13 år, fyll ut sammen med en voksen.</p>
+    <label for="forMeg">Hva ønsker du deg mest? Noe man ikke kan kjøpe teller også.</label>
+    <textarea id="forMeg" rows="2" maxlength="500"></textarea>
+    <label for="forAndre">Hva ønsker du for noen andre?</label>
+    <textarea id="forAndre" rows="2" maxlength="500"></textarea>
+    <label class="sjekk"><input type="checkbox" id="samtykke"> <span>Jeg samtykker til at ønsket lagres uten navn og brukes i samlet statistikk for Min dag og VoteApp. Ikke skriv navn eller annet som viser hvem du er.</span></label>
+    <p class="feil" id="onskeFeil" role="alert" hidden></p>
+    <p><button type="submit" class="hoved">Send ønsket</button></p>
+    <p class="takk" id="onskeTakk" role="status" hidden>Takk! Ønsket ditt er sendt til Julenissen.</p>
+  </form>
+</section>
+
+<section class="card" aria-labelledby="h-snakke">
+  <h2 id="h-snakke">Trenger du noen å snakke med?</h2>
+  <p>Samtaler med Julenissen og hjelperne kommer senere, når de er testet trygt. Trenger du noen nå, finnes det mennesker som svarer:</p>
+  <ul>
+    <li>Mental Helse hjelpetelefon: <a href="tel:116123">116 123</a> (døgnåpen)</li>
+    <li>Kors på halsen, Røde Kors, for deg under 18: <a href="tel:80033321">800 33 321</a></li>
+    <li>Ved fare for liv: <a href="tel:113">113</a></li>
+  </ul>
+</section>
+
+<footer>
+  <p>Lyskalenderen er laget av Min dag (me.voteapp.eu). Stjernene telles uten navn, og hva du har åpnet huskes bare på denne enheten. Ingen sporing og ingen reklame.</p>
+  <p><a href="/">Tilbake til Min dag</a></p>
+</footer>
+</main>
+
+<dialog id="dorvindu" aria-labelledby="dorTittel">
+  <p class="small" id="dorDato"></p>
+  <h2 id="dorTittel"></h2>
+  <p id="dorFortelling"></p>
+  <div id="dorValg">
+    <p><strong>Dagens lille ting. Velg det som passer for deg i dag:</strong></p>
+    <div class="valg">
+      <button type="button" data-storrelse="liten"><b>Liten</b><span id="dorLiten"></span></button>
+      <button type="button" data-storrelse="middels"><b>Litt større</b><span id="dorMiddels"></span></button>
+      <button type="button" data-storrelse="tanke"><b>I dag orket jeg dette</b>Jeg tenkte på noen jeg er glad i.</button>
+    </div>
+    <p class="small">Trykk når du har gjort det, eller når du har bestemt deg. Alle tre tenner én stjerne.</p>
+  </div>
+  <p class="takk" id="dorTakk" role="status" hidden></p>
+  <p><button type="button" class="lukk" id="dorLukk">Lukk</button></p>
+</dialog>
+
+<script src="/portal/supabase-public.js?v=2026-11-22"></script>
+<script src="dorer.js?v=2026-11-22"></script>
+<script src="lyskalender.js?v=2026-11-22"></script>
+</body>
+</html>
