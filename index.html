@@ -60,6 +60,7 @@ p{margin:0}
 .inn-knapper .inn-hoved{background:#f2f7f6;color:#0b1d2b;border:1px solid #f2f7f6}
 .inn-knapper .inn-ny{background:transparent;color:#f2f7f6;border:1px solid rgba(242,247,246,.7)}
 .inn-knapper :focus-visible{outline:3px solid #f0a94a;outline-offset:2px}
+.eks-merke{align-self:flex-start;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:#f0a94a;color:#1a1206}
 .gjest{margin:6px 0 0;max-width:460px}.gjest-tittel{margin:0 0 6px;font-weight:700;font-size:15px}
 .gjest-rad{display:flex;flex-wrap:wrap;gap:8px}.gjest-rad input{flex:1 1 120px;min-width:0;font:inherit;font-size:15px;padding:9px 12px;border-radius:10px;border:1px solid rgba(242,247,246,.6);background:rgba(255,255,255,.12);color:#f2f7f6}
 .gjest-rad input::placeholder{color:rgba(242,247,246,.75)}.gjest-rad button,.gjest-glem{font:inherit;font-weight:700;font-size:15px;padding:9px 14px;border-radius:999px;border:1px solid #f2f7f6;background:transparent;color:#f2f7f6;cursor:pointer}
@@ -652,6 +653,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
   var HILSEN = NATT ? "God natt" : hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld";
   /* Ikke innlogget: ingen eksempelnavn i hilsenen, men «Logg inn» og «Bli medlem» (Geir 22.11.2026). Eksempeldataene under står merket som eksempel. */
   $("greeting").textContent = PROF ? HILSEN + ", " + NAVN : HILSEN;
+  /* Plakaten viser eksempeldata til man har logget inn eller skrevet inn sitt eget navn og fødselsdato: da står det «Eksempel» på den (Geir 22.11.2026). */
+  if(!EGEN){
+    var merke = el("span", {"class":"eks-merke"}, "Eksempel");
+    $("today-label").parentNode.insertBefore(merke, $("today-label"));
+  }
   if(!PROFX){
     /* Ingen konto: «Se din egen dag» med fornavn og fødselsdato, bare på enheten. Har man skrevet det inn, kan man bytte eller glemme det. */
     var gs = el("form", {"class":"gjest", id:"gjest", novalidate:""});
