@@ -593,7 +593,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script src="/lib/uka.js?v=2026-11-20b"></script>
 <!-- Relativ sti, så forhåndsvisningen på raw.githack også finner skriptet. -->
 <script src="lib/sang.js?v=2026-11-21k"></script>
-<script src="lib/ferdige-sanger.js?v=2026-11-21c"></script>
+<script src="lib/ferdige-sanger.js?v=2026-11-22"></script>
 <script src="/portal/hopp.js?v=2026-11-21b"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
@@ -629,7 +629,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
   var oslo = { timeZone:"Europe/Oslo" };
   $("today-label").textContent = now.toLocaleDateString("nb-NO", Object.assign({weekday:"long", day:"numeric", month:"long", year:"numeric"}, oslo));
   var hour = Number(now.toLocaleString("en-GB", Object.assign({hour:"2-digit", hour12:false}, oslo)));
-  $("greeting").textContent = (hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld") + ", " + NAVN;
+  /* Natt kl. 23 til 05: «God natt» (Geir 21.11.2026: ikke «God morgen» klokka tre om natta). */
+  var NATT = hour >= 23 || hour < 5;
+  $("greeting").textContent = (NATT ? "God natt" : hour < 10 ? "God morgen" : hour < 17 ? "God dag" : "God kveld") + ", " + NAVN;
 
   /* ---- numerology: example birth date 14.03.1968 ---- */
   function reduceNum(n){ while(n > 9 && n !== 11 && n !== 22){ n = String(n).split("").reduce(function(a,b){ return a + Number(b); }, 0); } return n; }
@@ -651,7 +653,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     if(tall){ rad("Personlig dag", tall.dag); rad("Personlig måned", tall.maaned); rad("Personlig år", tall.aar); $("pday-calc").textContent = tall.regel; }
     else { ul.appendChild(el("li", null, "Personlig dag " + pDay + ", måned " + pMonth + ", år " + pYear + ".")); $("pday-calc").textContent = "Regel: alle sifrene legges sammen og regnes ned til ett siffer. 11 og 22 beholdes."; }
   })();
-  $("day-msg").textContent = "Dagens tall er " + pDay + ". " + (meanings[pDay] || "");
+  $("day-msg").textContent = NATT ? "Nå er det tid for å hvile. Dagen har gjort sitt, og i morgen kommer en ny." : "Dagens tall er " + pDay + ". " + (meanings[pDay] || "");
 
   /* ---- Dagens himmel: Astronomy Engine via lib/himmel.js. Reserve uten biblioteket: enkel månesyklus. ---- */
   var syn = 29.530588853, H = window.Himmel || null, sky = null, age, illum, phase, waxing;
