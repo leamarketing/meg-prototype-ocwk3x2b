@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Testpanelet i Min dag</title>
+<meta name="description" content="For testpanelet: gratis tilgang i en uke, gå gjennom modulen og si hva du mener.">
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--ink:#1d2430;--muted:#5a6372;--line:#e3e1da;--accent:#1f5f8b;--ok:#2e7d4f;--warn:#a33a3a;--chip:#eef3f7}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1a2029;--ink:#e8ebef;--muted:#a3acb9;--line:#2c3440;--accent:#6fb3e0;--ok:#6cc792;--warn:#e58a8a;--chip:#222b36}}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1a2029;--ink:#e8ebef;--muted:#a3acb9;--line:#2c3440;--accent:#6fb3e0;--ok:#6cc792;--warn:#e58a8a;--chip:#222b36}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 6px}h2{font-size:1.25rem;margin:0 0 8px}
+.lead,.muted{color:var(--muted)}.lead{margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+button{font:inherit;font-weight:700;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:11px 18px;cursor:pointer}
+button[disabled]{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+input[type=text]{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:inherit;width:100%;max-width:320px}
+.sjekk{list-style:none;padding:0;margin:8px 0}.sjekk li{padding:8px 0;border-top:1px solid var(--line)}.sjekk li:first-child{border-top:0}
+.sjekk label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}.sjekk input{width:22px;height:22px;flex:none;margin-top:2px}
+.sporsmal{margin:14px 0}.sporsmal label{display:block;font-weight:700;margin-bottom:6px}
+textarea{font:inherit;width:100%;min-height:110px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:inherit;resize:vertical}
+.teller{font-size:.88rem;color:var(--muted);margin-top:4px}.teller.ok{color:var(--ok);font-weight:700}
+.msg{min-height:1.3em}.msg.err{color:var(--warn)}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 10px;font-size:.85rem;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+<span class="chip">Testpanelet</span>
+<h1>Takk for at du tester Min dag</h1>
+<p class="lead">Du får gratis tilgang i en uke. Bruk de første tre dagene til å gå gjennom modulen, og fortell oss hva du mener. Vi trenger ekte svar, så hvert svar må ha mer enn 15 ord.</p>
+<div id="innhold"><p class="muted">Henter …</p></div>
+<p class="msg" id="msg" role="status" aria-live="polite"></p>
+<p class="muted" style="font-size:.88rem">Svarene dine brukes bare til å gjøre Min dag bedre. De ligger i EU, deles ikke med andre og kobles aldri til stemmesvar på voteapp.eu. Du kan slette kontoen og alt du har sendt i <a href="/portal/">Medlemsportalen</a>.</p>
+</main>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script defer src="/portal/supabase-public.js"></script>
+<script defer src="/lib/medlem-meny.js?v=2026-11-22j"></script>
+<script defer src="test.js?v=2026-11-23"></script>
+</body>
+</html>
