@@ -50,12 +50,25 @@
     var used = Math.floor((Date.now() - new Date(r.trial_started_at).getTime()) / 86400000);
     return Math.max(0, TRIAL_DAYS - used);
   }
-  function isOpen(r){ return r.status !== "ended" && !(r.status === "trial" && daysLeft(r) === 0); }
+  /* Testpanel: gratis tilgang til access_until. Livsvarig: alltid åpen. */
+  function testDaysLeft(r){ return r.access_until ? Math.max(0, Math.ceil((new Date(r.access_until).getTime() - Date.now()) / 86400000)) : 0; }
+  function isOpen(r){
+    if(r.status === "lifetime"){ return true; }
+    if(r.status === "testpanel"){ return testDaysLeft(r) > 0; }
+    return r.status !== "ended" && !(r.status === "trial" && daysLeft(r) === 0);
+  }
 
   function renderLoggedIn(){
     var left = daysLeft(row), st = row.status, html = "";
     html += "<p>Logget inn som <b>" + esc(me.email) + "</b></p>";
-    if(st === "trial" && left > 0){
+    if(st === "lifetime"){
+      html += "<div class=\"trial\"><b>Livsvarig medlem.</b> Du har tilgang til alle moduler, for alltid.</div>";
+    } else if(st === "testpanel" && testDaysLeft(row) > 0){
+      var tl = testDaysLeft(row);
+      html += "<div class=\"trial\"><b>Testpanel:</b> gratis tilgang i " + tl + (tl === 1 ? " dag" : " dager") + " til. <a href=\"/test/\">Gå til testsiden</a></div>";
+    } else if(st === "testpanel"){
+      html += "<div class=\"trial\"><b>Testperioden er over.</b> Takk for at du testet! Vil du fortsette, er prisen " + PRICE + ". <button type=\"button\" class=\"linkbtn\" id=\"ans-yes\">Jeg vil fortsette</button></div>";
+    } else if(st === "trial" && left > 0){
       html += "<div class=\"trial\"><b>Gratis prøvetid:</b> " + left + (left === 1 ? " dag" : " dager") + " igjen.</div>";
     } else if(st === "trial"){
       html += "<div class=\"ask\" role=\"region\" aria-labelledby=\"ask-h\"><h3 id=\"ask-h\">Prøvetiden din er over</h3>";
@@ -72,6 +85,9 @@
     } else if(st === "ended"){
       html += "<div class=\"trial\">Du har valgt å ikke fortsette. Har du ombestemt deg? <button type=\"button\" class=\"linkbtn\" id=\"ans-yes\">Jeg vil likevel fortsette</button></div>";
     }
+    /* Kom fra en testpanel-invitasjon (lenken i e-posten åpner portalen): vis veien tilbake til testsiden. */
+    var tkode = ""; try { tkode = localStorage.getItem("testpanel_kode") || ""; } catch(e){}
+    if(tkode && st !== "testpanel"){ html += "<div class=\"trial\"><b>Du er invitert til testpanelet.</b> <a href=\"/test/\">Fortsett til testsiden</a></div>"; }
     html += "<div class=\"pw-box\"><h3>Passord</h3><p class=\"muted\">Med passord logger du inn med e-post og passord, også på mobilen, uten å åpne e-posten. Minst 8 tegn.</p>";
     html += "<form id=\"pw-form\" autocomplete=\"on\"><input type=\"email\" name=\"email\" autocomplete=\"username\" value=\"" + esc(me.email) + "\" hidden>";
     html += "<label>Nytt passord<input id=\"pw1\" type=\"password\" autocomplete=\"new-password\" minlength=\"8\" required></label>";
