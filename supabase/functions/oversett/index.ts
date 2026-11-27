@@ -8,7 +8,8 @@
 const ALLOWED = new Set(["https://test.voteapp.eu", "https://me.voteapp.eu"]);
 const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 const VOICE = "8nJ10CPkJR5Xmiws0Ihe"; // Lyses egen stemme
-const MODELS = ["gemini-flash-latest", "gemini-2.5-flash"];
+// Lite-modellene svarer på ca. 1 sekund (målt 27.11.2026); gemini-flash-latest brukte over 60 sekunder.
+const MODELS = ["gemini-flash-lite-latest", "gemini-3.5-flash-lite"];
 const MAX_CHARS = 500;
 const MAX_PER_DAY = 300;
 
