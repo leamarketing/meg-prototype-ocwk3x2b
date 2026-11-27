@@ -156,4 +156,7 @@
   }
   tegnDorer();
   hentAntall();
+  /* Lenken «Åpne dør N» fra forsiden åpner den døra med en gang, hvis den er åpnet for i dag */
+  var lenke = /^#dor-(\d{1,2})$/.exec(location.hash);
+  if (lenke && +lenke[1] >= 1 && +lenke[1] <= apenDag()) apneDor(+lenke[1]);
 })();
