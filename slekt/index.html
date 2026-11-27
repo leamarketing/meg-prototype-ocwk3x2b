@@ -105,7 +105,7 @@ td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-
 <p class="small"><a href="/portal/">Til Min dag</a></p>
 <h1>Slektsgransking</h1>
 <p class="lead"><strong>Se hvordan du vet det.</strong> Hver strek i treet viser hvilken kilde som bærer den, og familien kan se, diskutere og forbedre grunnlaget sammen.</p>
-<p class="eks" role="note"><strong>Utkast med eksempeldata, 21.11.2026.</strong> Alle personer, kilder, avskrifter og stemmer på denne siden er oppdiktet for å vise hvordan modulen kan virke. Lenkene går bare til forsiden hos kildene, ikke til ekte oppslag. Ingenting du gjør her lagres eller sendes noe sted.</p>
+<p class="eks" role="note"><strong>Utkast i test, 27.11.2026.</strong> Velg mellom to trær øverst. <strong>Eksempeltreet</strong> er oppdiktet for å vise hvordan modulen virker: personer, kilder, avskrifter og stemmer er ikke ekte. <strong>Mitt eget tre</strong> er ditt: du legger inn familien din med kilder, og alt blir liggende bare i nettleseren på denne enheten. Ingenting sendes til oss.</p>
 
 <section class="card" aria-labelledby="h-tre" id="tre-kort">
   <h2 id="h-tre">Treet ditt</h2>
@@ -119,6 +119,11 @@ td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-
   <div id="detaljInnhold"></div>
 </section>
 
+<section class="card" aria-labelledby="h-skjema" id="skjema-kort" hidden tabindex="-1">
+  <h2 id="h-skjema">Legg til</h2>
+  <div id="skjemaInnhold"></div>
+</section>
+
 <section class="card" aria-labelledby="h-mots" id="motsigelser-kort">
   <h2 id="h-mots">Motsigelser i treet</h2>
   <p class="small">Treet sjekkes av seg selv for ting som ikke kan stemme, for eksempel barn født før forelderen eller årstall som ikke stemmer med kilden. Vil du la en motsigelse stå, må du skrive hvorfor, så andre i familien ser det.</p>
@@ -126,12 +131,14 @@ td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-
 </section>
 
 <section class="card" aria-labelledby="h-imp" id="import-kort">
-  <h2 id="h-imp">Hent inn et tre fra Geni, MyHeritage eller et slektsprogram</h2>
-  <p>Ta ut en GEDCOM-fil (det vanlige filformatet for slektstrær) der du har treet ditt i dag, og velg den her. Fila leses bare i nettleseren din.</p>
+  <h2 id="h-imp">Hent inn eller ta ut treet (GEDCOM)</h2>
+  <p>GEDCOM er det vanlige filformatet for slektstrær. Ta ut en fil der du har treet ditt i dag, for eksempel på Geni eller MyHeritage, og velg den her. Fila leses bare i nettleseren din. Bytt til «Mitt eget tre» øverst for å legge personene inn i ditt tre.</p>
   <div class="knapper">
     <label class="lys" style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--chip);cursor:pointer;min-height:44px">Velg GEDCOM-fil <input type="file" id="gedFil" accept=".ged,.gedcom,text/plain" style="max-width:190px"></label>
     <button type="button" id="gedEks" class="lys">Prøv med eksempelfil</button>
+    <button type="button" id="lastNed" class="lys">Ta ut treet som GEDCOM-fil</button>
   </div>
+  <p class="small">Fila du tar ut, har med alle personene, koblingene og kildene, også levende personer. Den er din, og du bestemmer hvem som får den.</p>
   <div id="importUt" aria-live="polite"></div>
 </section>
 
@@ -171,7 +178,7 @@ td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-
   </details>
   <details>
     <summary>Hva som ikke er bygget ennå</summary>
-    <p>Lagring, innlogget familiegruppe, invitasjoner, ekte søk i Digitalarkivet og andre kilder, ekte KI-lesing, eksport til GEDCOM og sletteknappen. Pris er ikke satt. Adressen for modulen er ikke valgt.</p>
+    <p>Lagring på kontoen din, så treet følger deg til mobil og PC. Familiegruppe med invitasjoner og roller. Ekte samtykke for levende personer og «Dette er meg, fjern meg». Ekte KI-lesing av kirkebøker. Diskusjon og rådgivende stemme i ditt eget tre. Før noe av dette lagres hos oss, må personvernet gjennomgås (personvernerklæring og vurdering av personvernkonsekvenser). Pris er ikke satt. Adressen for modulen er ikke valgt.</p>
   </details>
 </section>
 </main>
@@ -180,7 +187,7 @@ td,th{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script defer src="/portal/supabase-public.js"></script>
 <script src="/lib/meg-konto.js?v=2026-11-21k"></script>
-<script src="slekt.js?v=2026-11-21a"></script>
+<script src="slekt.js?v=2026-11-27a"></script>
 <script src="/portal/hopp.js?v=2026-11-21b"></script>
 </body>
 </html>
