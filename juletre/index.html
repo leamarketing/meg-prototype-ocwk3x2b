@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pynt juletreet</title>
+<meta name="description" content="Pynt ditt eget juletre i Min dag. Trykk på pynten for å henge den på treet, og dra den dit du vil. Treet huskes på enheten din.">
+<style>
+:root{--bg:#0d1824;--card:#16283a;--ink:#f2efe8;--muted:#b9c4cf;--line:#2a4256;--gold:#f2c76b;--focus:#f2c76b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1824;--card:#16283a;--ink:#f2efe8}}
+:root[data-theme="dark"]{--bg:#0d1824;--card:#16283a;--ink:#f2efe8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:48px 16px 80px}
+h1{font-size:2rem;line-height:1.15;margin:0 0 6px;text-align:center}
+.lead{color:var(--muted);text-align:center;max-width:52ch;margin:0 auto 18px}
+.scene{position:relative;width:100%;max-width:420px;margin:0 auto;aspect-ratio:300/380;touch-action:none;user-select:none}
+.scene svg.tre{position:absolute;inset:0;width:100%;height:100%}
+.pynt{position:absolute;transform:translate(-50%,-50%);cursor:grab;border:0;padding:0;background:none;touch-action:none}
+.pynt:active{cursor:grabbing}
+.kule,.lys{display:block}
+.kule{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8,transparent 45%),var(--f);box-shadow:0 2px 4px rgba(0,0,0,.4)}
+.lys{width:10px;height:14px;border-radius:50% 50% 45% 45%;background:#5b5236;transition:background .4s,box-shadow .4s}
+.tent .lys{background:#ffd98a;box-shadow:0 0 12px 4px rgba(255,217,138,.75)}
+.pynt img{display:block;pointer-events:none}
+.palett{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:18px 0 10px}
+.palett button{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px}
+.palett button:hover{border-color:var(--gold)}
+.palett .kule,.palett .lys{position:static;transform:none}
+.knapper{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:8px 0}
+.knapper button{font:700 .95rem system-ui,sans-serif;border-radius:10px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.knapper .hoved{background:var(--gold);color:#1b1b1b;border:0}
+button:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.small{font-size:.88rem;color:var(--muted);text-align:center}
+a{color:var(--gold)}
+footer{color:var(--muted);font-size:.85rem;text-align:center;margin-top:28px}
+</style>
+</head>
+<body>
+<main>
+<h1>Pynt juletreet</h1>
+<p class="lead">Trykk på pynten under, så henger den seg på treet. Dra den dit du vil ha den. Treet ditt huskes på denne enheten til i morgen.</p>
+
+<div class="scene" id="scene" aria-label="Juletreet ditt">
+  <svg class="tre" viewBox="0 0 300 380" aria-hidden="true">
+    <rect x="132" y="300" width="36" height="46" rx="4" fill="#6b4a2f"/>
+    <polygon points="150,30 50,150 250,150" fill="#1f7a55"/>
+    <polygon points="150,90 36,225 264,225" fill="#1b6e4c"/>
+    <polygon points="150,160 22,305 278,305" fill="#186343"/>
+    <ellipse cx="150" cy="352" rx="120" ry="12" fill="#f4f7fb" opacity=".9"/>
+  </svg>
+</div>
+
+<div class="palett" id="palett">
+  <button type="button" data-t="kule-r"><span class="kule" style="--f:#c2493c"></span>Rød kule</button>
+  <button type="button" data-t="kule-g"><span class="kule" style="--f:#e0b04a"></span>Gullkule</button>
+  <button type="button" data-t="kule-b"><span class="kule" style="--f:#5a8fd8"></span>Blå kule</button>
+  <button type="button" data-t="lys"><span class="lys" style="background:#ffd98a"></span>Lys</button>
+  <button type="button" data-t="stjerne"><img src="/lib/jul/stjerne.svg?v=1" width="28" height="28" alt="">Stjerne</button>
+  <button type="button" data-t="bjelle"><img src="/lib/jul/bjelle.svg?v=1" width="28" height="28" alt="">Bjelle</button>
+  <button type="button" data-t="pepperkake"><img src="/lib/jul/pepperkake.svg?v=1" width="28" height="28" alt="">Pepperkake</button>
+  <button type="button" data-t="gave"><img src="/lib/jul/gave.svg?v=1" width="28" height="28" alt="">Gave under treet</button>
+</div>
+<div class="knapper">
+  <button type="button" class="hoved" id="tenn">Tenn lysene</button>
+  <button type="button" id="angre">Ta bort siste</button>
+  <button type="button" id="tom">Tøm treet</button>
+</div>
+<p class="small" role="status" aria-live="polite" id="status"></p>
+
+<footer>
+  <p><a href="/">Tilbake til Min dag</a> · <a href="/julekalender/">Lyskalenderen</a></p>
+  <p>Treet lagres bare på denne enheten. Ingenting sendes.</p>
+</footer>
+</main>
+<script>
+(function(){
+  "use strict";
+  var scene = document.getElementById("scene"), status = document.getElementById("status");
+  var NOKKEL = "meg-juletre", pynt = [];
+  try{ pynt = JSON.parse(localStorage.getItem(NOKKEL) || "[]"); if(!Array.isArray(pynt)){ pynt = []; } }catch(e){ pynt = []; }
+  var tent = false; try{ tent = localStorage.getItem(NOKKEL + "-tent") === "1"; }catch(e){}
+  function lagre(){ try{ localStorage.setItem(NOKKEL, JSON.stringify(pynt.slice(-120))); }catch(e){} }
+
+  var FIG = {stjerne: 34, bjelle: 30, pepperkake: 32, gave: 46};
+  var KULE = {"kule-r": "#c2493c", "kule-g": "#e0b04a", "kule-b": "#5a8fd8"};
+  var NAVN = {"kule-r": "Rød kule", "kule-g": "Gullkule", "kule-b": "Blå kule", lys: "Lys", stjerne: "Stjerne", bjelle: "Bjelle", pepperkake: "Pepperkake", gave: "Gave"};
+
+  /* Et tilfeldig sted inne i treet (de tre trekantene), regnet i prosent av bildet */
+  var TREKANTER = [[150,30,50,150,250,150],[150,90,36,225,264,225],[150,160,22,305,278,305]];
+  function tilfeldigPlass(t){
+    if(t === "stjerne" && !pynt.some(function(p){ return p.t === "stjerne"; })){ return {x: 50, y: 8}; }
+    if(t === "gave"){ return {x: 18 + Math.random() * 64, y: 89 + Math.random() * 3}; }
+    var k = TREKANTER[Math.floor(Math.random() * 3)], a = Math.random(), b = Math.random();
+    if(a + b > 1){ a = 1 - a; b = 1 - b; }
+    var x = k[0] + a * (k[2] - k[0]) + b * (k[4] - k[0]), y = k[1] + a * (k[3] - k[1]) + b * (k[5] - k[1]);
+    return {x: x / 300 * 100, y: Math.min(y + 8, 300) / 380 * 100};
+  }
+
+  function lagEl(p, i){
+    var b = document.createElement("button"); b.type = "button"; b.className = "pynt"; b.dataset.i = i;
+    b.style.left = p.x + "%"; b.style.top = p.y + "%";
+    b.setAttribute("aria-label", (NAVN[p.t] || "Pynt") + ". Dra for å flytte.");
+    if(KULE[p.t]){ b.innerHTML = '<span class="kule" style="--f:' + KULE[p.t] + '"></span>'; }
+    else if(p.t === "lys"){ b.innerHTML = '<span class="lys"></span>'; }
+    else if(FIG[p.t]){ b.innerHTML = '<img src="/lib/jul/' + p.t + '.svg?v=1" width="' + FIG[p.t] + '" height="' + FIG[p.t] + '" alt="">'; }
+    return b;
+  }
+  function tegn(){
+    scene.querySelectorAll(".pynt").forEach(function(e){ e.remove(); });
+    pynt.forEach(function(p, i){ scene.appendChild(lagEl(p, i)); });
+    scene.classList.toggle("tent", tent);
+    document.getElementById("tenn").textContent = tent ? "Slukk lysene" : "Tenn lysene";
+  }
+
+  document.getElementById("palett").addEventListener("click", function(e){
+    var k = e.target.closest("button[data-t]"); if(!k){ return; }
+    var t = k.dataset.t, plass = tilfeldigPlass(t);
+    pynt.push({t: t, x: +plass.x.toFixed(1), y: +plass.y.toFixed(1)}); lagre(); tegn();
+    status.textContent = (NAVN[t] || "Pynt") + " er hengt på treet.";
+  });
+
+  /* Dra pynten dit du vil (mus og finger) */
+  var dra = null;
+  scene.addEventListener("pointerdown", function(e){
+    var b = e.target.closest(".pynt"); if(!b){ return; }
+    dra = {b: b, i: +b.dataset.i}; b.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  scene.addEventListener("pointermove", function(e){
+    if(!dra){ return; }
+    var r = scene.getBoundingClientRect();
+    var x = Math.max(2, Math.min(98, (e.clientX - r.left) / r.width * 100));
+    var y = Math.max(2, Math.min(98, (e.clientY - r.top) / r.height * 100));
+    dra.b.style.left = x + "%"; dra.b.style.top = y + "%";
+    pynt[dra.i].x = +x.toFixed(1); pynt[dra.i].y = +y.toFixed(1);
+  });
+  function slipp(){ if(dra){ lagre(); dra = null; } }
+  scene.addEventListener("pointerup", slipp); scene.addEventListener("pointercancel", slipp);
+
+  /* Piltaster flytter pynt som har fokus */
+  scene.addEventListener("keydown", function(e){
+    var b = e.target.closest(".pynt"); if(!b){ return; }
+    var p = pynt[+b.dataset.i], d = {ArrowLeft: [-2,0], ArrowRight: [2,0], ArrowUp: [0,-2], ArrowDown: [0,2]}[e.key];
+    if(!d){ return; } e.preventDefault();
+    p.x = Math.max(2, Math.min(98, p.x + d[0])); p.y = Math.max(2, Math.min(98, p.y + d[1]));
+    b.style.left = p.x + "%"; b.style.top = p.y + "%"; lagre();
+  });
+
+  document.getElementById("tenn").addEventListener("click", function(){
+    tent = !tent; try{ localStorage.setItem(NOKKEL + "-tent", tent ? "1" : "0"); }catch(e){}
+    tegn(); status.textContent = tent ? "Lysene er tent." : "Lysene er slukket.";
+  });
+  document.getElementById("angre").addEventListener("click", function(){
+    if(!pynt.length){ return; } pynt.pop(); lagre(); tegn(); status.textContent = "Den siste pynten er tatt bort.";
+  });
+  document.getElementById("tom").addEventListener("click", function(){
+    if(!pynt.length || !confirm("Vil du ta bort all pynten fra treet?")){ return; }
+    pynt = []; lagre(); tegn(); status.textContent = "Treet er tomt og klart for ny pynt.";
+  });
+  tegn();
+})();
+</script>
+<script src="/lib/jul.js?v=2026-11-28b" defer></script>
+</body>
+</html>
