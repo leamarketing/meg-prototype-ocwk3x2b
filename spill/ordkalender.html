@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ordkalenderen: 24 juleord</title>
+<meta name="description" content="Én luke om dagen fra 1. desember: bokstavene i et juleord er stokket, og du skal finne ordet. Gratis, for alene eller hele familien.">
+<link rel="stylesheet" href="jul.css?v=2026-11-28">
+<style>
+.luker{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin:12px 0}
+.luke{min-height:64px;padding:6px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.luke small{font-weight:400;font-size:.72rem;color:var(--muted)}
+.luke.lost{background:var(--green-soft);border-color:var(--green)}
+.luke.valgt{outline:3px solid var(--accent);outline-offset:1px}
+.luke[disabled]{opacity:.45}
+</style>
+</head>
+<body>
+<main>
+<a class="tilbake" href="./">Tilbake til Spill for familie og venner</a>
+<span class="merke">Julespill, gratis</span>
+<h1>Ordkalenderen</h1>
+<p class="lead">Én luke om dagen fra 1. desember. Bokstavene i et juleord er stokket. Finn ordet. Ordene blir lengre jo nærmere jul det blir.</p>
+
+<section class="card" aria-labelledby="h-luke">
+<h2 id="h-luke">Luke <span id="lukeNr">1</span></h2>
+<p class="small" id="lukeInfo"></p>
+<div class="stort" id="stokket" aria-label="Stokkede bokstaver"></div>
+<label for="svar">Ditt svar</label>
+<input type="text" id="svar" autocomplete="off" autocapitalize="characters" spellcheck="false">
+<div class="rad">
+<button type="button" id="sjekk">Sjekk</button>
+<button type="button" class="stille" id="hint">Vis første bokstav</button>
+<button type="button" class="stille" id="stokk">Stokk på nytt</button>
+</div>
+<p id="tilbakemelding" role="status" aria-live="polite"></p>
+</section>
+
+<section class="card" aria-labelledby="h-alle">
+<h2 id="h-alle">Alle lukene</h2>
+<p class="small" id="poeng"></p>
+<div class="luker" id="luker"></div>
+<div class="rad"><button type="button" class="stille" id="del">Del med familien</button></div>
+<p class="small" id="delSvar" role="status" aria-live="polite"></p>
+<p class="small">Det du løser blir husket bare på denne telefonen eller PC-en. Ingenting sendes noe sted.</p>
+</section>
+
+<section class="card">
+<h2>Spill det sammen</h2>
+<p>Familier som bor spredt kan løse dagens luke hver for seg og sende hverandre antall løste luker. Har dere en ordstafett på gang, må dagens setning ha med dagens ord.</p>
+</section>
+</main>
+<script>
+(function(){
+  // Ordene er lagret baklengs så fasiten ikke synes rett i kildekoden.
+  var ORD=['ESSIN','SNARK','EBBIR','LEGNE','RETTOV','EKLEJK','PPATSI','ENREJTS','SYLDRON','ERTNARG','NNAMØNS','TROKELUJ','RYDSNIER','NIRADNAM','TØRGELUJ','EVAGELUJ','NAPISRAM','GGUNFØNS','GNASELUJ','TTAKESSUL','DLEVKELUJ','EKAKREPPEP','SYLSTNEVDA','EKKOLKEKRIK'];
+  var STOKKET=['ESNIS','NKASR','ERBBI','NGELE','RTTOEV','KJKLEE','AIPTSP','ETESJNR','ODLSNYR','GAENRTR','NMSNØNA','RKJETUOL','NRDEYISR','IMDANNRA','GRTJELUØ','VJEEGULA','NIARSAMP','UNGFØGSN','JASLUEGN','ASUTLKTSE','JLUKLEVDE','EPKEKAPPER','NYSATDLSVE','KKLERIKOEKK'];
+  function fasit(i){return ORD[i].split('').reverse().join('');}
+  var $=function(id){return document.getElementById(id);};
+  var NOKKEL='jul-ordkalender-'+new Date().getFullYear();
+  var lost={};
+  try{lost=JSON.parse(localStorage.getItem(NOKKEL)||'{}')||{};}catch(e){lost={};}
+  function lagre(){try{localStorage.setItem(NOKKEL,JSON.stringify(lost));}catch(e){}}
+
+  // Hvor mange luker er åpne i dag? 1. til 24. desember: én per dag. Fra 25. desember og i januar: alle.
+  var alleApne=/[?&]alle=1\b/.test(location.search);
+  function apneLuker(d){
+    if(alleApne)return 24;
+    var m=d.getMonth(),dag=d.getDate();
+    if(m===11)return Math.min(dag,24);
+    if(m===0)return 24;
+    return 0;
+  }
+  var idag=new Date(),apne=apneLuker(idag);
+  var valgt=apne>0?Math.max(0,apne-1):0;
+  var smakebit=apne===0;
+  var hintVist=false,visning='';
+
+  function stokk(ord){
+    var l=ord.split(''),s=ord;
+    for(var forsok=0;forsok<20&&s===ord;forsok++){
+      for(var i=l.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=l[i];l[i]=l[j];l[j]=t;}
+      s=l.join('');
+    }
+    return s;
+  }
+  // Godtar o for ø, ae for æ og aa for å, så tastatur uten norske bokstaver også virker.
+  function norm(s){return String(s||'').toUpperCase().replace(/\s+/g,'').replace(/Æ/g,'AE').replace(/Ø/g,'O').replace(/Å|AA/g,'A');}
+
+  function visLuke(){
+    hintVist=false;
+    $('svar').value='';$('tilbakemelding').textContent='';$('tilbakemelding').className='';
+    if(smakebit){
+      $('lukeNr').textContent='0, smakebit';
+      $('lukeInfo').textContent='Kalenderen åpner 1. desember. Her er en smakebit så du ser hvordan den virker.';
+      visning='LUJ';
+    }else{
+      $('lukeNr').textContent=valgt+1;
+      $('lukeInfo').textContent=(valgt+1)+'. desember. '+fasit(valgt).length+' bokstaver.'+(lost[valgt]?' Denne har du løst.':'');
+      visning=STOKKET[valgt];
+    }
+    $('stokket').textContent=visning;
+    tegnLuker();
+  }
+  function riktig(){return smakebit?'JUL':fasit(valgt);}
+
+  function tegnLuker(){
+    var ut=$('luker');ut.innerHTML='';var antall=0;
+    for(var i=0;i<24;i++){
+      if(lost[i])antall++;
+      var b=document.createElement('button');
+      b.type='button';b.className='luke'+(lost[i]?' lost':'')+(!smakebit&&i===valgt?' valgt':'');
+      b.innerHTML=(i+1)+'<small>'+(lost[i]?'løst':(i<apne?'åpen':'des'))+'</small>';
+      b.setAttribute('aria-label','Luke '+(i+1)+(lost[i]?', løst':(i<apne?', åpen':', åpner '+(i+1)+'. desember')));
+      if(i>=apne){b.disabled=true;}
+      (function(n){b.addEventListener('click',function(){smakebit=false;valgt=n;visLuke();$('svar').focus();});})(i);
+      ut.appendChild(b);
+    }
+    $('poeng').textContent=apne===0?'Ingen luker er åpne ennå. Første luke åpner 1. desember.':'Du har løst '+antall+' av '+apne+' åpne luker.';
+    return antall;
+  }
+
+  $('sjekk').addEventListener('click',function(){
+    var s=norm($('svar').value),f=riktig(),tm=$('tilbakemelding');
+    if(!s){tm.className='feil';tm.textContent='Skriv et ord først.';return;}
+    if(s===norm(f)){
+      tm.className='ok';tm.textContent='Riktig! Ordet er '+f.toLowerCase()+'.';
+      if(!smakebit){lost[valgt]=true;lagre();tegnLuker();$('lukeInfo').textContent=(valgt+1)+'. desember. Denne har du løst.';}
+    }else if(s.length!==norm(f).length){
+      tm.className='feil';tm.textContent='Ikke helt. Ordet har '+f.length+' bokstaver.';
+    }else{
+      tm.className='feil';tm.textContent='Ikke helt. Prøv igjen, eller trykk «Vis første bokstav».';
+    }
+  });
+  $('svar').addEventListener('keydown',function(e){if(e.key==='Enter')$('sjekk').click();});
+  $('hint').addEventListener('click',function(){
+    var f=riktig();hintVist=true;
+    $('tilbakemelding').className='';$('tilbakemelding').textContent='Ordet begynner på '+f.charAt(0)+'.';
+  });
+  $('stokk').addEventListener('click',function(){visning=stokk(visning);$('stokket').textContent=visning;});
+
+  $('del').addEventListener('click',function(){
+    var antall=0;for(var k in lost)if(lost[k])antall++;
+    var tekst='Ordkalenderen i Min dag: jeg har løst '+antall+' av '+apne+' luker. Klarer du flere?';
+    var url=location.origin+location.pathname;
+    if(navigator.share){navigator.share({title:'Ordkalenderen',text:tekst,url:url}).catch(function(){});}
+    else if(navigator.clipboard){navigator.clipboard.writeText(tekst+' '+url).then(function(){$('delSvar').textContent='Teksten er kopiert. Lim den inn i familiens meldingsgruppe.';},function(){$('delSvar').textContent=tekst+' '+url;});}
+    else{$('delSvar').textContent=tekst+' '+url;}
+  });
+
+  visLuke();
+})();
+</script>
+</body>
+</html>

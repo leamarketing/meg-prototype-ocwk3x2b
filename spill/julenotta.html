@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Julenøtta: tre ord, ett svar</title>
+<meta name="description" content="Tre ord peker på et fjerde. Gjett juleordet. Et gratis ordspill for hele familien, også på videosamtale.">
+<link rel="stylesheet" href="jul.css?v=2026-11-28">
+<style>
+.hint{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.hint span{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;font-size:1.1rem}
+.svaret{font-size:1.6rem;font-weight:800;color:var(--green);margin:6px 0}
+</style>
+</head>
+<body>
+<main>
+<a class="tilbake" href="./">Tilbake til Spill for familie og venner</a>
+<span class="merke">Julespill, gratis</span>
+<h1>Julenøtta</h1>
+<p class="lead">Tre ord peker på et fjerde. Én leser opp ordene, de andre gjetter. Virker like godt rundt bordet som på videosamtale med besteforeldre.</p>
+
+<section class="card" aria-labelledby="h-notta">
+<h2 id="h-notta">Nøtt <span id="nr">1</span> av <span id="tot"></span></h2>
+<div class="hint" id="hint" aria-live="polite"></div>
+<label for="gjett">Gjett ordet (kan hoppes over)</label>
+<input type="text" id="gjett" autocomplete="off" spellcheck="false">
+<div class="rad">
+<button type="button" id="sjekk">Sjekk</button>
+<button type="button" class="stille" id="vis">Vis svaret</button>
+<button type="button" class="stille" id="neste">Neste nøtt</button>
+</div>
+<p id="tilbake" role="status" aria-live="polite"></p>
+<p class="svaret" id="svaret" hidden></p>
+</section>
+
+<section class="card">
+<h2>Lag deres egne nøtter</h2>
+<p>Den som gjetter riktig, lager neste nøtt selv: tenk på et ord, og finn tre ord som peker på det. Jo bedre de tre ordene er, jo morsommere blir det. Eksempel: <em>grønt, himmel, Nordreisa</em>.</p>
+</section>
+</main>
+<script>
+(function(){
+  // [tre ord, svar, andre godkjente svar]
+  var N=[
+    [['rød','lue','skjegg'],'nisse',['julenisse','fjøsnisse']],
+    [['grønn','kule','stjerne'],'juletre',['tre','grantre']],
+    [['kald','gulrot','knapper'],'snømann',[]],
+    [['grønt','himmel','dans'],'nordlys',[]],
+    [['ingefær','figur','glasur'],'pepperkake',['pepperkaker']],
+    [['gevir','slede','Rudolf'],'reinsdyr',['rein']],
+    [['bakke','fart','snø'],'kjelke',['akebrett','aking']],
+    [['svor','sprø','julemiddag'],'ribbe',[]],
+    [['ris','mandel','smørøye'],'julegrøt',['grøt','risgrøt']],
+    [['grøt','marsipangris','vinner'],'mandel',[]],
+    [['safran','gul','Lucia'],'lussekatt',['lussekatter','lussebolle']],
+    [['fire','søndag','tenne'],'adventslys',['adventsstake','advent']],
+    [['tak','dryppe','spiss'],'istapp',[]],
+    [['tommel','strikket','varme'],'votter',['vott','vante','vanter']],
+    [['hvitt','seks armer','smelter'],'snøfnugg',['snøkrystall']],
+    [['frimerke','hilsen','postkasse'],'julekort',['kort']],
+    [['ringe','tårn','julaften'],'kirkeklokke',['kirkeklokker','klokke']],
+    [['vinger','himmel','harpe'],'engel',[]],
+    [['mandler','gris','søtt'],'marsipan',[]],
+    [['skole','fri','romjul'],'juleferie',[]],
+    [['nøtt','soldat','ballett'],'nøtteknekker',[]],
+    [['ved','flammer','varme'],'peis',['bål','ovn','vedovn']],
+    [['rakett','tolv','ønsker'],'nyttårsaften',['nyttår','fyrverkeri']],
+    [['spor','staver','smøring'],'skiløype',['løype','ski']],
+    [['papir','bånd','overraskelse'],'gave',['julegave','pakke']],
+    [['sju slag','boks','bakst'],'småkaker',['julekaker','kaker']],
+    [['lut','torsk','bacon'],'lutefisk',[]],
+    [['sang','hender','rundt treet'],'gang rundt juletreet',['julegang','juletregang']],
+    [['strømpe','peis','godteri'],'julestrømpe',[]],
+    [['krans','dør','grønn'],'julekrans',['krans']]
+  ];
+  var $=function(id){return document.getElementById(id);};
+  // Ny rekkefølge hver gang siden åpnes.
+  var rek=N.map(function(_,k){return k;});
+  for(var a=rek.length-1;a>0;a--){var b=Math.floor(Math.random()*(a+1));var t=rek[a];rek[a]=rek[b];rek[b]=t;}
+  var pos=0;
+  $('tot').textContent=N.length;
+  function norm(s){return String(s||'').toLowerCase().trim().replace(/\s+/g,' ').replace(/æ/g,'ae').replace(/ø/g,'o').replace(/å|aa/g,'a');}
+  function vis(){
+    var n=N[rek[pos]];
+    $('nr').textContent=pos+1;
+    $('hint').innerHTML='';
+    n[0].forEach(function(o){var s=document.createElement('span');s.textContent=o;$('hint').appendChild(s);});
+    $('gjett').value='';$('tilbake').textContent='';$('tilbake').className='';
+    $('svaret').hidden=true;
+  }
+  function visSvar(){var n=N[rek[pos]];$('svaret').textContent=n[1];$('svaret').hidden=false;}
+  $('sjekk').addEventListener('click',function(){
+    var n=N[rek[pos]],g=norm($('gjett').value),tm=$('tilbake');
+    if(!g){tm.className='feil';tm.textContent='Skriv en gjetning først, eller trykk «Vis svaret».';return;}
+    var ok=[n[1]].concat(n[2]).some(function(x){return norm(x)===g;});
+    if(ok){tm.className='ok';tm.textContent='Riktig!';visSvar();}
+    else{tm.className='feil';tm.textContent='Ikke det vi tenkte på. Prøv igjen.';}
+  });
+  $('gjett').addEventListener('keydown',function(e){if(e.key==='Enter')$('sjekk').click();});
+  $('vis').addEventListener('click',visSvar);
+  $('neste').addEventListener('click',function(){pos=(pos+1)%N.length;vis();$('gjett').focus();});
+  vis();
+})();
+</script>
+</body>
+</html>

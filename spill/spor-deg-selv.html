@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spør deg selv i jula</title>
+<meta name="description" content="Ett spørsmål om dagen i desember til deg selv. Skriv svaret ditt, det blir bare lagret på din egen telefon.">
+<link rel="stylesheet" href="jul.css?v=2026-11-28">
+<style>
+.sporsmal{font-size:1.35rem;line-height:1.4;font-weight:700;margin:6px 0 4px}
+.svarliste{list-style:none;padding:0;margin:0}
+.svarliste li{border-top:1px solid var(--line);padding:10px 0}
+.svarliste b{display:block}
+.svarliste p{margin:4px 0 0;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<main>
+<a class="tilbake" href="./">Tilbake til Spill for familie og venner</a>
+<span class="merke">Julespill, gratis</span>
+<h1>Spør deg selv i jula</h1>
+<p class="lead">Ett spørsmål om dagen fra 1. til 24. desember. Tenk, skriv, eller ta det med til middagsbordet.</p>
+
+<section class="card" aria-labelledby="h-dagens">
+<p class="small" id="dagInfo"></p>
+<h2 id="h-dagens" class="sporsmal"></h2>
+<label for="svar">Ditt svar, bare for deg</label>
+<textarea id="svar"></textarea>
+<div class="rad">
+<button type="button" id="lagre">Lagre svaret</button>
+<button type="button" class="stille" id="forrige">Forrige spørsmål</button>
+<button type="button" class="stille" id="neste">Neste spørsmål</button>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+<p class="small">Svaret ditt lagres bare på denne telefonen eller PC-en. Det sendes ikke til oss eller noen andre, og det kobles ikke til noe du stemmer på.</p>
+</section>
+
+<section class="card" aria-labelledby="h-mine">
+<h2 id="h-mine">Mine svar</h2>
+<ul class="svarliste" id="mine"></ul>
+<p class="small" id="ingen">Du har ikke lagret noen svar ennå.</p>
+<div class="rad"><button type="button" class="stille" id="slett">Slett alle svarene mine</button></div>
+</section>
+</main>
+<script>
+(function(){
+  var S=[
+    'Hva gledet du deg mest over i desember da du var barn?',
+    'Hvilken lukt minner deg mest om jul?',
+    'Hva er det fineste du gjorde for et annet menneske i år?',
+    'Hva lærte du om deg selv i år?',
+    'Hvem vil du takke, og har du sagt det til dem?',
+    'Hva vil du ta med deg inn i det nye året, og hva vil du legge igjen?',
+    'Når kjente du deg mest som deg selv i år?',
+    'Hvilken liten ting gjør en vanlig dag god for deg?',
+    'Hvilken juletradisjon betyr mest for deg, og hvorfor?',
+    'Hva ville du sagt til deg selv for ti år siden?',
+    'Hva er du stolt av, som ingen andre vet om?',
+    'Hvilken sang får deg til å stoppe opp?',
+    'Hva ønsker du deg som ikke kan kjøpes?',
+    'Hvem har du mistet kontakten med, og har du lyst til å ta den opp igjen?',
+    'Hva gjør deg rolig når det blir mye?',
+    'Hva var årets beste samtale?',
+    'Hva er du nysgjerrig på nå?',
+    'Hvor på jorda kjenner du deg mest hjemme?',
+    'Hva har du tilgitt i år, deg selv eller andre?',
+    'Hva vil du gjøre mer av neste år?',
+    'Når lo du sist så mye at du måtte tørke tårene?',
+    'Hva betyr lyset for deg i mørketida?',
+    'Hva vil du at folk skal huske om deg?',
+    'Hva er du takknemlig for i kveld?'
+  ];
+  var $=function(id){return document.getElementById(id);};
+  var NOKKEL='jul-spor-deg-selv';
+  var svar={};
+  try{svar=JSON.parse(localStorage.getItem(NOKKEL)||'{}')||{};}catch(e){svar={};}
+  var kanLagre=true;
+  try{localStorage.setItem(NOKKEL+'-test','1');localStorage.removeItem(NOKKEL+'-test');}catch(e){kanLagre=false;}
+
+  // Dagens spørsmål: i desember spørsmålet for datoen. Før desember og etter jul: spørsmål 1 og 24.
+  var d=new Date(),m=d.getMonth(),dag=d.getDate();
+  var i=m===11?Math.min(dag,24)-1:(m===0?23:0);
+  var dagens=i;
+
+  function vis(){
+    $('h-dagens').textContent=S[i];
+    var tekst='Spørsmål '+(i+1)+' av 24';
+    if(i===dagens&&m===11&&dag<=24)tekst+=', dagens spørsmål ('+dag+'. desember)';
+    else if(i===dagens&&m!==11&&m!==0)tekst+='. Spørsmålene følger datoene fra 1. desember.';
+    $('dagInfo').textContent=tekst;
+    $('svar').value=svar[i]||'';
+    $('forrige').disabled=i===0;$('neste').disabled=i===23;
+    $('status').textContent=kanLagre?'':'Denne nettleseren lar oss ikke lagre. Svaret forsvinner når du lukker siden.';
+  }
+  function tegnMine(){
+    var ul=$('mine');ul.innerHTML='';var n=0;
+    for(var k=0;k<24;k++){
+      if(!svar[k])continue;n++;
+      var li=document.createElement('li'),b=document.createElement('b'),p=document.createElement('p');
+      b.textContent=(k+1)+'. '+S[k];p.textContent=svar[k];
+      li.appendChild(b);li.appendChild(p);ul.appendChild(li);
+    }
+    $('ingen').hidden=n>0;$('slett').disabled=n===0;
+  }
+  $('lagre').addEventListener('click',function(){
+    var t=$('svar').value.trim();
+    if(t)svar[i]=t;else delete svar[i];
+    try{localStorage.setItem(NOKKEL,JSON.stringify(svar));$('status').textContent=t?'Lagret på denne enheten.':'Svaret er fjernet.';}
+    catch(e){$('status').textContent='Kunne ikke lagre i denne nettleseren.';}
+    tegnMine();
+  });
+  $('forrige').addEventListener('click',function(){if(i>0){i--;vis();}});
+  $('neste').addEventListener('click',function(){if(i<23){i++;vis();}});
+  $('slett').addEventListener('click',function(){
+    if(!confirm('Vil du slette alle svarene dine? Det kan ikke angres.'))return;
+    svar={};try{localStorage.removeItem(NOKKEL);}catch(e){}
+    $('svar').value='';$('status').textContent='Alle svarene er slettet.';tegnMine();
+  });
+  vis();tegnMine();
+})();
+</script>
+</body>
+</html>

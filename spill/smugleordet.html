@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smugleordet: julemiddagens hemmelige ord</title>
+<meta name="description" content="Alle får et hemmelig ord som skal smugles inn i praten under julemiddagen. Gratis selskapsspill for hele familien.">
+<link rel="stylesheet" href="jul.css?v=2026-11-28">
+<style>
+.hemmelig{font-size:2.2rem;font-weight:800;color:var(--accent);text-align:center;margin:14px 0;min-height:3rem}
+.tavle{width:100%;border-collapse:collapse}
+.tavle td{padding:8px 4px;border-top:1px solid var(--line);vertical-align:middle}
+.tavle td.p{font-size:1.3rem;font-weight:800;text-align:center;width:3rem}
+.tavle button{padding:8px 12px;min-height:40px}
+ol li{margin:4px 0}
+</style>
+</head>
+<body>
+<main>
+<a class="tilbake" href="./">Tilbake til Spill for familie og venner</a>
+<span class="merke">Julespill, gratis</span>
+<h1>Smugleordet</h1>
+<p class="lead">Før maten trekker alle et hemmelig ord. I løpet av middagen skal du få sagt ordet ditt helt naturlig, uten at noen merker det.</p>
+
+<section class="card" aria-labelledby="h-regler">
+<h2 id="h-regler">Slik spiller dere</h2>
+<ol>
+<li>Alle trekker sitt hemmelige ord, på egen mobil eller på én mobil som sendes rundt.</li>
+<li>Prat som vanlig. Tror du noen nettopp smuglet inn ordet sitt, sier du «smugleord!».</li>
+<li>Har du rett, får du 1 poeng. Tar du feil, får den du mistenkte 1 poeng.</li>
+<li>Kommer ordet ditt fram uten å bli avslørt, får du 2 poeng når desserten kommer på bordet.</li>
+</ol>
+<p class="small">Passer fra 6 år. Små barn kan få hjelp av en voksen på laget sitt.</p>
+</section>
+
+<section class="card" aria-labelledby="h-trekk">
+<h2 id="h-trekk">Trekk ditt hemmelige ord</h2>
+<p class="small" id="hvem">Trykk når ingen andre ser på skjermen.</p>
+<div class="hemmelig" id="ordet" aria-live="polite"></div>
+<div class="rad">
+<button type="button" id="trekk">Trekk et ord</button>
+<button type="button" class="stille" id="skjul" disabled>Skjul ordet</button>
+</div>
+<p class="small">Én mobil for alle? Trekk ordet, husk det, trykk «Skjul ordet» og send mobilen videre. Samme ord kommer ikke to ganger før alle ordene er brukt.</p>
+</section>
+
+<section class="card" aria-labelledby="h-poeng">
+<h2 id="h-poeng">Poengtavle</h2>
+<label for="nyttNavn">Legg til spiller</label>
+<div class="rad" style="margin-top:4px">
+<input type="text" id="nyttNavn" autocomplete="off" style="flex:1;min-width:160px">
+<button type="button" id="leggTil">Legg til</button>
+</div>
+<table class="tavle"><tbody id="tavle"></tbody></table>
+<div class="rad"><button type="button" class="stille" id="nullstill">Ny runde</button></div>
+<p class="small">Navn og poeng blir bare på denne enheten og forsvinner når fanen lukkes.</p>
+</section>
+</main>
+<script>
+(function(){
+  var ORD=['pingvin','traktor','sykkel','bestemor','banan','fotball','sjørøver','regnbue','dinosaur','telefon','sommerferie','gravemaskin','laks','måne','rakett','paraply',
+    'elefant','sauna','badeball','trampoline','sjokolade','tannlege','fly','Brasil','vaffel','hockey','bibliotek','sandstrand','tog','kamel','gitar','sokker',
+    'ballong','robot','lommelykt','tomat','snorkel','fyrtårn','pizza','kenguru','helikopter','popcorn','høygaffel','ubåt','pannekake','trollmann','marihøne','teleskop'];
+  var $=function(id){return document.getElementById(id);};
+  var pose=[];
+  function trekkOrd(){
+    if(!pose.length){pose=ORD.slice();for(var i=pose.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pose[i];pose[i]=pose[j];pose[j]=t;}}
+    return pose.pop();
+  }
+  $('trekk').addEventListener('click',function(){
+    $('ordet').textContent=trekkOrd();$('skjul').disabled=false;$('trekk').disabled=true;$('skjul').focus();
+  });
+  $('skjul').addEventListener('click',function(){
+    $('ordet').textContent='';$('skjul').disabled=true;$('trekk').disabled=false;
+    $('hvem').textContent='Ordet er skjult. Neste person kan trekke.';
+  });
+
+  // Poengtavle i sessionStorage: blir borte når fanen lukkes.
+  var NOKKEL='jul-smugleord-poeng',sp=[];
+  try{sp=JSON.parse(sessionStorage.getItem(NOKKEL)||'[]')||[];}catch(e){sp=[];}
+  function lagre(){try{sessionStorage.setItem(NOKKEL,JSON.stringify(sp));}catch(e){}}
+  function knapp(tekst,etikett,fn){var b=document.createElement('button');b.type='button';b.className='stille';b.textContent=tekst;b.setAttribute('aria-label',etikett);b.addEventListener('click',fn);return b;}
+  function tegn(){
+    var tb=$('tavle');tb.innerHTML='';
+    sp.forEach(function(s,k){
+      var tr=document.createElement('tr'),n=document.createElement('td'),p=document.createElement('td'),k2=document.createElement('td');
+      n.textContent=s.navn;p.className='p';p.textContent=s.p;
+      k2.appendChild(knapp('+1','Gi '+s.navn+' ett poeng',function(){s.p++;lagre();tegn();}));
+      k2.appendChild(document.createTextNode(' '));
+      k2.appendChild(knapp('+2','Gi '+s.navn+' to poeng',function(){s.p+=2;lagre();tegn();}));
+      k2.appendChild(document.createTextNode(' '));
+      k2.appendChild(knapp('-1','Trekk fra ett poeng for '+s.navn,function(){s.p=Math.max(0,s.p-1);lagre();tegn();}));
+      tr.appendChild(n);tr.appendChild(p);tr.appendChild(k2);tb.appendChild(tr);
+    });
+  }
+  function leggTil(){
+    var navn=$('nyttNavn').value.trim();if(!navn)return;
+    sp.push({navn:navn.slice(0,30),p:0});$('nyttNavn').value='';lagre();tegn();$('nyttNavn').focus();
+  }
+  $('leggTil').addEventListener('click',leggTil);
+  $('nyttNavn').addEventListener('keydown',function(e){if(e.key==='Enter')leggTil();});
+  $('nullstill').addEventListener('click',function(){sp.forEach(function(s){s.p=0;});lagre();tegn();});
+  tegn();
+})();
+</script>
+</body>
+</html>
