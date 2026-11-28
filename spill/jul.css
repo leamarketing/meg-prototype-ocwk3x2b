@@ -1,0 +1,37 @@
+/* Felles stil for julespillene i Spill for familie og venner. Ingen animasjon i løkke, mørk modus sparer strøm. */
+:root{
+  --bg:#f8f6f1; --card:#ffffff; --ink:#1d2430; --muted:#5a6372; --line:#e3e1da;
+  --accent:#a4282c; --accent-ink:#ffffff; --green:#2c6a4f; --green-soft:#e2f0e8; --chip:#f3efe6; --ok:#2e7d4f; --feil:#a33a3a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161c; --card:#1a2029; --ink:#e8ebef; --muted:#a3acb9; --line:#2c3440;
+    --accent:#f08f8a; --accent-ink:#1a1010; --green:#86d1ae; --green-soft:#1b3328; --chip:#222b36; --ok:#6cc792; --feil:#e58a8a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161c; --card:#1a2029; --ink:#e8ebef; --muted:#a3acb9; --line:#2c3440;
+  --accent:#f08f8a; --accent-ink:#1a1010; --green:#86d1ae; --green-soft:#1b3328; --chip:#222b36; --ok:#6cc792; --feil:#e58a8a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 64px}
+.tilbake{display:inline-block;margin-bottom:12px;color:var(--green)}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 6px;color:var(--accent)}
+h2{font-size:1.2rem;margin:0 0 8px}
+.lead{color:var(--muted);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+.small{font-size:.88rem;color:var(--muted)}
+button{font:inherit;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:11px 16px;cursor:pointer;min-height:44px}
+button.stille{background:var(--chip);color:var(--ink);border:1px solid var(--line)}
+button[disabled]{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+input[type=text],input[type=number],textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+textarea{min-height:140px;resize:vertical}
+label{display:block;font-weight:600;margin:10px 0 4px}
+.rad{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.ok{color:var(--ok);font-weight:700}
+.feil{color:var(--feil);font-weight:700}
+.stort{font-size:2rem;font-weight:800;letter-spacing:.15em;font-family:ui-monospace,Consolas,monospace;word-break:break-all;margin:8px 0}
+a{color:var(--green)}
+.merke{display:inline-block;background:var(--green);color:var(--card);font-weight:700;font-size:.8rem;padding:3px 10px;border-radius:999px;margin-bottom:10px}
