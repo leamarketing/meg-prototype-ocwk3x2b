@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Taleoversetter · Min dag</title>
+<meta name="description" content="Trykk, snakk norsk eller engelsk, og hør oversettelsen lest opp med Lyses stemme.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0d1726">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* En kolonne: to store snakkeknapper øverst, oversettelsen som det største på skjermen, historikk under. Mørk, for reise og kveld. */
+:root {
+  --bg: #0d1726; --panel: #16233a; --line: #2a3b58; --fg: #eef3fb; --muted: #a9b7cc;
+  --no: #3f8fd9; --no-ink: #04121f; --en: #e3b45e; --en-ink: #1c1203; --live: #e2665a;
+  --font: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--fg); margin: 0; }
+body {
+  font-family: var(--font); font-size: 20px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: max(14px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(40px, env(safe-area-inset-bottom, 0px));
+}
+main { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-size: 22px; margin: 0; }
+a { color: var(--fg); }
+.pair { color: var(--muted); font-size: 16px; }
+.speak { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.big {
+  appearance: none; border: 0; border-radius: 22px; cursor: pointer; min-height: 150px; padding: 16px 12px;
+  font: 700 24px/1.2 var(--font); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  touch-action: manipulation; transition: transform .08s ease;
+}
+.big:active { transform: scale(.98); }
+.big:disabled { opacity: .5; }
+.big:focus-visible, button:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+.big small { font-size: 15px; font-weight: 400; opacity: .85; }
+.big svg { width: 38px; height: 38px; }
+#btnNo { background: var(--no); color: var(--no-ink); }
+#btnEn { background: var(--en); color: var(--en-ink); }
+.big.listening { box-shadow: 0 0 0 5px var(--live); }
+.big.listening svg { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.18); } }
+@media (prefers-reduced-motion: reduce) { .big.listening svg { animation: none; } .big { transition: none; } }
+#status { min-height: 1.5em; font-size: 18px; color: var(--muted); text-align: center; }
+#status.live { color: var(--live); font-weight: 700; }
+#status.err { color: var(--en); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.label { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+#heard { font-size: 19px; color: var(--muted); min-height: 1.4em; overflow-wrap: anywhere; }
+#heard.partial { font-style: italic; }
+#result { font-size: 34px; line-height: 1.3; font-weight: 700; min-height: 1.3em; overflow-wrap: anywhere; }
+#result.thinking { color: var(--muted); font-weight: 400; font-size: 24px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  appearance: none; cursor: pointer; border-radius: 14px; border: 2px solid var(--line); background: transparent; color: var(--fg);
+  font: 700 18px/1.2 var(--font); padding: 14px 16px; min-height: 54px; flex: 1 1 auto; touch-action: manipulation; text-align: center; text-decoration: none;
+}
+.btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn:disabled { opacity: .45; cursor: default; }
+textarea {
+  width: 100%; min-height: 96px; resize: vertical; border-radius: 14px; border: 2px solid var(--line);
+  background: var(--bg); color: var(--fg); font: 22px/1.35 var(--font); padding: 12px 14px;
+}
+.hint { font-size: 16px; color: var(--muted); margin: 0; }
+#login { border-color: var(--en); }
+#history { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+#history li { border-top: 1px solid var(--line); padding-top: 10px; display: flex; gap: 10px; align-items: flex-start; }
+#history .txt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+#history .src { font-size: 16px; color: var(--muted); }
+#history .dst { font-size: 20px; font-weight: 700; }
+#history .tag { font-size: 13px; font-weight: 700; border-radius: 6px; padding: 2px 6px; margin-right: 6px; }
+.tag.no { background: var(--no); color: var(--no-ink); }
+.tag.en { background: var(--en); color: var(--en-ink); }
+.again { appearance: none; border: 2px solid var(--line); background: transparent; color: var(--fg); border-radius: 12px; width: 52px; height: 52px; cursor: pointer; flex: none; }
+.again svg { width: 24px; height: 24px; }
+#empty, .foot { color: var(--muted); font-size: 15px; }
+.foot { text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Taleoversetter</h1>
+    <span class="pair">Norsk ⇄ English · <a href="/portal/">Min dag</a></span>
+  </header>
+
+  <section class="card" id="login" hidden>
+    <p class="hint" style="color:var(--fg)">Du må være logget inn i Min dag for å bruke oversetteren.</p>
+    <a class="btn primary" href="/portal/">Logg inn i Min dag</a>
+  </section>
+
+  <section class="speak" aria-label="Snakk">
+    <button class="big" id="btnNo" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 1 0-7 0v6A3.5 3.5 0 0 0 12 15Zm6-3.5a1 1 0 1 0-2 0 4 4 0 0 1-8 0 1 1 0 1 0-2 0 6 6 0 0 0 5 5.9V20H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-2.6a6 6 0 0 0 5-5.9Z"/></svg>
+      <span id="lblNo">Jeg snakker norsk</span><small id="subNo">blir til engelsk</small>
+    </button>
+    <button class="big" id="btnEn" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 1 0-7 0v6A3.5 3.5 0 0 0 12 15Zm6-3.5a1 1 0 1 0-2 0 4 4 0 0 1-8 0 1 1 0 1 0-2 0 6 6 0 0 0 5 5.9V20H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-2.6a6 6 0 0 0 5-5.9Z"/></svg>
+      <span id="lblEn">They speak English</span><small id="subEn">becomes Norwegian</small>
+    </button>
+  </section>
+
+  <div id="status" role="status" aria-live="polite">Trykk på en knapp og snakk.</div>
+
+  <section class="card" aria-label="Oversettelse">
+    <div class="label" id="heardLabel">Hørt</div>
+    <div id="heard">Her ser du det som ble hørt.</div>
+    <div class="label" id="resultLabel">Oversettelse</div>
+    <div id="result">Her kommer oversettelsen, med stor skrift.</div>
+    <div class="row">
+      <button class="btn primary" id="btnReplay" type="button" disabled>🔊 Les høyt igjen</button>
+      <button class="btn" id="btnStop" type="button" hidden>Stopp</button>
+    </div>
+  </section>
+
+  <section class="card" aria-label="Skriv i stedet">
+    <div class="label">Skriv i stedet / Type instead</div>
+    <p class="hint" id="typeHint">Virker ikke mikrofonen? Trykk i feltet, så på mikrofonen på tastaturet, og snakk.</p>
+    <textarea id="typed" maxlength="500" placeholder="Skriv eller snakk her …" aria-label="Tekst som skal oversettes"></textarea>
+    <div class="row">
+      <button class="btn" id="goEn" type="button">Norsk → English</button>
+      <button class="btn" id="goNo" type="button">English → Norsk</button>
+    </div>
+  </section>
+
+  <section class="card" aria-label="Historikk">
+    <div class="label">Siste oversettelser</div>
+    <ul id="history"></ul>
+    <div id="empty">Ingen ennå.</div>
+    <div class="row"><button class="btn" id="btnClear" type="button" hidden>Tøm historikken</button></div>
+  </section>
+
+  <p class="foot">Stemmen er Lyse. Historikken lagres bare på denne telefonen. Ingen sporing.</p>
+</main>
+
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script defer src="/portal/supabase-public.js"></script>
+<script defer src="/lib/meg-konto.js?v=2026-11-22b"></script>
+<script defer src="oversetter.js?v=2026-11-27"></script>
+</body>
+</html>
