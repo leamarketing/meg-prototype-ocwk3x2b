@@ -1,0 +1,4 @@
+Figurene i denne mappen (nisse, rein, slede, gave, juletre, snomann, stjerne, bjelle, pepperkake) er fra OpenMoji 15.0.0.
+All emojis designed by OpenMoji - the open-source emoji and icon project. License: CC BY-SA 4.0
+https://openmoji.org  https://creativecommons.org/licenses/by-sa/4.0/
+Hentet 28.11.2026 fra cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/. Figurene er ikke endret.
